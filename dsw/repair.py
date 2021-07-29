@@ -131,8 +131,8 @@ def check_repairability(graph, oligo, index_queue, occur_location, original_nucl
                     if occur_location + observed_length < len(oligo):
                         remain = len(oligo) - (occur_location + observed_length)
                         print("           [" + "*" * (occur_location + index) + segment[index]
-                              + "*" * (remain + len(segment) - index - 1) + "]" +
-                              " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
+                              + "*" * (remain + len(segment) - index - 1) + "]"
+                              + " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
                     else:
                         print("           [" + "*" * (occur_location + index) + segment[index] + "]"
                               + " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
