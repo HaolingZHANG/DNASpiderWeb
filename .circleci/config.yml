@@ -42,7 +42,7 @@ jobs:
           name: install from pypi
           command: |
             . venv/bin/activate
-            pip install Chamaeleo
+            pip install pycodestyle
 
       - run:
           name: check style
