@@ -31,8 +31,8 @@ def repair_oligo(graph, oligo, start_index, need_logs):
         except ValueError:
             if need_logs:
                 carbon_options, silicon_options = obtain_current(graph=graph, vertex_index=index_queue[-1])
-                print("error occur in position " + str(index) + ", found " + oligo[index] +
-                      " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
+                print("error occur in position " + str(index) + ", found " + oligo[index]
+                      + " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
             repaired_oligos = []
 
             # probe search
@@ -40,8 +40,8 @@ def repair_oligo(graph, oligo, start_index, need_logs):
                 carbon_options, silicon_options = obtain_current(graph=graph, vertex_index=index_queue[index])
                 print("-" * 50)
                 print("Probe (0) search error.")
-                print("Check position = " + oligo[index] + " | " + str(index) + ", found " + oligo[index] +
-                      " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
+                print("Check position = " + oligo[index] + " | " + str(index) + ", found " + oligo[index]
+                      + " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
             probe_oligos = check_repairability(graph=graph, oligo=oligo, index_queue=index_queue,
                                                occur_location=index, original_nucleotide=oligo[index],
                                                need_logs=need_logs)
@@ -115,11 +115,11 @@ def check_repairability(graph, oligo, index_queue, occur_location, original_nucl
             print("Replace " + original_nucleotide + " to " + replace_nucleotide)
             if occur_location + observed_length < len(oligo):
                 remain = len(oligo) - (occur_location + observed_length)
-                print("         = [" + "*" * occur_location + segment + "*" * remain + "]" +
-                      " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
+                print("         = [" + "*" * occur_location + segment + "*" * remain + "]"
+                      + " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
             else:
-                print("         = [" + "*" * occur_location + segment + "]" +
-                      " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
+                print("         = [" + "*" * occur_location + segment + "]"
+                      + " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
 
         vertex_index, reliable = index_queue[occur_location], True
         for index, nucleotide in enumerate(segment):
@@ -130,12 +130,12 @@ def check_repairability(graph, oligo, index_queue, occur_location, original_nucl
                     carbon_options, silicon_options = obtain_current(graph=graph, vertex_index=vertex_index)
                     if occur_location + observed_length < len(oligo):
                         remain = len(oligo) - (occur_location + observed_length)
-                        print("           [" + "*" * (occur_location + index) + segment[index] +
-                              "*" * (remain + len(segment) - index - 1) + "]" +
+                        print("           [" + "*" * (occur_location + index) + segment[index]
+                              + "*" * (remain + len(segment) - index - 1) + "]" +
                               " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
                     else:
-                        print("           [" + "*" * (occur_location + index) + segment[index] + "]" +
-                              " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
+                        print("           [" + "*" * (occur_location + index) + segment[index] + "]"
+                              + " | " + str(carbon_options).replace("\'", "") + ", " + str(silicon_options))
                 vertex_index = graph[vertex_index][n_system.index(nucleotide)]
             except ValueError:
                 reliable = False

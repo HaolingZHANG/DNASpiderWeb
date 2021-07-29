@@ -75,8 +75,8 @@ def connect_graph(length, vertices, threshold, save_path=None):
                 monitor.output(current + 1, len(saved_indices))
 
             changed = numpy.sum(vertices) - numpy.sum(new_vertices)
-            print(str(round(numpy.sum(new_vertices) / len(vertices) * 100, 2)) + "% (" + str(numpy.sum(new_vertices)) +
-                  ") valid vertices are saved.")
+            print(str(round(numpy.sum(new_vertices) / len(vertices) * 100, 2)) + "% (" + str(numpy.sum(new_vertices))
+                  + ") valid vertices are saved.")
 
             if not changed or numpy.sum(new_vertices) == 0:
                 break
