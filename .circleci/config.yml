@@ -42,7 +42,7 @@ jobs:
           name: install from pypi
           command: |
             . venv/bin/activate
-            pip install pycodestyle
+            pip install pycodestyle, nose
 
       - run:
           name: check style
