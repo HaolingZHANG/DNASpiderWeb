@@ -28,7 +28,7 @@ def example():
         repaired_oligos = repair_oligo(graph=graph, oligo=wrong_oligo, start_index=start_index, need_logs=True)
         print("Repaired:")
         for repaired_oligo in repaired_oligos:
-            print("       " + repaired_oligo + " | right? " + str(repaired_oligo == right_oligo))
+            print("       " + repaired_oligo + " | repair successfully? " + str(repaired_oligo == right_oligo))
         print()
 
 
