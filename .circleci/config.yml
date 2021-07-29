@@ -28,17 +28,9 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
-          name: install from pypi
-          command: |
-            . venv/bin/activate
-            pip install DNASpiderWeb
-
-      - run:
           name: check style
           command: |
-            . venv/bin/activate
             pycodestyle --ignore=E501,E203,E731,W503,W292 *.py */*py
-            pip install .
 
       - run:
           name: run tests
