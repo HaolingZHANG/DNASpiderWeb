@@ -11,7 +11,8 @@ class TestNumber(TestCase):
     def setUp(self):
         random.seed(2021)
         self.oligo_length = 10
-        self.test_oligo_groups = [["ACGT"[random.randint(0, 3)] for _ in range(self.oligo_length)] for _ in range(10)]
+        self.test_oligo_groups = ["".join(["ACGT"[random.randint(0, 3)] for _ in range(self.oligo_length)])
+                                  for _ in range(10)]
         self.verify_numbers = [937770, 807052, 502551, 991128, 88040, 531838, 908835, 656257, 889866, 144398]
 
     def test(self):
