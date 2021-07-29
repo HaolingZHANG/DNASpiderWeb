@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/HaolingZHANG/DNASpiderWeb/blob/master/logo.svg" alt="DNA Spider-Web" title="DNASpiderWeb" width="20%"/>
+<img src="logo.svg" alt="DNA Spider-Web" title="DNASpiderWeb" width="40%"/>
 </p>
 
 ---
