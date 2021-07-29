@@ -8,8 +8,8 @@ from dsw.screen import LocalScreen
 # Examples of restriction enzymes.
 # Roberts, R. J. (1983). Nucleic acids research.
 cut_segments = [
-    "GACGC",  # HgaI: Haemophilus gallinarum
-    "AGCT",  # AluI*： Arthrobacter luteus
+    "AGCT",    # AluI*： Arthrobacter luteus
+    "GACGC",   # HgaI: Haemophilus gallinarum
     "GATATC",  # EcoRV*: Escherichia coli
     "CAGCAG",  # EcoP15I: Escherichia coli
     "GGTACC",  # KpnI: Klebsiella pneumoniae
@@ -20,10 +20,10 @@ cut_segments = [
     "ACTAGT",  # SpeI: Sphaerotilus natans
     "GCATGC",  # SphI: Streptomyces phaeochromogenes
     "AGGCCT",  # StuI*: Streptomyces tubercidicus
-    "TCTAGA"  # XbaI: Xanthomonas badrii
+    "TCTAGA"   # XbaI: Xanthomonas badrii
 ]
 
-# similar
+# Similar structure of nucleotide affects Nanopore Sequencing's recognition of it.
 # Derrington, I. M., et al. (2010). Proceedings of the National Academy of Sciences.
 # Wick, R. R., et al. (2019). Genome biology.
 nanopore_segments = [

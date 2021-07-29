@@ -97,5 +97,5 @@ if __name__ == "__main__":
 
         m1, s = read_bits_from_file(path="../logo.svg", segment_length=120)
         m2 = transcode(graph=g, start_index=si, matrix=m1)
-        write_bits_to_file(path="../outputs/logo " + str(screen_index) + ".svg", matrix=m2, bit_size=s)
+        write_bits_to_file(path="../outputs/logo" + str(screen_index) + ".svg", matrix=m2, bit_size=s)
         print()
