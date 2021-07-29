@@ -49,7 +49,6 @@ jobs:
           command: |
             . venv/bin/activate
             pycodestyle --ignore=E501,E203,E731,W503,W292 *.py */*py
-            pip install .
 
       # run tests!
       # this example uses Django's built-in test-runner
