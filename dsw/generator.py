@@ -7,14 +7,14 @@ from dsw import n_system
 from dsw.monitor import Monitor
 
 
-def find_vertices(length, screen, save_path=None):
+def find_vertices(length, bio_filter, save_path=None):
     """
     Find original valid vertices based on the given constraints.
 
     :param length: length of the oligo in a vertex.
     :type length: int
-    :param screen: screening operation for identifying the valid oligo (required the given constraints).
-    :type screen: dsw.screen.DefaultScreen
+    :param bio_filter: screening operation for identifying the valid oligo (required the given constraints).
+    :type bio_filter: dsw.biofilter.DefaultBioFilter
     :param save_path: path to save file.
     :type save_path: str
 
@@ -28,7 +28,7 @@ def find_vertices(length, screen, save_path=None):
     else:
         print("Find valid vertices in this length of oligo.")
         for vertex_index in range(len(vertices)):
-            vertices[vertex_index] = screen.valid(oligo=obtain_oligo(decimal_number=vertex_index, length=length))
+            vertices[vertex_index] = bio_filter.valid(oligo=obtain_oligo(decimal_number=vertex_index, length=length))
             monitor.output(vertex_index + 1, len(vertices))
 
         if save_path is not None:

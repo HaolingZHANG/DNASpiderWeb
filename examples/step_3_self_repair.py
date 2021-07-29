@@ -4,16 +4,17 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 import os
 import random
 import numpy
+from collections import Counter
 from dsw import b_system
-from dsw.algorithm import encode
-from dsw.repair import repair_oligo
+from dsw.coder import encode
+from dsw.repairer import repair_oligo
 from dsw.monitor import Monitor
 
 
 def example():
     print("Case estimate the graph created by screening 1.")
-    vertices = numpy.load(file="../outputs/screen1[vertices].npy")
-    graph = numpy.load(file="../outputs/screen1[graph].npy")
+    vertices = numpy.load(file="../outputs/constraint1[vertices].npy")
+    graph = numpy.load(file="../outputs/constraint1[graph].npy")
     start_index = numpy.where(vertices == 1)[0][0]
     bits = b_system * 20
     wrong_location = 12
@@ -41,8 +42,8 @@ def totally():
     for screen_index in [1, 2, 3, 4, 5, 6]:
         if not os.path.exists("../outputs/recover" + str(screen_index) + ".npy"):
             print("Totally estimate the graph created by screening " + str(screen_index) + ".")
-            vertices = numpy.load(file="../outputs/screen" + str(screen_index) + "[vertices].npy")
-            graph = numpy.load(file="../outputs/screen" + str(screen_index) + "[graph].npy")
+            vertices = numpy.load(file="../outputs/constraint" + str(screen_index) + "[vertices].npy")
+            graph = numpy.load(file="../outputs/constraint" + str(screen_index) + "[graph].npy")
 
             start_indices = numpy.where(vertices == 1)[0]
             results = numpy.zeros(shape=(len(start_indices), times * 3))
@@ -66,6 +67,16 @@ def totally():
             numpy.save(file="../outputs/recover" + str(screen_index) + ".npy", arr=results)
 
 
+def analyze():
+    for screen_index in [1, 2, 3, 4, 5, 6]:
+        repaired_results = numpy.load(file="../outputs/recover" + str(screen_index) + ".npy")
+        repaired_results = repaired_results.reshape(-1)
+        counter = Counter(repaired_results.tolist())
+        print(counter)
+    exit(121)
+
+
 if __name__ == "__main__":
     example()
     totally()
+    analyze()

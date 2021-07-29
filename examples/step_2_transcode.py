@@ -5,7 +5,7 @@ import os
 import math
 import struct
 import numpy
-from dsw.algorithm import encode, decode
+from dsw.coder import encode, decode
 from dsw.monitor import Monitor
 
 
@@ -91,9 +91,9 @@ def transcode(graph, start_index, matrix):
 
 if __name__ == "__main__":
     for screen_index in [1, 2, 3, 4, 5, 6]:
-        vertices = numpy.load(file="../outputs/screen" + str(screen_index) + "[vertices].npy")
+        vertices = numpy.load(file="../outputs/constraint" + str(screen_index) + "[vertices].npy")
         si = numpy.random.choice(numpy.where(vertices == 1)[0])
-        g = numpy.load(file="../outputs/screen" + str(screen_index) + "[graph].npy")
+        g = numpy.load(file="../outputs/constraint" + str(screen_index) + "[graph].npy")
 
         m1, s = read_bits_from_file(path="../logo.svg", segment_length=120)
         m2 = transcode(graph=g, start_index=si, matrix=m1)

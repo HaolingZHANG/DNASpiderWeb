@@ -3,7 +3,7 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 import random
 from unittest import TestCase
-from dsw.algorithm import to_number, to_bits
+from dsw.coder import to_number, to_bits
 
 
 class TestNumber(TestCase):

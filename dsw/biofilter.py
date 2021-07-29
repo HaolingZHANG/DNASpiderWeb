@@ -1,7 +1,7 @@
 __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
-class DefaultScreen(object):
+class DefaultBioFilter(object):
 
     def __init__(self, screen_name):
         """
@@ -27,7 +27,7 @@ class DefaultScreen(object):
         raise NotImplementedError
 
 
-class LocalScreen(DefaultScreen):
+class LocalBioFilter(DefaultBioFilter):
 
     def __init__(self, max_homopolymer_runs=None, max_gc_bias=None, ignore_motifs=None):
         """

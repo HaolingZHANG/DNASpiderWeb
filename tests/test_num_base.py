@@ -3,7 +3,7 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 import random
 from unittest import TestCase
-from dsw.generate import obtain_number, obtain_oligo
+from dsw.generator import obtain_number, obtain_oligo
 
 
 class TestNumber(TestCase):
