@@ -1,1 +1,1 @@
-You can generate the results yourself (step 1-3 in exmaple folder), it only takes about several hours.
+You can generate the results by yourself (step 2-4 in example folder), it only takes several hours.

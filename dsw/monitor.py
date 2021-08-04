@@ -14,11 +14,12 @@ class Monitor:
         Output the current state of process.
 
         :param current_state: current state of process.
-        :param total_state: total state of process.
-        :param extra: extra vision information if required.
-
         :type current_state: int
+
+        :param total_state: total state of process.
         :type total_state: int
+
+        :param extra: extra vision information if required.
         :type extra: dict
         """
         if self.last_time is None:

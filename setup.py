@@ -14,7 +14,7 @@ setup(
     author_email="zhanghaoling@genomics.cn",
     url="https://github.com/HaolingZHANG/DNASpiderWeb",
     packages=["dsw"],
-    install_requires=["numpy"],
+    install_requires=["numpy", "matplotlib"],
     license="MIT",
     classifiers=["License :: OSI Approved :: MIT License",
                  "Programming Language :: Python :: 3",

@@ -129,5 +129,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-/outputs/
-!/outputs/*.md
+*.npy
+/outputs/*svg

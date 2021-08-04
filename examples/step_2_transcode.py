@@ -2,100 +2,79 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
 import os
-import math
-import struct
+import random
 import numpy
-from dsw.coder import encode, decode
+from dsw.coder import encode, decode, obtain_fixed_length
 from dsw.monitor import Monitor
 
 
-def read_bits_from_file(path, segment_length=120):
-    monitor = Monitor()
+def transcode(name, graph, start_indices, bit_length, test_time, fixed_length=None):
+    """
+    Run the encoding and decoding pipeline.
 
-    with open(path, mode="rb") as file:
-        print("Read binary matrix from file: " + path)
+    :param name: name of this graph coder.
+    :type name: str
 
-        size = os.path.getsize(path)
+    :param graph: graph of DNA Spider-Web.
+    :type graph: numpy.ndarray
 
-        if segment_length > 0:
-            # Set init storage matrix
-            matrix = [[0 for _ in range(segment_length)] for _ in range(math.ceil(size * 8 / segment_length))]
+    :param start_indices: virtual vertices to start decoding (consistent with the encoding process).
+    :type start_indices: list
 
-            row = 0
-            col = 0
-            for byte_index in range(size):
-                # Read a file as bytes
-                one_byte = file.read(1)
-                element = list(map(int, list(str(bin(struct.unpack("B", one_byte)[0]))[2:].zfill(8))))
-                for bit_index in range(8):
-                    matrix[row][col] = element[bit_index]
-                    col += 1
-                    if col == segment_length:
-                        col = 0
-                        row += 1
-                monitor.output(byte_index + 1, size)
-        else:
-            matrix = []
-            for byte_index in range(size):
-                # Read a file as bytes
-                one_byte = file.read(1)
-                matrix += list(map(int, list(str(bin(struct.unpack("B", one_byte)[0]))[2:].zfill(8))))
+    :param bit_length: length of bit array.
+    :type bit_length: int
 
-            matrix = [matrix]
+    :param test_time: transcoding test iteration.
+    :type test_time: int
 
-    return matrix, size * 8
+    :param fixed_length: length of oligo (it is required for fixed-length coder).
+    :type fixed_length: int
 
+    :raise: ValueError, if encode bit matrix is not equal to decoded bit matrix.
 
-def write_bits_to_file(path, matrix, bit_size):
-    monitor = Monitor()
+    :returns: decoded bit matrix and nucleotide number during encoding process.
+    :rtype: tuple
+    """
+    random.seed(2021)
+    encoded_matrix = [[random.randint(0, 1) for _ in range(bit_length)] for _ in range(test_time)]
 
-    with open(path, "wb+") as file:
-        print("Write file from binary matrix: " + path)
+    print("Evaluate " + name + ".")
+    monitor, nucleotide_numbers = Monitor(), []
+    for current, start_index in enumerate(start_indices):
+        oligos, nucleotide_number = [], 0
+        for bits in encoded_matrix:
+            oligo = encode(bits=bits, graph=graph, start_index=start_index, length=fixed_length)
+            nucleotide_number += len(oligo)
+            oligos.append(oligo)
 
-        byte_size = int(bit_size / 8)
-        # Change bit to byte (8 -> 1), and write a file as bytes
-        bit_index = 0
-        temp_byte = 0
-        for row in range(len(matrix)):
-            for col in range(len(matrix[0])):
-                bit_index += 1
-                temp_byte *= 2
-                temp_byte += matrix[row][col]
-                if bit_index == 8:
-                    if byte_size > 0:
-                        file.write(struct.pack("B", int(temp_byte)))
-                        bit_index = 0
-                        temp_byte = 0
-                        byte_size -= 1
-            monitor.output(row + 1, len(matrix))
+        nucleotide_numbers.append(nucleotide_number)
 
-    return True
+        decoded_matrix = []
+        for oligo in oligos:
+            decoded_matrix.append(decode(oligo=oligo, bit_length=bit_length, graph=graph, start_index=start_index))
 
+        if encoded_matrix != decoded_matrix:
+            raise ValueError("Encode matrix is not equal to decoded matrix!")
 
-def transcode(graph, start_index, matrix):
-    monitor = Monitor()
-    print("Encode by graph")
-    oligos = []
-    for index, bits in enumerate(matrix):
-        oligos.append(encode(bits=bits, graph=graph, start_index=start_index))
-        monitor.output(index + 1, len(matrix))
+        monitor.output(current + 1, len(start_indices))
 
-    print("Decode by graph")
-    matrix = []
-    for index, oligo in enumerate(oligos):
-        matrix.append(decode(oligo=oligo, bit_length=120, graph=graph, start_index=start_index))
-        monitor.output(index + 1, len(oligos))
-
-    return matrix
+    return nucleotide_numbers
 
 
 if __name__ == "__main__":
-    for screen_index in [1, 2, 3, 4, 5, 6]:
-        vertices = numpy.load(file="../outputs/constraint" + str(screen_index) + "[vertices].npy")
-        si = numpy.random.choice(numpy.where(vertices == 1)[0])
-        g = numpy.load(file="../outputs/constraint" + str(screen_index) + "[graph].npy")
+    l, t = 100, 100
+    for index in [1, 2, 3, 4, 5, 6]:
+        if not os.path.exists("../outputs/FLC-" + str(index) + " transcode.npy"):
+            g = numpy.load(file="../entities/FLC" + str(index) + "[graph].npy")
+            v = numpy.where(numpy.load(file="../entities/FLC" + str(index) + "[vertices].npy") == 1)[0]
+            numbers = transcode(name="FLC-" + str(index), graph=g, start_indices=v, bit_length=l, test_time=t,
+                                fixed_length=obtain_fixed_length(graph=g, name="FLC-" + str(index), bit_length=l))
+            numbers = (10000 / numpy.array(numbers)) / 2
+            numpy.save(file="../outputs/FLC-" + str(index) + " transcode.npy", arr=numbers)
 
-        m1, s = read_bits_from_file(path="../logo.svg", segment_length=120)
-        m2 = transcode(graph=g, start_index=si, matrix=m1)
-        write_bits_to_file(path="../outputs/logo" + str(screen_index) + ".svg", matrix=m2, bit_size=s)
-        print()
+        if not os.path.exists("../outputs/VLC-" + str(index) + " transcode.npy"):
+            g = numpy.load(file="../entities/VLC" + str(index) + "[graph].npy")
+            v = numpy.where(numpy.load(file="../entities/VLC" + str(index) + "[vertices].npy") == 1)[0]
+            numbers = transcode(name="VLC-" + str(index), graph=g, start_indices=v, bit_length=l, test_time=t)
+            numbers = (10000 / numpy.array(numbers)) / 2
+            numpy.save(file="../outputs/VLC-" + str(index) + " transcode.npy", arr=numbers)

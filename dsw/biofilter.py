@@ -24,7 +24,7 @@ class DefaultBioFilter(object):
         :return: judgement.
         :rtype: bool
         """
-        raise NotImplementedError
+        raise NotImplementedError("This interface \"def valid(oligo)\" needs to be implemented.")
 
 
 class LocalBioFilter(DefaultBioFilter):
@@ -36,9 +36,13 @@ class LocalBioFilter(DefaultBioFilter):
         :param max_homopolymer_runs: maximum homopolymer runs.
         If it is 1, "AA", "CC", "GG", "TT" cannot be included in tue valid oligos.
         :type max_homopolymer_runs: int
+        |cite| Nick Goldman et al. (2013) Nature
+
         :param max_gc_bias: maximum GC content bias.
         If it is 0.1, the GC content of valid oligos must between 40% and 60%.
         :type max_gc_bias: float
+        |cite| Yaniv Erlich and Dina Zielinski (2017) Science
+
         :param ignore_motifs: DNA motifs to ignore, like restriction enzyme sites or low compatibility DNA segment.
         If "ACA" in this parameters,  "ACA" cannot be included in tue valid oligos.
         :type ignore_motifs: list

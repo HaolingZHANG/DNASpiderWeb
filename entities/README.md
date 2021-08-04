@@ -1,0 +1,1 @@
+You can generate the results (360MB) by yourself (as step 1 in example folder), it only takes several minutes.
