@@ -8,7 +8,7 @@ from dsw.coder import encode, decode, obtain_fixed_length
 from dsw.monitor import Monitor
 
 
-def transcode(name, graph, start_indices, bit_length, test_time, fixed_length=None):
+def transcode(name, graph, start_indices, task_seed, bit_length, test_time, fixed_length=None):
     """
     Run the encoding and decoding pipeline.
 
@@ -20,6 +20,9 @@ def transcode(name, graph, start_indices, bit_length, test_time, fixed_length=No
 
     :param start_indices: virtual vertices to start decoding (consistent with the encoding process).
     :type start_indices: list
+
+    :param task_seed: task seed for random generating the bit matrix.
+    :type task_seed: int
 
     :param bit_length: length of bit array.
     :type bit_length: int
@@ -35,7 +38,7 @@ def transcode(name, graph, start_indices, bit_length, test_time, fixed_length=No
     :returns: decoded bit matrix and nucleotide number during encoding process.
     :rtype: tuple
     """
-    random.seed(2021)
+    random.seed(task_seed)
     encoded_matrix = [[random.randint(0, 1) for _ in range(bit_length)] for _ in range(test_time)]
 
     print("Evaluate " + name + ".")
@@ -54,7 +57,7 @@ def transcode(name, graph, start_indices, bit_length, test_time, fixed_length=No
             decoded_matrix.append(decode(oligo=oligo, bit_length=bit_length, graph=graph, start_index=start_index))
 
         if encoded_matrix != decoded_matrix:
-            raise ValueError("Encode matrix is not equal to decoded matrix!")
+            raise ValueError("Encoded matrix is not equal to decoded matrix!")
 
         monitor.output(current + 1, len(start_indices))
 
@@ -67,14 +70,16 @@ if __name__ == "__main__":
         if not os.path.exists("../outputs/FLC-" + str(index) + " transcode.npy"):
             g = numpy.load(file="../entities/FLC" + str(index) + "[graph].npy")
             v = numpy.where(numpy.load(file="../entities/FLC" + str(index) + "[vertices].npy") == 1)[0]
-            numbers = transcode(name="FLC-" + str(index), graph=g, start_indices=v, bit_length=l, test_time=t,
+            numbers = transcode(name="FLC-" + str(index), graph=g, start_indices=v,
+                                task_seed=2021, bit_length=l, test_time=t,
                                 fixed_length=obtain_fixed_length(graph=g, name="FLC-" + str(index), bit_length=l))
-            numbers = (10000 / numpy.array(numbers)) / 2
+            numbers = ((l * t) / numpy.array(numbers)) / 2
             numpy.save(file="../outputs/FLC-" + str(index) + " transcode.npy", arr=numbers)
 
         if not os.path.exists("../outputs/VLC-" + str(index) + " transcode.npy"):
             g = numpy.load(file="../entities/VLC" + str(index) + "[graph].npy")
             v = numpy.where(numpy.load(file="../entities/VLC" + str(index) + "[vertices].npy") == 1)[0]
-            numbers = transcode(name="VLC-" + str(index), graph=g, start_indices=v, bit_length=l, test_time=t)
-            numbers = (10000 / numpy.array(numbers)) / 2
+            numbers = transcode(name="VLC-" + str(index), graph=g, start_indices=v,
+                                task_seed=2021, bit_length=l, test_time=t)
+            numbers = ((l * t) / numpy.array(numbers)) / 2
             numpy.save(file="../outputs/VLC-" + str(index) + " transcode.npy", arr=numbers)

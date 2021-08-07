@@ -7,7 +7,7 @@ from matplotlib import pyplot
 from dsw.generator import find_vertices
 from dsw.generator import connect_default_graph, connect_fixed_graph, connect_variable_graph
 from dsw.biofilter import LocalBioFilter
-from examples import colors
+from pipelines import colors
 
 # Examples of restriction enzymes.
 # Richard J. Roberts (1983) Nucleic Acids Research

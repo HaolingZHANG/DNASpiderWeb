@@ -2,6 +2,7 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
 import os
+import math
 import numpy
 from dsw import n_system
 from dsw.monitor import Monitor
@@ -58,6 +59,9 @@ def connect_default_graph(length, vertices, save_path=None):
     :type save_path: str
 
     :return: default graph of DNA Spider-Web.
+    The element of graph structure is:
+    [latter index 1 (A), latter index 2 (C), latter index 2 (G), latter index 2 (T)]
+    And the index of element is the current vertex index.
     :rtype: numpy.ndarray
     """
     if save_path is not None and os.path.exists(save_path + "[graph].npy"):
@@ -98,6 +102,9 @@ def connect_fixed_graph(length, vertices, save_path=None):
     :type save_path: str
 
     :return: fixed graph of DNA Spider-Web.
+    The element of graph structure is:
+    [latter index 1 (A), latter index 2 (C), latter index 2 (G), latter index 2 (T)]
+    And the index of element is the current vertex index.
     :rtype: numpy.ndarray
     """
     if save_path is not None and os.path.exists(save_path + "[graph].npy"):
@@ -216,6 +223,9 @@ def connect_variable_graph(length, vertices, threshold, save_path=None):
     :type save_path: str
 
     :return: variable graph of DNA Spider-Web.
+    The element of graph structure is:
+    [latter index 1 (A), latter index 2 (C), latter index 2 (G), latter index 2 (T)]
+    And the index of element is the current vertex index.
     :rtype: numpy.ndarray
     """
     if save_path is not None and os.path.exists(save_path + "[graph].npy"):
@@ -342,3 +352,68 @@ def obtain_latters(current, length):
         latter = int((current * len(n_system) + latter_value) % (len(n_system) ** length))
         latters.append(latter)
     return latters
+
+
+def to_adjacency_matrix(graph, maximum_length=8, need_log=False):
+    """
+    Transform the graph of DNA Spider-Web (compressed) to an adjacency matrix of the uncompressed graph.
+
+    :param graph: graph of DNA Spider-Web.
+    :type: numpy.ndarray
+
+    :param maximum_length: maximum vertex length (like 8 in general) of the adjacency matrix (size is (4^l)^2).
+    :type maximum_length: int
+
+    :param need_log: need to print log.
+    :type need_log: bool
+
+    :raise MemoryError: when you generate a large adjacency matrix that your memory cannot allocate.
+    :raise ValueError: when you input a graph of DNA Spider-Web with wrong format.
+
+    :return: adjacency matrix of the uncompressed graph.
+    :rtype: numpy.ndarray
+    """
+    if len(graph) >= 4 ** maximum_length:
+        raise MemoryError("Unable to allocate adjacency matrix when length of oligo (vertex) is more than 7.")
+    if graph.shape[1] != len(n_system) or numpy.min(graph) < -1 or numpy.max(graph) > len(graph) - 1:
+        raise ValueError("Wrong format in the graph of DNA Spider-Web")
+
+    matrix, monitor = numpy.zeros(shape=(len(graph), len(graph)), dtype=numpy.int), Monitor()
+    for vertex_index, vertex in enumerate(graph):
+        matrix[vertex_index][vertex[vertex >= 0]] = 1
+
+        if need_log:
+            monitor.output(vertex_index + 1, len(graph))
+
+    return matrix
+
+
+def to_graph(matrix, need_log=False):
+    """
+    Transform the adjacency matrix of the uncompressed graph to a graph of DNA Spider-Web (compressed).
+
+    :param matrix: adjacency matrix of the uncompressed graph of DNA Spider-Web.
+    :type matrix: numpy.ndarray
+
+    :param need_log: need to print log.
+    :type need_log: bool
+
+    :raise ValueError: when you input an adjacency matrix with wrong format.
+
+    :return: equivalent (compressed) graph of DNA Spider-Web. (compress rate = len(n_system) / len(matrix))
+    :rtype: numpy.ndarray
+    """
+    graph, monitor = -numpy.ones(shape=(len(matrix), len(n_system)), dtype=numpy.int), Monitor()
+    for vertex_index, vertex in enumerate(matrix):
+        next_indices = numpy.where(vertex == 1)[0].tolist()
+        reference_latters = obtain_latters(current=vertex_index, length=int(math.log(len(matrix), len(n_system))))
+        if list(set(next_indices) | set(reference_latters)) != reference_latters:
+            raise ValueError("Wrong format in the adjacency matrix, "
+                             + "which cannot be converted to equivalent compressed graph of DNA Spider-Web")
+        saved_information = [index if index in next_indices else -1 for index in reference_latters]
+        graph[vertex_index] = saved_information
+
+        if need_log:
+            monitor.output(vertex_index + 1, len(matrix))
+
+    return graph
