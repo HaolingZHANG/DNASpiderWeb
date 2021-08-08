@@ -8,7 +8,7 @@ from dsw import n_system
 
 def approximate_upper_bound(graph):
     """
-    Compute capacity of the specific graph through Perron–Frobenius theorem: lambda_max(graph).
+    Approximate capacity of the specific graph through Perron–Frobenius theorem: lambda_max(graph).
     |cite| Oskar Perron (1907) Mathematische Annalen
     |cite| Georg Frobenius (1912) Sitzungsberichte der Königlich Preussischen Akademie der Wissenschaften
     |cite| Brian H. Marcus et al. (2001) Lecture notes
@@ -32,7 +32,7 @@ def approximate_upper_bound(graph):
         for vertex_index, vertex in enumerate(graph):
             eigenvector[vertex_index] = numpy.sum(last_eigenvector[vertex[vertex >= 0]])
         eigenvalue = numpy.max(eigenvector)
-        eigenvector = eigenvector / numpy.max(eigenvector)
+        eigenvector = eigenvector / eigenvalue
         if last_eigenvalue is not None:
             if abs(eigenvalue - last_eigenvalue) < 1e-12:
                 # logarithm of the maximum output degree (if degenerate nucleotides are not considered, it is 4).
