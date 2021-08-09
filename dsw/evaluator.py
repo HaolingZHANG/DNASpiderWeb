@@ -26,17 +26,15 @@ def approximate_upper_bound(graph):
     # approximate dominant (or maximum) eigenvalue by Von Mises iteration (also known as the power method).
     # |cite| Richard von Mises et al. (1929) Zeitschrift für Angewandte Mathematik und Mechanik
     # |cite| Qingkai Kong et al. (2020) Academic Press
-    last_eigenvector, last_eigenvalue = numpy.ones(shape=(len(graph),), dtype=numpy.float), -math.inf
+    last_eigenvector, last_eigenvalue = numpy.ones(shape=(len(graph),), dtype=numpy.float), 0.0
     while True:
         eigenvector = numpy.zeros_like(last_eigenvector)
         for positions in graph.T:
             eigenvector[numpy.where(positions >= 0)] += last_eigenvector[positions[positions >= 0]]
-
         eigenvalue = numpy.max(eigenvector)
         eigenvector = eigenvector / eigenvalue
-        if last_eigenvalue is not None:
-            if abs(eigenvalue - last_eigenvalue) < 1e-12:
-                # logarithm of the maximum output degree (if degenerate nucleotides are not considered, it is 4).
-                return math.log(eigenvalue, len(n_system))
+        if abs(eigenvalue - last_eigenvalue) < 1e-12:
+            # logarithm of the maximum output degree (if degenerate nucleotides are not considered, it is 4).
+            return math.log(eigenvalue, len(n_system))
 
         last_eigenvalue, last_eigenvector = eigenvalue, eigenvector
