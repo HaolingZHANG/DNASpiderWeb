@@ -113,7 +113,7 @@ def display():
             pyplot.hlines(value, -0.5, 2.5, color="silver", linewidth=0.5, linestyle="--", zorder=0)
         pyplot.xlabel("upper bound & actual performances", fontsize=10)
         pyplot.ylabel("capacity", fontsize=10)
-        pyplot.xticks(range(3), ["benchmark", "FLC", "VLC"], fontsize=8)
+        pyplot.xticks(range(3), ["benchmark", "VLC", "FLC"], fontsize=8)
         pyplot.yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0], [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fontsize=8)
         pyplot.xlim(-0.5, 2.5)
         pyplot.ylim(0.425, 1.075)
