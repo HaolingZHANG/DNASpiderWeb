@@ -140,5 +140,5 @@ if __name__ == "__main__":
             numbers = transcode(name="VLC-" + str(index), graph=g, start_indices=v,
                                 task_seed=2021, bit_length=l, test_time=t)
             numbers = ((l * t) / numpy.array(numbers)) / 2
-    #         numpy.save(file="../outputs/VLC-" + str(index) + " transcode.npy", arr=numbers)
+            numpy.save(file="../outputs/VLC-" + str(index) + " transcode.npy", arr=numbers)
     display()
