@@ -107,9 +107,11 @@ def calculate_totally(task_seed, graph_type, filter_index, wrong_location, bit_l
 
 
 def analyze():
+    print("Analyze the self-repair ability of each coder (created by DNA Spider-Web).")
     results = []
-    for screen_index in [1, 2, 3, 4, 5, 6]:
-        repaired_results = numpy.load(file="../outputs/FLC-" + str(screen_index) + " repair.npy")
+    for filter_index in [1, 2, 3, 4, 5, 6]:
+        print("Load fixed-length coder " + str(filter_index) + ".")
+        repaired_results = numpy.load(file="../outputs/FLC-" + str(filter_index) + " repair.npy")
         repaired_results = repaired_results.reshape(-1)
         counter = Counter(repaired_results.tolist())
         result = [0 for _ in range(21)]
@@ -123,14 +125,16 @@ def analyze():
     pyplot.subplots_adjust(wspace=0.25, hspace=0.5)
     for index, result in enumerate(results):
         pyplot.subplot(2, 3, index + 1)
-        pyplot.title("VLC-" + str(index + 1), fontsize=12)
-        pyplot.bar(range(21), result / numpy.sum(result), width=1, color=colors["fixed"], edgecolor="black",
+        pyplot.title("FLC with filter " + str(index + 1), fontsize=12)
+        result = result / numpy.sum(result)
+        pyplot.bar([0], [result[0]], width=1, color="gray", edgecolor="black", linewidth=0.5, zorder=1)
+        pyplot.bar(range(1, 21), result[1:], width=1, color=colors["fixed"], edgecolor="black",
                    linewidth=0.5, zorder=1)
         for value in [0.2, 0.4, 0.6, 0.8]:
             pyplot.hlines(value, -0.5, 20.5, color="silver", linewidth=0.5, linestyle="--", zorder=0)
         pyplot.xlabel("repaired oligo number", fontsize=10)
         pyplot.ylabel("percentage (%)", fontsize=10)
-        pyplot.xticks(range(21), range(21), fontsize=8)
+        pyplot.xticks(range(21), ["M"] + list(range(1, 21)), fontsize=8)
         pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0", "20", "40", "60", "80", "100"], fontsize=8)
         pyplot.xlim(-0.5, 20.5)
         pyplot.ylim(0, 1)
@@ -139,8 +143,9 @@ def analyze():
     pyplot.close()
 
     results = []
-    for screen_index in [1, 2, 3, 4, 5, 6]:
-        repaired_results = numpy.load(file="../outputs/VLC-" + str(screen_index) + " repair.npy")
+    for filter_index in [1, 2, 3, 4, 5, 6]:
+        print("Load variable-length coder " + str(filter_index) + ".")
+        repaired_results = numpy.load(file="../outputs/VLC-" + str(filter_index) + " repair.npy")
         repaired_results = repaired_results.reshape(-1)
         counter = Counter(repaired_results.tolist())
         result = [0 for _ in range(21)]
@@ -154,14 +159,16 @@ def analyze():
     pyplot.subplots_adjust(wspace=0.25, hspace=0.5)
     for index, result in enumerate(results):
         pyplot.subplot(2, 3, index + 1)
-        pyplot.title("VLC-" + str(index + 1), fontsize=12)
-        pyplot.bar(range(21), result / numpy.sum(result), width=1, color=colors["variable"], edgecolor="black",
+        pyplot.title("VLC with filter " + str(index + 1), fontsize=12)
+        result = result / numpy.sum(result)
+        pyplot.bar([0], [result[0]], width=1, color="gray", edgecolor="black", linewidth=0.5, zorder=1)
+        pyplot.bar(range(1, 21), result[1:], width=1, color=colors["variable"], edgecolor="black",
                    linewidth=0.5, zorder=1)
         for value in [0.2, 0.4, 0.6, 0.8]:
             pyplot.hlines(value, -0.5, 20.5, color="silver", linewidth=0.5, linestyle="--", zorder=0)
         pyplot.xlabel("repaired oligo number", fontsize=10)
         pyplot.ylabel("percentage (%)", fontsize=10)
-        pyplot.xticks(range(21), range(21), fontsize=8)
+        pyplot.xticks(range(21), ["M"] + list(range(1, 21)), fontsize=8)
         pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0", "20", "40", "60", "80", "100"], fontsize=8)
         pyplot.xlim(-0.5, 20.5)
         pyplot.ylim(0, 1)
@@ -172,6 +179,7 @@ def analyze():
 
 if __name__ == "__main__":
     examples()
+    print()
     for t in ["FLC", "VLC"]:
         for fi in [1, 2, 3, 4, 5, 6]:
             calculate_totally(task_seed=2021, graph_type=t, filter_index=fi,

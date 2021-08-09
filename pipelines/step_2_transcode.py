@@ -4,8 +4,11 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 import os
 import random
 import numpy
+from matplotlib import pyplot
 from dsw.coder import encode, decode, obtain_fixed_length
+from dsw.evaluator import approximate_upper_bound
 from dsw.monitor import Monitor
+from pipelines import colors
 
 
 def transcode(name, graph, start_indices, task_seed, bit_length, test_time, fixed_length=None):
@@ -64,6 +67,61 @@ def transcode(name, graph, start_indices, task_seed, bit_length, test_time, fixe
     return nucleotide_numbers
 
 
+def display():
+    pyplot.figure(figsize=(10, 4.8))
+    pyplot.rc("font", family="Times New Roman")
+    pyplot.subplots_adjust(wspace=0.25, hspace=0.5)
+    for filter_index in [1, 2, 3, 4, 5, 6]:
+        pyplot.subplot(2, 3, filter_index)
+        pyplot.title("biochemical filter " + str(filter_index), fontsize=12)
+        d_bound = approximate_upper_bound(numpy.load(file="../entities/Default" + str(filter_index) + "[graph].npy"))
+        v_bound = approximate_upper_bound(numpy.load(file="../entities/VLC" + str(filter_index) + "[graph].npy"))
+        f_bound = approximate_upper_bound(numpy.load(file="../entities/FLC" + str(filter_index) + "[graph].npy"))
+
+        v_trans = numpy.load("../outputs/VLC-" + str(filter_index) + " transcode.npy")
+        f_trans = numpy.load("../outputs/FLC-" + str(filter_index) + " transcode.npy")
+
+        pyplot.text(x=0, y=d_bound + 0.01, s=str(round(d_bound, 3)), fontsize=8,
+                    horizontalalignment="center", verticalalignment="bottom")
+        pyplot.hlines(d_bound, -0.25, 0.25, color="black", linewidth=1.5)
+        pyplot.text(x=1, y=v_bound + 0.01, s=str(round(v_bound, 3)), fontsize=8,
+                    horizontalalignment="center", verticalalignment="bottom")
+        pyplot.hlines(v_bound, 0.75, 1.25, color=colors["variable"], linewidth=1.5)
+        pyplot.text(x=2, y=f_bound + 0.01, s=str(round(f_bound, 3)), fontsize=8,
+                    horizontalalignment="center", verticalalignment="bottom")
+        pyplot.hlines(f_bound, 1.75, 2.25, color=colors["fixed"], linewidth=1.5)
+
+        violin = pyplot.violinplot(dataset=v_trans, positions=[1], showextrema=False)
+        for patch in violin["bodies"]:
+            patch.set_facecolor(colors["variable"])
+            patch.set_edgecolor("black")
+            patch.set_linewidth(0.5)
+            patch.set_alpha(1)
+        min_value, median, max_value = numpy.percentile(v_trans, [0, 50, 100])
+        pyplot.scatter([1], median, color=colors["variable"], s=5, linewidths=1, edgecolors="black", zorder=4)
+
+        violin = pyplot.violinplot(dataset=f_trans, positions=[2], showextrema=False)
+        for patch in violin["bodies"]:
+            patch.set_facecolor(colors["fixed"])
+            patch.set_edgecolor("black")
+            patch.set_linewidth(0.5)
+            patch.set_alpha(1)
+        min_value, median, max_value = numpy.percentile(f_trans, [0, 50, 100])
+        pyplot.scatter([2], median, color=colors["fixed"], s=5, linewidths=1, edgecolors="black", zorder=4)
+
+        for value in [0.5, 0.6, 0.7, 0.8, 0.9, 1.0]:
+            pyplot.hlines(value, -0.5, 2.5, color="silver", linewidth=0.5, linestyle="--", zorder=0)
+        pyplot.xlabel("upper bound & actual performances", fontsize=10)
+        pyplot.ylabel("capacity", fontsize=10)
+        pyplot.xticks(range(3), ["benchmark", "FLC", "VLC"], fontsize=8)
+        pyplot.yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0], [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fontsize=8)
+        pyplot.xlim(-0.5, 2.5)
+        pyplot.ylim(0.425, 1.075)
+    pyplot.savefig("../outputs/transcode statistics.png", format="png",
+                   bbox_inches="tight", transparent=True, dpi=600)
+    pyplot.close()
+
+
 if __name__ == "__main__":
     l, t = 100, 100
     for index in [1, 2, 3, 4, 5, 6]:
@@ -82,4 +140,5 @@ if __name__ == "__main__":
             numbers = transcode(name="VLC-" + str(index), graph=g, start_indices=v,
                                 task_seed=2021, bit_length=l, test_time=t)
             numbers = ((l * t) / numpy.array(numbers)) / 2
-            numpy.save(file="../outputs/VLC-" + str(index) + " transcode.npy", arr=numbers)
+    #         numpy.save(file="../outputs/VLC-" + str(index) + " transcode.npy", arr=numbers)
+    display()

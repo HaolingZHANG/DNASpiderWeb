@@ -29,8 +29,9 @@ def approximate_upper_bound(graph):
     last_eigenvector, last_eigenvalue = numpy.ones(shape=(len(graph),), dtype=numpy.float), -math.inf
     while True:
         eigenvector = numpy.zeros_like(last_eigenvector)
-        for vertex_index, vertex in enumerate(graph):
-            eigenvector[vertex_index] = numpy.sum(last_eigenvector[vertex[vertex >= 0]])
+        for positions in graph.T:
+            eigenvector[numpy.where(positions >= 0)] += last_eigenvector[positions[positions >= 0]]
+
         eigenvalue = numpy.max(eigenvector)
         eigenvector = eigenvector / eigenvalue
         if last_eigenvalue is not None:

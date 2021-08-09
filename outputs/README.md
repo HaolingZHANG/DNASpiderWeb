@@ -4,7 +4,7 @@
 
 ---
 
-You can generate the results by yourself (step 2-4 in pipeline folder), it only takes several hours.
+You can generate the results (11GB) by yourself (step 2-4 in pipeline folder), it only takes several hours.
 
 
 Ignored file list:

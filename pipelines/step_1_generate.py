@@ -114,19 +114,19 @@ def display():
     x = numpy.array(range(6)) + 1
     pyplot.bar(x - 0.2, default[1], width=0.2, color=colors["default"], edgecolor="black", linewidth=0.5, zorder=1)
     for position, minimum, maximum in zip(x, default[0], default[2]):
-        pyplot.vlines(position - 0.2, minimum, maximum, color="black", linewidth=2, zorder=2)
-        pyplot.hlines(minimum, position - 0.25, position - 0.15, color="black", linewidth=2, zorder=2)
-        pyplot.hlines(maximum, position - 0.25, position - 0.15, color="black", linewidth=2, zorder=2)
+        pyplot.vlines(position - 0.2, minimum, maximum, color="black", linewidth=1.5, zorder=2)
+        pyplot.hlines(minimum, position - 0.25, position - 0.15, color="black", linewidth=1.5, zorder=2)
+        pyplot.hlines(maximum, position - 0.25, position - 0.15, color="black", linewidth=1.5, zorder=2)
     pyplot.bar(x, variable[1], width=0.2, color=colors["variable"], edgecolor="black", linewidth=0.5, zorder=1)
     for position, minimum, maximum in zip(x, variable[0], variable[2]):
-        pyplot.vlines(position, minimum, maximum, color="black", linewidth=2, zorder=2)
-        pyplot.hlines(minimum, position - 0.05, position + 0.05, color="black", linewidth=2, zorder=2)
-        pyplot.hlines(maximum, position - 0.05, position + 0.05, color="black", linewidth=2, zorder=2)
+        pyplot.vlines(position, minimum, maximum, color="black", linewidth=1.5, zorder=2)
+        pyplot.hlines(minimum, position - 0.05, position + 0.05, color="black", linewidth=1.5, zorder=2)
+        pyplot.hlines(maximum, position - 0.05, position + 0.05, color="black", linewidth=1.5, zorder=2)
     pyplot.bar(x + 0.2, fixed[1], width=0.2, color=colors["fixed"], edgecolor="black", linewidth=0.5, zorder=1)
     for position, minimum, maximum in zip(x, fixed[0], fixed[2]):
-        pyplot.vlines(position + 0.2, minimum, maximum, color="black", linewidth=2, zorder=2)
-        pyplot.hlines(minimum, position + 0.15, position + 0.25, color="black", linewidth=2, zorder=2)
-        pyplot.hlines(maximum, position + 0.15, position + 0.25, color="black", linewidth=2, zorder=2)
+        pyplot.vlines(position + 0.2, minimum, maximum, color="black", linewidth=1.5, zorder=2)
+        pyplot.hlines(minimum, position + 0.15, position + 0.25, color="black", linewidth=1.5, zorder=2)
+        pyplot.hlines(maximum, position + 0.15, position + 0.25, color="black", linewidth=1.5, zorder=2)
     for value in [0, 1, 2, 3, 4]:
         pyplot.hlines(value, 0.5, 6.5, color="silver", linewidth=0.5, linestyle="--", zorder=0)
     pyplot.xlabel("biochemical requirement index", fontsize=10)
@@ -142,11 +142,11 @@ def display():
 
 if __name__ == "__main__":
     bio_filters = {"1": LocalBioFilter(max_homopolymer_runs=2, max_gc_bias=0.0, ignore_motifs=cut_segments),
-                   "2": LocalBioFilter(max_homopolymer_runs=1),
+                   "2": LocalBioFilter(max_homopolymer_runs=1),  # Goldman method
                    "3": LocalBioFilter(max_homopolymer_runs=2, max_gc_bias=0.1, ignore_motifs=nanopore_segments),
                    "4": LocalBioFilter(max_homopolymer_runs=2, max_gc_bias=0.1),
                    "5": LocalBioFilter(max_homopolymer_runs=4, max_gc_bias=0.1),
-                   "6": LocalBioFilter(max_homopolymer_runs=3)}
+                   "6": LocalBioFilter(max_homopolymer_runs=3)}  # Church method
 
     for index, bio_filter in bio_filters.items():
         print("Calculate graph " + str(index) + ".")
