@@ -37,10 +37,10 @@ class TestTerminals(TestCase):
         empty_maximum_eigenvalue = numpy.real(numpy.max(eig(self.empty_graph)[0]))
         freed_value = math.log(freed_maximum_eigenvalue, len(n_system)) if freed_maximum_eigenvalue > 0.0 else 0.0
         empty_value = math.log(empty_maximum_eigenvalue, len(n_system)) if empty_maximum_eigenvalue > 0.0 else 0.0
-        self.assertEqual(approximate_upper_bound(to_graph(self.freed_graph)), freed_value)
-        self.assertEqual(approximate_upper_bound(to_graph(self.empty_graph)), empty_value)
-        self.assertEqual(1.0, freed_value)
-        self.assertEqual(0.0, empty_value)
+        self.assertEqual(abs(approximate_upper_bound(to_graph(self.freed_graph)) - freed_value) <= 1e-5, True)
+        self.assertEqual(abs(approximate_upper_bound(to_graph(self.empty_graph)) - empty_value) <= 1e-5, True)
+        self.assertEqual(abs(1.0 - freed_value) <= 1e-5, True)
+        self.assertEqual(abs(0.0 - empty_value) <= 1e-5, True)
 
 
 class TestBiochemicals(TestCase):
