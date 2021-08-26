@@ -179,9 +179,9 @@ def draw_fixed_graph_evolution(maximum_stride):
                                 y2=[math.log2(out_degree) / (stride + 1), math.log2(lower_bound) / (stride + 2)],
                                 color="silver", zorder=0)
             if stride + 2 > len(path[1]):
-                pyplot.scatter([stride + 2], [((math.log2(upper_bound) / (stride + 2)) +
-                                               (math.log2(lower_bound) / (stride + 2))) / 2],
-                               color="red", marker="x", s=15)
+                x = [stride + 2]
+                y = [((math.log2(upper_bound) / (stride + 2)) + (math.log2(lower_bound) / (stride + 2))) / 2]
+                pyplot.scatter(x, y, color="red", marker="x", s=15)
         pyplot.xlabel("stride per step", fontsize=10)
         pyplot.ylabel("information density (bit/nt)", fontsize=10)
         pyplot.xticks([1, 2, 3, 4, 5], [1, 2, 3, 4, 5], fontsize=8)
