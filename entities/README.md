@@ -8,19 +8,19 @@ You can generate the results (360MB) by yourself (as step 1 in pipeline folder),
 
 Ignored file list:
 ```html
-├── Default1[vertices].npy  // Valid vertices obtained by biochemical filter 1
-├── Default2[vertices].npy  // Valid vertices obtained by biochemical filter 2
-├── Default3[vertices].npy  // Valid vertices obtained by biochemical filter 3
-├── Default4[vertices].npy  // Valid vertices obtained by biochemical filter 4
-├── Default5[vertices].npy  // Valid vertices obtained by biochemical filter 5
-├── Default6[vertices].npy  // Valid vertices obtained by biochemical filter 6
+├── BM1[vertices].npy  // Valid vertices directly obtained by biochemical filter 1
+├── BM2[vertices].npy  // Valid vertices directly obtained by biochemical filter 2
+├── BM3[vertices].npy  // Valid vertices directly obtained by biochemical filter 3
+├── BM4[vertices].npy  // Valid vertices directly obtained by biochemical filter 4
+├── BM5[vertices].npy  // Valid vertices directly obtained by biochemical filter 5
+├── BM6[vertices].npy  // Valid vertices directly obtained by biochemical filter 6
 
-├── Default1[graph].npy     // Directly generated graph from valid vertices with biochemical filter 1
-├── Default2[graph].npy     // Directly generated graph from valid vertices with biochemical filter 2
-├── Default3[graph].npy     // Directly generated graph from valid vertices with biochemical filter 3
-├── Default4[graph].npy     // Directly generated graph from valid vertices with biochemical filter 4
-├── Default5[graph].npy     // Directly generated graph from valid vertices with biochemical filter 5
-├── Default6[graph].npy     // Directly generated graph from valid vertices with biochemical filter 6
+├── BM1[graph].npy     // Directly generated graph from valid vertices with biochemical filter 1
+├── BM2[graph].npy     // Directly generated graph from valid vertices with biochemical filter 2
+├── BM3[graph].npy     // Directly generated graph from valid vertices with biochemical filter 3
+├── BM4[graph].npy     // Directly generated graph from valid vertices with biochemical filter 4
+├── BM5[graph].npy     // Directly generated graph from valid vertices with biochemical filter 5
+├── BM6[graph].npy     // Directly generated graph from valid vertices with biochemical filter 6
 
 ├── FLC1[vertices].npy      // Saved fixed-length vertices with biochemical filter 1
 ├── FLC2[vertices].npy      // Saved fixed-length vertices with biochemical filter 2

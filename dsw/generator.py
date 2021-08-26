@@ -8,7 +8,7 @@ from dsw import n_system
 from dsw.monitor import Monitor
 
 
-def find_vertices(length, bio_filter, save_path=None):
+def find_vertices(length, bio_filter, save_path):
     """
     Find default valid vertices based on the given constraints.
 
@@ -22,27 +22,18 @@ def find_vertices(length, bio_filter, save_path=None):
     :return: vertex accessor, in each cell, True is valid vertex and False is invalid vertex.
     :rtype: numpy.ndarray
     """
-
     vertices, monitor = numpy.zeros(shape=(int(len(n_system) ** length),), dtype=numpy.int), Monitor()
-    if save_path is not None and os.path.exists(save_path + "[vertices].npy"):
-        vertices = numpy.load(file=save_path + "[vertices].npy")
-    else:
+    if not os.path.exists(save_path + "[v].npy"):
         print("Find valid vertices in this length of oligo.")
         for vertex_index in range(len(vertices)):
             vertices[vertex_index] = bio_filter.valid(oligo=obtain_oligo(decimal_number=vertex_index, length=length))
             monitor.output(vertex_index + 1, len(vertices))
 
-        if save_path is not None:
-            numpy.save(file=save_path + "[vertices].npy", arr=vertices)
+        valid_rate = numpy.sum(vertices) / len(vertices)
 
-    valid_rate = numpy.sum(vertices) / len(vertices)
-
-    if valid_rate > 0:
-        print(str(round(valid_rate * 100, 2)) + "% (" + str(numpy.sum(vertices)) + ") valid vertices are found.")
-        return vertices
-    else:
-        print("No valid vertex is found.")
-        return None
+        if valid_rate > 0:
+            print(str(round(valid_rate * 100, 2)) + "% (" + str(numpy.sum(vertices)) + ") valid vertices are found.")
+            numpy.save(file=save_path + "[v].npy", arr=vertices)
 
 
 def connect_default_graph(length, vertices, save_path=None):
@@ -64,9 +55,7 @@ def connect_default_graph(length, vertices, save_path=None):
     And the index of element is the current vertex index.
     :rtype: numpy.ndarray
     """
-    if save_path is not None and os.path.exists(save_path + "[graph].npy"):
-        transforms = numpy.load(file=save_path + "[graph].npy")
-    else:
+    if not os.path.exists(save_path + "[g].npy"):
         valid_rate, monitor = numpy.sum(vertices) / len(vertices), Monitor()
         if valid_rate > 0:
             transforms = -numpy.ones(shape=(int(len(n_system) ** length), len(n_system)), dtype=numpy.int)
@@ -79,16 +68,16 @@ def connect_default_graph(length, vertices, save_path=None):
                 monitor.output(vertex_index + 1, len(vertices))
 
             if save_path is not None:
-                numpy.save(file=save_path + "[graph].npy", arr=transforms)
+                numpy.save(file=save_path + "[g].npy", arr=transforms)
+            print("Default graph is created.")
         else:
             print("No graph is created.")
             return None
+    else:
+        print("Default graph is created.")
 
-    print("Default graph is created.")
-    return transforms
 
-
-def connect_fixed_graph(length, vertices, save_path=None):
+def connect_fixed_graph(length, vertices, maximum_stride, save_path):
     """
     Connect a fixed graph (fixed length code) by valid vertices.
 
@@ -97,6 +86,9 @@ def connect_fixed_graph(length, vertices, save_path=None):
 
     :param vertices: vertex accessor, in each cell, True is valid vertex and False is invalid vertex.
     :type vertices: numpy.ndarray
+
+    :param maximum_stride: maximum stride (pre transcoding step) in the graph.
+    :type maximum_stride: int
 
     :param save_path: path to save file.
     :type save_path: str
@@ -107,103 +99,111 @@ def connect_fixed_graph(length, vertices, save_path=None):
     And the index of element is the current vertex index.
     :rtype: numpy.ndarray
     """
-    if save_path is not None and os.path.exists(save_path + "[graph].npy"):
-        transforms = numpy.load(file=save_path + "[graph].npy")
-    else:
-        transforms, out_degree, monitor = None, None, Monitor()
-        for out_degree in [4, 3, 2]:
-            last_vertices = vertices.copy()
-            print("Calculate " + str(out_degree) + " as minimum out-degree.")
-            times = 1
-            while True:
-                print("Check the vertex collection requirement in round " + str(times) + ".")
-                new_vertices = numpy.zeros(shape=(int(len(n_system) ** length),), dtype=numpy.int)
-                saved_indices = numpy.where(last_vertices != 0)[0]
-                for current, vertex_index in enumerate(saved_indices):
-                    latter_indices = obtain_latters(current=vertex_index, length=length)
-                    new_vertices[vertex_index] = numpy.sum(last_vertices[latter_indices]) >= out_degree
-                    monitor.output(current + 1, len(saved_indices))
-
-                changed = numpy.sum(last_vertices) - numpy.sum(new_vertices)
-                rate = str(round(numpy.sum(new_vertices) / len(last_vertices) * 100, 2))
-                print(rate + "% (" + str(numpy.sum(new_vertices)) + ") valid vertices are saved.")
-
-                if not changed or numpy.sum(new_vertices) == 0:
-                    break
-
-                last_vertices = new_vertices
-                times += 1
-
-            last_vertices = new_vertices
-            valid_rate, monitor = numpy.sum(last_vertices) / len(last_vertices), Monitor()
-            if valid_rate > 0:
-                vertices = last_vertices
-                print("Preliminary connect graph.")
-                transforms = -numpy.ones(shape=(int(len(n_system) ** length), len(n_system)), dtype=numpy.int)
-                for vertex_index in range(int(len(n_system) ** length)):
-                    if vertices[vertex_index]:
-                        for position, latter_vertex_index in \
-                                enumerate(obtain_latters(current=vertex_index, length=length)):
-                            if vertices[latter_vertex_index]:
-                                transforms[vertex_index][position] = latter_vertex_index
-
-                    monitor.output(vertex_index + 1, len(vertices))
-                break
-            else:
-                transforms = None
-
-        if transforms is None:
-            print("No graph is created.")
-            return None
-
-        print("Prune more arrows.")
-        deleted_number = 0
-        for vertex_index in range(len(transforms)):
-            if len(numpy.where(transforms[vertex_index] >= 0)[0]) > out_degree:
-                pruned_order = []
-                for nucleotide in obtain_oligo(decimal_number=vertex_index, length=length)[::-1]:
-                    position = n_system.index(nucleotide)
-                    if position not in pruned_order:
-                        pruned_order.append(position)
-                if len(pruned_order) != 4:
-                    for nucleotide in n_system:
-                        position = n_system.index(nucleotide)
-                        if position not in pruned_order:
-                            pruned_order.append(position)
-                for position in pruned_order:
-                    transforms[vertex_index][position] = -1
-                    deleted_number += 1
-                    if len(numpy.where(transforms[vertex_index] >= 0)[0]) == out_degree:
+    transforms, paths = None, []
+    if not os.path.exists(save_path + "[g].npy"):
+        monitor = Monitor()
+        upper_bound, lower_bound, saved_information, saved_vertices = len(n_system), 2, None, None
+        for stride in range(1, min(length, maximum_stride) + 1):
+            found_flag = False
+            print("Calculate minimum out-degree with the stride " + str(stride) + " from "
+                  + str(upper_bound) + " to " + str(lower_bound) + ".")
+            for required_out_degree in list(range(max(2, lower_bound), min(4 ** stride + 1, upper_bound + 1)))[::-1]:
+                print("Calculate " + str(required_out_degree) + " as minimum out-degree "
+                      + "with the stride " + str(stride) + ".")
+                last_vertices, times = vertices.copy(), 1
+                while True:
+                    print("Check the vertex collection requirement in round " + str(times) + ".")
+                    saved_indices = numpy.where(last_vertices != 0)[0]
+                    new_vertices = numpy.zeros(shape=(int(len(n_system) ** length),), dtype=numpy.int)
+                    for current, vertex_index in enumerate(saved_indices):
+                        level_indices = [vertex_index]
+                        for _ in range(stride):
+                            new_level_indices = []
+                            for level_index in level_indices:
+                                latter_indices = numpy.array(obtain_latters(current=level_index, length=length))
+                                # check the midway vertices are also accessible.
+                                access_indices = numpy.where(last_vertices[latter_indices] == 1)
+                                new_level_indices += latter_indices[access_indices].tolist()
+                            level_indices = new_level_indices
+                        new_vertices[vertex_index] = sum(last_vertices[level_indices]) >= required_out_degree
+                        monitor.output(current + 1, len(saved_indices))
+                    last, current = numpy.sum(last_vertices), numpy.sum(new_vertices)
+                    print("Last vertices have " + str(last) + ", and current " + str(current) + ".")
+                    if numpy.sum(new_vertices) != 0:
+                        if last != current:
+                            last_vertices = new_vertices
+                            times += 1
+                        else:
+                            found_flag = True
+                            upper_bound = required_out_degree + 1
+                            lower_bound = required_out_degree
+                            saved_information = (required_out_degree, stride,
+                                                 round(math.log(required_out_degree, 2) / stride, 3))
+                            saved_vertices = last_vertices.copy()
+                            paths.append([stride, required_out_degree])
+                            print("Current information density = " + str(math.log(required_out_degree, 2) / stride))
+                            print()
+                            break
+                    else:
+                        print()
                         break
-            monitor.output(vertex_index + 1, len(vertices))
-        print("Prune " + str(deleted_number) + " arrows.")
-
-        times = 1
-        while True:
-            count = 0
-            print("Check the vertex without former vertex in round " + str(times) + ".")
-            saved_indices = numpy.where(vertices != 0)[0]
-            for current, vertex_index in enumerate(saved_indices):
-                former_indices = obtain_formers(current=vertex_index, length=length)
-                if numpy.sum(vertices[former_indices]) == 0:
-                    count += 1
-                    vertices[vertex_index] = 0
-                    transforms[vertex_index] = -1
-                monitor.output(current + 1, len(saved_indices))
-
-            print("Delete " + str(count) + " valid vertices without in-degree.")
-
-            if not changed:
+                if found_flag:
+                    break
+            if not found_flag:
                 break
 
-            times += 1
+            upper_bound = upper_bound ** ((stride + 1) / stride)
+            if upper_bound == math.floor(upper_bound):
+                upper_bound = math.floor(upper_bound) - 1
+            else:
+                upper_bound = math.floor(upper_bound)
 
-        if save_path is not None:
-            numpy.save(file=save_path + "[vertices].npy", arr=vertices)
-            numpy.save(file=save_path + "[graph].npy", arr=transforms)
+            lower_bound = lower_bound ** ((stride + 1) / stride)
+            if lower_bound == math.ceil(lower_bound):
+                lower_bound = math.ceil(lower_bound) + 1
+            else:
+                lower_bound = math.ceil(lower_bound)
 
-    print("Fixed graph is created.")
-    return transforms
+            if upper_bound < lower_bound:
+                break
+            if saved_information[0] == len(n_system) ** stride:
+                break
+
+        if saved_information is not None and saved_vertices is not None:
+            vertices = saved_vertices
+            print("Generate graph with stride " + str(saved_information[1]) + ".")
+            transforms = -numpy.ones(shape=(int(len(n_system) ** length), int(len(n_system) ** saved_information[1])),
+                                     dtype=numpy.int)
+            used_vertices = numpy.where(vertices != 0)[0]
+            for current, vertex_index in enumerate(used_vertices):
+                level_indices, used_level_indices = [vertex_index], [vertex_index]
+                for _ in range(saved_information[1]):
+                    new_level_indices, new_used_level_indices = [], []
+                    for level_index in level_indices:
+                        latter_indices = numpy.array(obtain_latters(current=level_index, length=length))
+                        new_level_indices += latter_indices.tolist()
+                        access_indices = numpy.where(vertices[latter_indices] == 1)
+                        new_used_level_indices += latter_indices[access_indices].tolist()
+                    level_indices, used_level_indices = new_level_indices, new_used_level_indices
+                level_indices, used_level_indices = numpy.array(level_indices), numpy.array(used_level_indices)
+
+                selected_usages = (numpy.linspace(start=0, stop=len(used_level_indices) - 1,
+                                                  num=saved_information[0]) + 0.5).astype(numpy.int)
+                used_level_indices = used_level_indices[selected_usages]
+                locations = numpy.array([numpy.where(level_indices == used_level_index)[0][0]
+                                         for used_level_index in used_level_indices])
+                for location, leaf_vertex_index in zip(locations, used_level_indices):
+                    transforms[vertex_index][location] = leaf_vertex_index
+                monitor.output(current + 1, len(used_vertices))
+
+            numpy.save(file=save_path + "[v].npy", arr=vertices)
+            numpy.save(file=save_path + "[p].npy", arr=numpy.array(paths))
+            numpy.save(file=save_path + "[g].npy", arr=transforms)
+            print("Fixed graph is created.")
+        else:
+            print("No fixed graph is created.")
+    else:
+        print("Fixed graph is created.")
 
 
 def connect_variable_graph(length, vertices, threshold, save_path=None):
@@ -228,9 +228,7 @@ def connect_variable_graph(length, vertices, threshold, save_path=None):
     And the index of element is the current vertex index.
     :rtype: numpy.ndarray
     """
-    if save_path is not None and os.path.exists(save_path + "[graph].npy"):
-        transforms = numpy.load(file=save_path + "[graph].npy")
-    else:
+    if not os.path.exists(save_path + "[g].npy"):
         times = 1
         while True:
             print("Check the vertex collection requirement in round " + str(times) + ".")
@@ -262,15 +260,13 @@ def connect_variable_graph(length, vertices, threshold, save_path=None):
 
                 monitor.output(vertex_index + 1, len(vertices))
 
-            if save_path is not None:
-                numpy.save(file=save_path + "[vertices].npy", arr=vertices)
-                numpy.save(file=save_path + "[graph].npy", arr=transforms)
+            numpy.save(file=save_path + "[v].npy", arr=vertices)
+            numpy.save(file=save_path + "[g].npy", arr=transforms)
+            print("Variable graph is created.")
         else:
-            print("No graph is created.")
-            return None
-
-    print("Variable graph is created.")
-    return transforms
+            print("No variable graph is created.")
+    else:
+        print("Variable graph is created.")
 
 
 def obtain_oligo(decimal_number, length):
