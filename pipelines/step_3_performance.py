@@ -102,7 +102,7 @@ def evaluate_variable_graph(bounds):
                 patch.set_linewidth(1.5)
                 patch.set_alpha(1)
             pyplot.scatter([0], median(transcode_results), color="#C5E0B4", edgecolor="#548235",
-                           linewidth=1.5,  s=15, zorder=4)
+                           linewidth=1.5, s=15, zorder=4)
         pyplot.xticks([])
         if filter_index > 1:
             pyplot.yticks([1, 1.2, 1.4, 1.6, 1.8, 2.0], ["", "", "", "", "", ""], fontsize=8)
