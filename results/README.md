@@ -19,6 +19,19 @@ Ignored file list:
 ├── VLC8[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 8
 ```
 
+The local biochemical constraint groups are as follow:
+
+|group index | maximum homopolymer runs | GC content range| undesired DNA motifs |
+| ---- | ---- | ---- | ---- |
+| 1 |  2  | 50%~50% |  AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, TCTAGA |
+| 2 |  1  |   N/A   | N/A |
+| 3 | N/A | 10%~30% | N/A |
+| 4 |  2  | 40%~60% | AGA, GAG, CTC, TCT |
+| 5 |  2  | 40%~60% | N/A |
+| 6 | N/A | 50%~70% | N/A |
+| 7 |  4  | 40%~60% | N/A |
+| 8 |  3  |   N/A   | N/A |
+
 The results of fixed-length code are as follows:
 
 <p align="center">
