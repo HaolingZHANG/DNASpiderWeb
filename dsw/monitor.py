@@ -4,7 +4,7 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 from datetime import datetime
 
 
-class Monitor:
+class Monitor(object):
 
     def __init__(self):
         self.last_time = None
