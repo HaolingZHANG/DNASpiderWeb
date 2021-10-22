@@ -119,10 +119,7 @@ def evaluate_variable_graph(bounds):
 
 
 if __name__ == "__main__":
-    # b_bounds = calculate_upper_bounds()
-    # print(b_bounds)
-    b_bounds = [1.0000000000000000, 1.5849625006978487, 1.6302426825495233, 1.6697531654765168,
-                1.7760855579645782, 1.7957927230233637, 1.8152284996279842, 1.9823540524766567]
+    b_bounds = calculate_upper_bounds()
     for index, b_bound in enumerate(b_bounds):
         print("biochemical constraint group " + str(index + 1) + ": %.3f" % b_bound)
     evaluate_fixed_graph(bounds=b_bounds, maximum_stride=5)
