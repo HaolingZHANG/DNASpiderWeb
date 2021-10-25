@@ -37,7 +37,7 @@ def transcode(graph, start_indices, task_seed, bit_length, test_time, fixed_leng
 
 if __name__ == "__main__":
     length, times = 100, 100
-    for index in [1, 2, 3, 4, 5, 6]:
+    for index in [1, 2, 3, 4, 5, 6, 7, 8]:
         if not path.exists("../results/VLC-" + str(index) + " transcode.npy"):
             print("Evaluate VLC-" + str(index) + ".")
             numbers = transcode(graph=load(file="../entities/VLC" + str(index) + "[g].npy"),

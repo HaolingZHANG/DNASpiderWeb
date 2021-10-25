@@ -9,7 +9,7 @@ from dsw import calculate_upper_bound
 
 def calculate_upper_bounds():
     bounds = []
-    for bound_index in range(1, 6 + 1):
+    for bound_index in range(1, 8 + 1):
         bound_graph = load(file="../entities/BM" + str(bound_index) + "[g].npy")
         bounds.append(calculate_upper_bound(graph=bound_graph, replay=10))
     return bounds
@@ -71,7 +71,7 @@ def evaluate_fixed_graph(bounds, maximum_stride):
 
     figure.text(0.475, 0.03, "stride per step", va="center", fontsize=10)
     figure.text(0.085, 0.5, "information density", va="center", rotation="vertical", fontsize=10)
-    pyplot.savefig("../results/fixed_results.png", format="png",
+    pyplot.savefig("../results/fixed_results.svg", format="svg",
                    bbox_inches="tight", transparent=True, dpi=600)
     pyplot.close()
 
@@ -111,15 +111,16 @@ def evaluate_variable_graph(bounds):
         pyplot.xlim(-0.5, 0.5)
         pyplot.ylim(0.92, 2.08)
 
-    figure.text(0.475, 0.075, "actual performance", va="center", fontsize=10)
+    figure.text(0.465, 0.075, "actual performance", va="center", fontsize=10)
     figure.text(0.085, 0.5, "information density", va="center", rotation="vertical", fontsize=10)
-    pyplot.savefig("../results/variable_results.png", format="png",
+    pyplot.savefig("../results/variable_results.svg", format="svg",
                    bbox_inches="tight", transparent=True, dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
     b_bounds = calculate_upper_bounds()
+    # b_bounds = [1.0, 1.585, 1.63, 1.67, 1.776, 1.796, 1.815, 1.982]
     for index, b_bound in enumerate(b_bounds):
         print("biochemical constraint group " + str(index + 1) + ": %.3f" % b_bound)
     evaluate_fixed_graph(bounds=b_bounds, maximum_stride=5)
