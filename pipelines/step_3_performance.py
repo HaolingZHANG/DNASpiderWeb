@@ -71,7 +71,7 @@ def evaluate_fixed_graph(bounds, maximum_stride):
 
     figure.text(0.475, 0.03, "stride per step", va="center", fontsize=10)
     figure.text(0.085, 0.5, "information density", va="center", rotation="vertical", fontsize=10)
-    pyplot.savefig("../results/fixed_results.svg", format="svg",
+    pyplot.savefig("../results/fixed_results.png", format="png",
                    bbox_inches="tight", transparent=True, dpi=600)
     pyplot.close()
 
@@ -101,7 +101,7 @@ def evaluate_variable_graph(bounds):
                 patch.set_edgecolor("#548235")
                 patch.set_linewidth(1.5)
                 patch.set_alpha(1)
-            pyplot.scatter([0], median(transcode_results), color="#C5E0B4", edgecolor="#548235",
+            pyplot.scatter([0], median(transcode_results), color="white", edgecolor="#548235",
                            linewidth=1.5, s=15, zorder=4)
         pyplot.xticks([])
         if filter_index > 1:
@@ -113,14 +113,13 @@ def evaluate_variable_graph(bounds):
 
     figure.text(0.465, 0.075, "actual performance", va="center", fontsize=10)
     figure.text(0.085, 0.5, "information density", va="center", rotation="vertical", fontsize=10)
-    pyplot.savefig("../results/variable_results.svg", format="svg",
+    pyplot.savefig("../results/variable_results.png", format="png",
                    bbox_inches="tight", transparent=True, dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
-    b_bounds = calculate_upper_bounds()
-    # b_bounds = [1.0, 1.585, 1.63, 1.67, 1.776, 1.796, 1.815, 1.982]
+    b_bounds = calculate_upper_bounds()  # [1.000, 1.585, 1.630, 1.670, 1.776, 1.796, 1.815, 1.982]
     for index, b_bound in enumerate(b_bounds):
         print("biochemical constraint group " + str(index + 1) + ": %.3f" % b_bound)
     evaluate_fixed_graph(bounds=b_bounds, maximum_stride=5)
