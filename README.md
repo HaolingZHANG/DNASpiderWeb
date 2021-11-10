@@ -80,6 +80,10 @@ In [pipelines folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/pip
 you can easily find 8 examples.
 
 
+## Basic Evaluation
+
+Some basic evaluation results of **SPECTRA**, and **SPIDER-WEB** are recorded [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/results).
+
 ## Citation
 If you think this repo helps or being used in your research, please consider refer this paper. 
 

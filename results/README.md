@@ -25,6 +25,7 @@ Initially, 4 simple directed graphs with known information density is used for t
 <p align="center">
 <img src="matrices.png" alt="examples of adjacency matrix" width="100%"/>
 </p>
+
 Through **SPECTRA**, the obtained results are consistent with the known results.
 
 We also randomly generate 100 directed graphs in test/test_upper_bound.py, the results is as follow:
