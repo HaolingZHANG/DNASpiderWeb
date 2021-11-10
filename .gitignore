@@ -131,3 +131,5 @@ dmypy.json
 
 # output results
 *.npy
+*.pkl
+*.pdf

@@ -19,18 +19,34 @@ Ignored file list:
 ├── VLC8[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 8
 ```
 
+The practicability of **SPECTRA** is evaluated.
+
+Initially, 4 simple directed graphs with known information density is used for the evaluation, as shown in the figure below:
+<p align="center">
+<img src="matrices.png" alt="examples of adjacency matrix" width="100%"/>
+</p>
+Through **SPECTRA**, the obtained results are consistent with the known results.
+
+We also randomly generate 100 directed graphs in test/test_upper_bound.py, the results is as follow:
+<p align="center">
+<img src="errors.png" alt="large scale test" width="100%"/>
+</p>
+The error is in the range of 10^-13 to 10^-10 which implies that \textbf{SPECTRA} has good practicability.
+
+
+
 The local biochemical constraint groups are as follow:
 
-|group index | maximum homopolymer runs | GC content range| undesired DNA motifs |
-| ---- | ---- | ---- | ---- |
-| 1 |  2  | 50%~50% |  AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, TCTAGA |
-| 2 |  1  |   N/A   | N/A |
-| 3 | N/A | 10%~30% | N/A |
-| 4 |  2  | 40%~60% | AGA, GAG, CTC, TCT |
-| 5 |  2  | 40%~60% | N/A |
-| 6 | N/A | 50%~70% | N/A |
-| 7 |  4  | 40%~60% | N/A |
-| 8 |  3  |   N/A   | N/A |
+| set index | homopolymer run-length | GC-biased range | undesired DNA motifs | information density |
+| ---- | ---- | ---- | ---- | ----|
+| 1 |  2  | 50%~50% |  AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, TCTAGA | 1.000 |
+| 2 |  1  |   N/A   | N/A | 1.585 |
+| 3 | N/A | 10%~30% | N/A | 1.630 |
+| 4 |  2  | 40%~60% | AGA, GAG, CTC, TCT | 1.670 |
+| 5 |  2  | 40%~60% | N/A | 1.776 |
+| 6 | N/A | 50%~70% | N/A | 1.796 |
+| 7 |  4  | 40%~60% | N/A | 1.815 |
+| 8 |  3  |   N/A   | N/A | 1.982 |
 
 The results of fixed-length code are as follows:
 

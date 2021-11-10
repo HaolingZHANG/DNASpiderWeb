@@ -80,7 +80,7 @@ def evaluate_fixed_graph(bounds, maximum_stride):
     figure.text(0.475, 0.03, "stride per step", va="center", fontsize=10)
     figure.text(0.085, 0.5, "information density", va="center", rotation="vertical", fontsize=10)
     pyplot.savefig("../results/fixed_results.png", format="png",
-                   bbox_inches="tight", transparent=True, dpi=1200)
+                   bbox_inches="tight", transparent=True, dpi=600)
     pyplot.close()
 
 
@@ -122,7 +122,7 @@ def evaluate_variable_graph(bounds):
     figure.text(0.46, 0.075, "actual performance", va="center", fontsize=10)
     figure.text(0.085, 0.5, "information density", va="center", rotation="vertical", fontsize=10)
     pyplot.savefig("../results/variable_results.png", format="png",
-                   bbox_inches="tight", transparent=True, dpi=1200)
+                   bbox_inches="tight", transparent=True, dpi=600)
     pyplot.close()
 
 

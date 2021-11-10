@@ -1,8 +1,8 @@
 __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
-import math
-from numpy import random, zeros_like, where, max, all, median
+from math import log
+from numpy import random, zeros_like, where, max, all, median, abs
 
 
 def calculate_upper_bound(graph, replay):
@@ -27,7 +27,7 @@ def calculate_upper_bound(graph, replay):
     results = []
     for _ in range(replay):
         # noinspection PyArgumentList
-        last_eigenvector, last_eigenvalue = random.random(size=(len(graph),)), 0.0
+        last_eigenvector, last_eigenvalue = abs(random.random(size=(len(graph),))), 0.0
         while True:
             eigenvector = zeros_like(last_eigenvector)
             for positions in graph.T:
@@ -35,7 +35,7 @@ def calculate_upper_bound(graph, replay):
             eigenvalue = max(eigenvector)
             eigenvector = eigenvector / eigenvalue
             if abs(eigenvalue - last_eigenvalue) < 1e-10:
-                results.append(math.log(eigenvalue, 2))
+                results.append(log(eigenvalue, 2))
                 break
 
             last_eigenvalue, last_eigenvector = eigenvalue, eigenvector
