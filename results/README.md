@@ -19,7 +19,7 @@ Ignored file list:
 ├── VLC8[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 8
 ```
 
-The practicability of **SPECTRA** is evaluated.
+## Practicability of **SPECTRA**
 
 Initially, 4 simple directed graphs with known information density is used for the evaluation, as shown in the figure below:
 <p align="center">
@@ -32,8 +32,11 @@ We also randomly generate 100 directed graphs in test/test_upper_bound.py, the r
 <p align="center">
 <img src="errors.png" alt="large scale test" width="100%"/>
 </p>
-The error is in the range of 10^-13 to 10^-10 which implies that \textbf{SPECTRA} has good practicability.
 
+The error is in the range of 10^-13 to 10^-10 which implies that **SPECTRA** has good practicability.
+
+
+## Actual Performances of **SPIDER-WEB**.
 
 
 The local biochemical constraint groups are as follow:
