@@ -9,14 +9,16 @@ You can generate the results (25MB) by yourself (step 2 in pipeline folder), it 
 
 Ignored file list:
 ```html
-├── VLC1[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 1
-├── VLC2[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 2
-├── VLC3[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 3
-├── VLC4[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 4
-├── VLC5[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 5
-├── VLC6[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 6
-├── VLC7[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 7
-├── VLC8[t].npy     // Transcoding results of variable-length graph coder with biochemical filter 8
+├── VLC1[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 1
+├── VLC2[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 2
+├── VLC3[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 3
+├── VLC4[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 4
+├── VLC5[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 5
+├── VLC6[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 6
+├── VLC7[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 7
+├── VLC8[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 8
+├── practicability.pkl   // Evaluating results of SPECTRA
+
 ```
 
 ## Practicability of **SPECTRA**
@@ -28,12 +30,18 @@ Initially, 4 simple directed graphs with known information density is used for t
 
 Through **SPECTRA**, the obtained results are consistent with the known results.
 
-We also randomly generate 100 directed graphs in test/test_upper_bound.py, the results is as follow:
+We also randomly generate 100 directed graphs in test/test_upper_bound.py, the results are as follow:
 <p align="center">
 <img src="errors.png" alt="large scale test" width="100%"/>
 </p>
 
 The error is in the range of 10^-13 to 10^-10 which implies that **SPECTRA** has good practicability.
+
+Besides, such systematic error will not increase with the observed length, the results are as follow:
+
+<p align="center">
+<img src="extend_errors.png" alt="large scale test extend" width="100%"/>
+</p>
 
 
 ## Actual Performances of **SPIDER-WEB**.

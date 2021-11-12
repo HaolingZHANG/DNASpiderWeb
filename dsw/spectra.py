@@ -1,11 +1,11 @@
 __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
-from math import log
-from numpy import random, zeros_like, where, max, all, median, abs
+# from math import log2
+from numpy import random, zeros_like, where, max, all, median, abs, log2
 
 
-def calculate_upper_bound(graph, replay):
+def calculate_capacity(graph, replay):
     """
     Calculate capacity of the specific graph through Perron–Frobenius theorem: lambda_max(graph).
     |cite| Oskar Perron (1907) Mathematische Annalen
@@ -35,7 +35,7 @@ def calculate_upper_bound(graph, replay):
             eigenvalue = max(eigenvector)
             eigenvector = eigenvector / eigenvalue
             if abs(eigenvalue - last_eigenvalue) < 1e-10:
-                results.append(log(eigenvalue, 2))
+                results.append(log2(eigenvalue))
                 break
 
             last_eigenvalue, last_eigenvector = eigenvalue, eigenvector

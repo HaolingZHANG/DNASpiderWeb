@@ -10,11 +10,11 @@ In recent years, a growing number of functional biochemical operations and stora
 biochemical constraints are not confined to long single-nucleotide repeats and abnormal GC content.
 However, trade-offs between information density and compatibility to biochemical operations and algorithms require in-depth investigation, 
 to create transcoding algorithms considering novel biochemical constraints and their combinations.
-Here, we construct a simple calculator, called [**SPECTRA**](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/evaluator.py), 
+Here, we construct a simple calculator, called [**SPECTRA**](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spectra.py), 
 to make use of the spectral radius to compute the density-compatibility trade-off under arbitrary local biochemical constraints.
-Based on [**SPECTRA**](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/pipelines/step_1_generate.py), 
+Based on [**SPECTRA**](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/pipelines/step_3_practicability.py), 
 we design an automatic generator, 
-named [**SPIDER-WEB**](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/generator.py), 
+named [**SPIDER-WEB**](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py), 
 to create corresponding graph-based algorithms 
 which could be used directly or served as a benchmark for artificial algorithm design.
 Through this work, applicable algorithms with appropriate density-compatibility trade-off under arbitrary local biochemical constraints could be generated in an automated way. 
@@ -44,7 +44,7 @@ You can generate your directed graph based on the above-mentioned customized fil
 ```python
 from numpy import load
 from dsw.biofilter import LocalBioFilter
-from dsw.generator import find_vertices, connect_default_graph
+from dsw.spiderweb import find_vertices, connect_default_graph
 
 # bio_filter = CustomizedBioFilter(requirements=your requirements)
 bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["ACA", "CAC", "GTG", "TGT"])
@@ -59,10 +59,10 @@ you can easily find 8 examples.
 Through **SPECTRA**, you can obtain the theoretical trade-off under your requirements, that is,
 ```python
 from numpy import load
-from dsw.evaluator import calculate_upper_bound
+from dsw.spectra import calculate_capacity
 
 graph = load("local[g].npy")
-print(calculate_upper_bound(graph=graph, replay=10))
+print(calculate_capacity(graph=graph, replay=10))
 ```
 
 ### Automatic Algorithm Generator
@@ -70,7 +70,7 @@ According to **SPIDER-WEB**, you can obtain algorithms (fixed-length or variable
 
 ```python
 from numpy import load
-from dsw.generator import connect_fixed_graph, connect_variable_graph
+from dsw.spiderweb import connect_fixed_graph, connect_variable_graph
 
 vertices = load(file="local" + "[v].npy")
 connect_fixed_graph(length=10, vertices=vertices, maximum_stride=5, save_path="../entities/FLC")

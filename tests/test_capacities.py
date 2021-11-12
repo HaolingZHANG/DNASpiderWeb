@@ -4,8 +4,9 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 from math import log
 from numpy import real, zeros, array, max, random, where, linalg
 from unittest import TestCase
-from dsw.generator import to_graph
-from dsw.evaluator import calculate_upper_bound
+
+from dsw.spiderweb import to_graph
+from dsw.spectra import calculate_capacity
 
 
 class TestTerminals(TestCase):
@@ -36,8 +37,8 @@ class TestTerminals(TestCase):
         freed_value = log(freed_maximum_eigenvalue, 2) if freed_maximum_eigenvalue > 0.0 else 0.0
         empty_value = log(empty_maximum_eigenvalue, 2) if empty_maximum_eigenvalue > 0.0 else 0.0
         print(freed_value, empty_value)
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.freed_graph), 10) - freed_value) <= 1e-4, True)
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.empty_graph), 10) - empty_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.freed_graph), 10) - freed_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.empty_graph), 10) - empty_value) <= 1e-4, True)
         self.assertEqual(abs(2.0 - freed_value) <= 1e-4, True)
         self.assertEqual(abs(0.0 - empty_value) <= 1e-4, True)
 
@@ -85,8 +86,8 @@ class TestBiochemicals(TestCase):
         g_maximum_eigenvalue = real(max(linalg.eig(self.gc_balanced_graph)[0]))
         h_value = log(h_maximum_eigenvalue, 2) if h_maximum_eigenvalue > 0.0 else 0.0
         g_value = log(g_maximum_eigenvalue, 2) if g_maximum_eigenvalue > 0.0 else 0.0
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.homopolymer_graph), 10) - h_value) <= 1e-4, True)
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.gc_balanced_graph), 10) - g_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.homopolymer_graph), 10) - h_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.gc_balanced_graph), 10) - g_value) <= 1e-4, True)
         self.assertEqual(abs(log(3.0, 2) - h_value) <= 1e-4, True)
         self.assertEqual(abs(log(2.0, 2) - g_value) <= 1e-4, True)
 
@@ -172,10 +173,10 @@ class TestCycles(TestCase):
         c_3_value = log(c_3_maximum_eigenvalue, 2) if c_3_maximum_eigenvalue > 0.0 else 0.0
         c_4_value = log(c_4_maximum_eigenvalue, 2) if c_4_maximum_eigenvalue > 0.0 else 0.0
         c_5_value = log(c_5_maximum_eigenvalue, 2) if c_5_maximum_eigenvalue > 0.0 else 0.0
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.cycle_2_graph), 10) - c_2_value) <= 1e-4, True)
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.cycle_3_graph), 10) - c_3_value) <= 1e-4, True)
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.cycle_4_graph), 10) - c_4_value) <= 1e-4, True)
-        self.assertEqual(abs(calculate_upper_bound(to_graph(self.cycle_5_graph), 10) - c_5_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.cycle_2_graph), 10) - c_2_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.cycle_3_graph), 10) - c_3_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.cycle_4_graph), 10) - c_4_value) <= 1e-4, True)
+        self.assertEqual(abs(calculate_capacity(to_graph(self.cycle_5_graph), 10) - c_5_value) <= 1e-4, True)
         self.assertEqual(abs(c_2_value - 0.0) <= 1e-4, True)
         self.assertEqual(abs(c_3_value - 0.0) <= 1e-4, True)
         self.assertEqual(abs(c_4_value - 0.0) <= 1e-4, True)
@@ -205,7 +206,7 @@ class TestSpecials(TestCase):
     def test(self):
         calculated_1_eigenvalue = real(max(linalg.eig(self.graph_1)[0]))
         calculated_1_value = log(calculated_1_eigenvalue, 2) if calculated_1_eigenvalue > 0.0 else 0.0
-        approximate_value = calculate_upper_bound(to_graph(self.graph_1), 10)
+        approximate_value = calculate_capacity(to_graph(self.graph_1), 10)
         self.assertEqual(abs(approximate_value - calculated_1_value) <= 1e-4, True)
 
 
@@ -242,7 +243,7 @@ class TestRandom(TestCase):
                     matrix[position[0], position[1]] = 0
             calculated_eigenvalue = real(max(linalg.eig(matrix)[0]))
             calculated_value = log(calculated_eigenvalue, 2) if calculated_eigenvalue > 0.0 else 0.0
-            approximate_value = calculate_upper_bound(to_graph(matrix), 10)
+            approximate_value = calculate_capacity(to_graph(matrix), 10)
             if abs(approximate_value - calculated_value) <= 1e-4:
                 success += 1
         self.assertEqual(success == self.test_times, True)

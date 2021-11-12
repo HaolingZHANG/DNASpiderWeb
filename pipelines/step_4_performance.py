@@ -4,7 +4,8 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 from math import log2, floor, ceil
 from matplotlib import pyplot
 from numpy import array, load, max, min, median
-from dsw import calculate_upper_bound
+
+from dsw import calculate_capacity
 
 
 colors = {
@@ -19,7 +20,7 @@ def calculate_upper_bounds():
     bounds = []
     for bound_index in range(1, 8 + 1):
         bound_graph = load(file="../entities/BM" + str(bound_index) + "[g].npy")
-        bounds.append(calculate_upper_bound(graph=bound_graph, replay=10))
+        bounds.append(calculate_capacity(graph=bound_graph, replay=10))
     return bounds
 
 

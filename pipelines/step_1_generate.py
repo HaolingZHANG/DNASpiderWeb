@@ -2,9 +2,9 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
 from numpy import load
+from dsw import LocalBioFilter
 from dsw import find_vertices
 from dsw import connect_default_graph, connect_fixed_graph, connect_variable_graph
-from dsw import LocalBioFilter
 
 
 """
