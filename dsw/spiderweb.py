@@ -64,14 +64,14 @@ def decode(oligo, bit_length, graph, start_index):
     :return: a binary segment decoded by this graph.
     :rtype: list
     """
-    decimal_number, array, vertex_index = 0, [], start_index
+    decimal_number, values, vertex_index = 0, [], start_index
     for index, nucleotide in enumerate(oligo):
         used_indices = where(graph[vertex_index] >= 0)[0]
         value = [n_system[used_index] for used_index in used_indices].index(nucleotide)
-        array.append((len(used_indices), value))
+        values.append((len(used_indices), value))
         vertex_index = graph[vertex_index][n_system.index(nucleotide)]
 
-    for index, (out_degree, number) in enumerate(array[::-1]):
+    for index, (out_degree, number) in enumerate(values[::-1]):
         decimal_number *= out_degree
         decimal_number += number
 
