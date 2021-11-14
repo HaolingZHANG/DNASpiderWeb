@@ -4,7 +4,7 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 from random import seed, randint
 from unittest import TestCase
 
-from dsw.coder import to_number, to_bits
+from dsw.spiderweb import to_number, to_bits
 
 
 class TestNumber(TestCase):

@@ -161,7 +161,7 @@ def evaluate_length_2(test_times):
 
 # noinspection PyTypeChecker
 def evaluate_growing(terminal_length, test_times):
-    if not path.exists("../results/practicability.pkl"):
+    if not path.exists("../results/Practicability.pkl"):
         random.seed(2021)
         whole_data = {}
         for length in range(2, terminal_length + 1):
@@ -181,12 +181,12 @@ def evaluate_growing(terminal_length, test_times):
                 errors.append(abs(approximate_value - calculated_value))
             whole_data[length] = (values, errors)
 
-        with open("../results/practicability.pkl", "wb") as file:
+        with open("../results/Practicability.pkl", "wb") as file:
             dump(whole_data, file)
 
         return whole_data
     else:
-        with open("../results/practicability.pkl", "rb") as file:
+        with open("../results/Practicability.pkl", "rb") as file:
             return load(file)
 
 

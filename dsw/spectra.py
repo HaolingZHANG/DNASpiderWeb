@@ -1,7 +1,6 @@
 __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
-# from math import log2
 from numpy import random, zeros_like, where, max, all, median, abs, log2
 
 

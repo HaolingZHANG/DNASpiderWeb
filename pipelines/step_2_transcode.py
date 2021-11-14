@@ -5,8 +5,8 @@ from os import path
 from numpy import array, where, load, save
 from random import seed, randint
 
-from dsw import encode, decode
-from dsw import Monitor
+
+from dsw import Monitor, encode, decode
 
 
 def transcode(graph, start_indices, task_seed, bit_length, test_time, fixed_length=None):

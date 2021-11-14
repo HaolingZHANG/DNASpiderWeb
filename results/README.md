@@ -17,27 +17,29 @@ Ignored file list:
 ├── VLC6[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 6
 ├── VLC7[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 7
 ├── VLC8[t].npy          // Transcoding results of variable-length graph coder with biochemical filter 8
-├── practicability.pkl   // Evaluating results of SPECTRA
+├── Practicability.pkl   // Evaluating results of SPECTRA
 
 ```
 
 ## Practicability of **SPECTRA**
 
 Initially, 4 simple directed graphs with known information density is used for the evaluation, as shown in the figure below:
+
 <p align="center">
 <img src="matrices.png" alt="examples of adjacency matrix" width="100%"/>
 </p>
 
 Through **SPECTRA**, the obtained results are consistent with the known results.
 
-We also randomly generate 100 directed graphs in test/test_upper_bound.py, the results are as follow:
+We also randomly generate 100 directed graphs, the results are as follow:
+
 <p align="center">
 <img src="errors.png" alt="large scale test" width="100%"/>
 </p>
 
 The error is in the range of 10^-13 to 10^-10 which implies that **SPECTRA** has good practicability.
 
-Besides, such systematic error will not increase with the observed length, the results are as follow:
+Besides, such systematic error will not increase with the observed length, the results based on random graphs are as follow:
 
 <p align="center">
 <img src="extend_errors.png" alt="large scale test extend" width="100%"/>
@@ -47,7 +49,7 @@ Besides, such systematic error will not increase with the observed length, the r
 ## Actual Performances of **SPIDER-WEB**.
 
 
-The local biochemical constraint groups are as follow:
+The local biochemical constraint sets are as follow:
 
 | set index | homopolymer run-length | GC-biased range | undesired DNA motifs | information density |
 | ---- | ---- | ---- | ---- | ----|
