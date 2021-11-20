@@ -16,11 +16,51 @@ colors = {
 }
 
 
+# noinspection PyUnresolvedReferences
 def calculate_upper_bounds():
-    bounds = []
+    bounds, data = [], []
     for bound_index in range(1, 8 + 1):
         bound_graph = load(file="../entities/BM" + str(bound_index) + "[g].npy")
-        bounds.append(calculate_capacity(graph=bound_graph, replay=10))
+        capacity, processes = calculate_capacity(graph=bound_graph, replay=10, need_process=True)
+        bounds.append(capacity)
+        data.append((capacity, processes))
+
+    pyplot.figure(figsize=(10, 4))
+    pyplot.rc("font", family="Times New Roman")
+    pyplot.subplots_adjust(wspace=0.15, hspace=0.3)
+    for group_index, (result, processes) in enumerate(data):
+        axes = pyplot.subplot(2, 4, index + 1)
+        values = []
+        point = -1
+        for process in processes:
+            point = max(array([point, len(process)]))
+            values.append(process + [process[-1]] * (150 - len(process)))
+        values = array(values)
+        max_values, min_values, median_values = max(values, axis=0), min(values, axis=0), median(values, axis=0)
+        pyplot.title("group " + str(group_index + 1))
+        pyplot.fill_between(list(range(150)), max_values, min_values, color="#B1CCDF")
+        pyplot.plot(list(range(150)), median_values, color="#81B8DF")
+        pyplot.scatter([point], [median_values[-1]], color="#FE817D", zorder=5)
+        if index % 4 == 0:
+            pyplot.ylabel("information density")
+            pyplot.yticks([0.5, 1, 1.5, 2.0], ["0.5", "1.0", "1.5", "2.0"])
+        else:
+            pyplot.yticks([0.5, 1, 1.5, 2.0], ["", "", "", ""])
+        if index >= 4:
+            pyplot.xlabel("iterations")
+            pyplot.xticks([0, 30, 60, 90, 120, 150], [0, 30, 60, 90, 120, 150])
+        else:
+            pyplot.xticks([0, 30, 60, 90, 120, 150], ["", "", "", "", "", ""])
+        pyplot.text(145, min_values[-1] - 0.08, "%.3f" % median_values[-1], va="top", ha="right")
+        pyplot.xlim(0, 150)
+        pyplot.ylim(0.4, 2.1)
+        axes.spines["right"].set_visible(False)
+        axes.spines["top"].set_visible(False)
+
+    pyplot.savefig("../results/bounds.png", format="png",
+                   bbox_inches="tight", transparent=True, dpi=600)
+    pyplot.close()
+
     return bounds
 
 
@@ -128,7 +168,7 @@ def evaluate_variable_graph(bounds):
 
 
 if __name__ == "__main__":
-    b_bounds = calculate_upper_bounds()  # [1.000, 1.585, 1.630, 1.670, 1.776, 1.796, 1.815, 1.982]
+    b_bounds = calculate_upper_bounds()
     for index, b_bound in enumerate(b_bounds):
         print("biochemical constraint group " + str(index + 1) + ": %.3f" % b_bound)
 

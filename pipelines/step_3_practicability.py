@@ -1,20 +1,96 @@
 __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
+from itertools import product
 from math import log
 from matplotlib import pyplot
-from numpy import array, ones, zeros_like, percentile, sum, min, max, log10, linalg, real, random, where
+from numpy import array, zeros, ones, zeros_like, percentile, sum, min, max, log10, linalg, real, random, where
 from os import path
 from pickle import load, dump
 
-from dsw import calculate_capacity, Monitor
-from dsw.spiderweb import to_adjacency_matrix, obtain_latters, to_graph
+from dsw import Monitor, calculate_capacity
+from dsw.spiderweb import to_adjacency_matrix, obtain_latters, to_graph, obtain_number
 
 
 colors = {
     "trad1": "#81B8DF",
     "trad2": "#B1CCDF",
 }
+
+
+# noinspection PyUnresolvedReferences
+def display_cases():
+    def create_matrix(oligos):
+        matrix = zeros(shape=(16, 16), dtype=int)
+        vertices = [obtain_number(oligo=vertex) for vertex in oligos]
+
+        for former, latter in product(range(len(oligos)), repeat=2):
+            if oligos[former][1] == oligos[latter][0]:
+                matrix[vertices[former], vertices[latter]] = 1
+        return matrix
+
+    cases = [create_matrix(oligos=["AC",
+                                   "CG",
+                                   "GT",
+                                   "TA"]),  # a cycle.
+             create_matrix(oligos=["AC", "AG",
+                                   "CA", "CG",
+                                   "GA", "GT",
+                                   "TC", "TG"]),  # GC content is 50%.
+             create_matrix(oligos=["AC", "AG", "AT",
+                                   "CA", "CG", "CT",
+                                   "GA", "GC", "GT",
+                                   "TA", "TC", "TG"]),  # no homopolymer.
+             create_matrix(oligos=["AA", "AC", "AG", "AT",
+                                   "CA", "CC", "CG", "CT",
+                                   "GA", "GC", "GG", "GT",
+                                   "TA", "TC", "TG", "TT"])]  # complete graph.
+
+    pyplot.figure(figsize=(10, 5))
+    pyplot.rc("font", family="Times New Roman")
+    pyplot.subplots_adjust(wspace=0.15, hspace=0.3)
+    for index, case in enumerate(cases):
+        pyplot.subplot(2, len(cases), index + 1)
+        for x in range(16):
+            for y in range(16):
+                if case[x, y] == 1:
+                    pyplot.fill_between(x=[x, x + 1], y1=[y, y], y2=[y + 1, y + 1],
+                                        color=colors["trad1"])
+        pyplot.xticks(array(list(range(16))) + 0.5,
+                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"])
+        if index > 0:
+            pyplot.yticks(array(list(range(16))) + 0.5,
+                          ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])
+        else:
+            pyplot.yticks(array(list(range(16))) + 0.5,
+                          ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"])
+            pyplot.ylabel("index of latter DNA string")
+        for value in range(16):
+            pyplot.vlines(value, 0, 16, color="black", linewidth=0.5)
+            pyplot.hlines(value, 0, 16, color="black", linewidth=0.5)
+        pyplot.xlabel("index of former DNA string")
+        pyplot.xlim(0, 16)
+        pyplot.ylim(0, 16)
+        axes = pyplot.subplot(2, len(cases), index + len(cases) + 1)
+        _, process = calculate_capacity(graph=to_graph(case), replay=1, need_process=True)
+        if len(process) == 1:
+            pyplot.scatter([0], process, color=colors["trad1"])
+        pyplot.plot(range(len(process)), process, color=colors["trad1"], marker="o", linewidth=2)
+        pyplot.text(len(process) - 0.8, process[-1], "%.3f" % process[-1], va="center", ha="left")
+        pyplot.xlim(-0.1, 2.1)
+        pyplot.ylim(-0.1, 2.1)
+        if index > 0:
+            pyplot.yticks([0, 0.5, 1, 1.5, 2], ["", "", "", "", ""])
+        else:
+            pyplot.ylabel("information density")
+        pyplot.xticks([0, 1, 2], [1, 2, 3])
+        pyplot.xlabel("iteration")
+        axes.spines["right"].set_visible(False)
+        axes.spines["top"].set_visible(False)
+
+    pyplot.savefig("../results/matrices.png", format="png",
+                   bbox_inches="tight", transparent=True, dpi=600)
+    pyplot.close()
 
 
 def display_length_2_detailed(data, errors):
@@ -191,6 +267,7 @@ def evaluate_growing(terminal_length, test_times):
 
 
 if __name__ == "__main__":
+    display_cases()
     results, differs = evaluate_length_2(test_times=100)
     display_length_2_detailed(data=results, errors=differs)
     data_group = evaluate_growing(terminal_length=6, test_times=100)

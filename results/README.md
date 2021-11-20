@@ -62,6 +62,13 @@ The local biochemical constraint sets are as follow:
 | 7 |  4  | 40%~60% | N/A | 1.815 |
 | 8 |  3  |   N/A   | N/A | 1.982 |
 
+The capacity of these 8 local biochemical constraint sets are as follow:
+
+<p align="center">
+<img src="bounds.png" alt="results of capacity" title="capacity" width="100%"/>
+</p>
+
+
 The results of fixed-length code are as follows:
 
 <p align="center">

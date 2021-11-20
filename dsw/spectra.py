@@ -1,10 +1,11 @@
 __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
-from numpy import random, zeros_like, where, max, all, median, abs, log2
+from numpy import random, zeros_like, ones, where, max, all, median, abs, log2
 
 
-def calculate_capacity(graph, replay):
+# noinspection PyArgumentList
+def calculate_capacity(graph, replay=1, need_process=False):
     """
     Calculate capacity of the specific graph through Perron–Frobenius theorem: lambda_max(graph).
     |cite| Oskar Perron (1907) Mathematische Annalen
@@ -17,26 +18,40 @@ def calculate_capacity(graph, replay):
     :param replay: replay time for approximating the upper bound.
     :type replay: int
 
-    :return: capacity of this graph.
+    :param need_process: need eigenvalue in the process.
+    :type need_process: bool
+
+    :return: capacity of this graph (and eigenvalues in the process).
     :rtype: float
     """
     if all(graph == -1):
-        return 0.0
+        if need_process:
+            return (0.0, [0.0]) if replay == 1 else (0.0, [[0.0] for _ in range(replay)])
+        else:
+            return 0.0
 
-    results = []
+    results, process = [], []
     for _ in range(replay):
-        # noinspection PyArgumentList
-        last_eigenvector, last_eigenvalue = abs(random.random(size=(len(graph),))), 0.0
+        process.append([])
+        if replay > 1:
+            last_eigenvector, last_eigenvalue = abs(random.random(size=(len(graph),))), 0.0
+        else:
+            last_eigenvector, last_eigenvalue = ones(shape=(len(graph),)), 0.0
+
         while True:
             eigenvector = zeros_like(last_eigenvector)
             for positions in graph.T:
                 eigenvector[where(positions >= 0)] += last_eigenvector[positions[positions >= 0]]
             eigenvalue = max(eigenvector)
             eigenvector = eigenvector / eigenvalue
+            process[-1].append(log2(eigenvalue))
             if abs(eigenvalue - last_eigenvalue) < 1e-10:
                 results.append(log2(eigenvalue))
                 break
 
             last_eigenvalue, last_eigenvector = eigenvalue, eigenvector
 
-    return median(results)
+    if need_process:
+        return (median(results), process[0]) if replay == 1 else (median(results), process)
+    else:
+        return median(results)
