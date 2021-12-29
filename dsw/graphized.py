@@ -203,7 +203,7 @@ def accessor_to_latter_map(accessor, verbose=False):
 
     :return: latter vertices map of graph.
     :rtype: dict
-    
+
     ..example::
         >>> from numpy import array
         >>> from dsw import get_complete_accessor, accessor_to_latter_map
