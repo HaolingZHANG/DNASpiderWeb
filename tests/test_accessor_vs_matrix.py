@@ -4,7 +4,7 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 from numpy import array, where, random
 from unittest import TestCase
 
-from dsw.spiderweb import to_graph, to_adjacency_matrix
+from dsw import adjacency_matrix_to_accessor, accessor_to_adjacency_matrix
 
 
 class TestCompress(TestCase):
@@ -32,7 +32,7 @@ class TestCompress(TestCase):
                             [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]])
 
     def test(self):
-        check_graph = to_graph(self.adjacency_matrix)
+        check_graph = adjacency_matrix_to_accessor(self.adjacency_matrix)
         self.assertEqual(self.graph.tolist(), check_graph.tolist())
 
 
@@ -61,7 +61,7 @@ class TestDecompress(TestCase):
                                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]])
 
     def test(self):
-        check_matrix = to_adjacency_matrix(self.graph)
+        check_matrix = accessor_to_adjacency_matrix(self.graph)
         self.assertEqual(self.adjacency_matrix.tolist(), check_matrix.tolist())
 
 
@@ -85,6 +85,6 @@ class TestTransform(TestCase):
 
     def test(self):
         for test_graph in self.test_graphs:
-            adjacency_matrix = to_adjacency_matrix(test_graph)
-            check_graph = to_graph(adjacency_matrix)
+            adjacency_matrix = accessor_to_adjacency_matrix(test_graph)
+            check_graph = adjacency_matrix_to_accessor(adjacency_matrix)
             self.assertEqual(test_graph.tolist(), check_graph.tolist())

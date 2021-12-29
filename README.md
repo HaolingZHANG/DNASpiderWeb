@@ -21,7 +21,7 @@ Through this work, applicable algorithms with appropriate density-compatibility 
 It is also suggested that more kinds of biochemical constraints can be further investigated as more complex operations would be needed in future DNA storage systems.
 
 ## Usage and Customization
-### Biochemical Constraints Setting
+### local biochemical constraints set
 You can create your customized local biochemical constraint filter by inheriting [DefaultBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L4), such as
 
 ```python
@@ -39,50 +39,64 @@ class CustomizedBioFilter(DefaultBioFilter):
 ```
 A simple example in this work is [LocalBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30).
 
-### Directed Graph Obtained from Valid DNA Sequences
+### Directed graph generated from valid DNA string
 You can generate your directed graph based on the above-mentioned customized filter or local biochemical constraint group:
 ```python
-from numpy import load
-from dsw.biofilter import LocalBioFilter
-from dsw.spiderweb import find_vertices, connect_default_graph
+from dsw import LocalBioFilter, find_vertices, connect_valid_graph
 
 # bio_filter = CustomizedBioFilter(requirements=your requirements)
 bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["ACA", "CAC", "GTG", "TGT"])
-find_vertices(length=10, bio_filter=bio_filter, save_path="local")
-vertices = load(file="local" + "[v].npy")
-connect_default_graph(length=10, vertices=vertices, save_path="local")
+vertices = find_vertices(length=10, bio_filter=bio_filter, save_path="local")
+graph = connect_valid_graph(length=10, vertices=vertices, save_path="local")
 ```
-In [pipelines folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/pipelines/step_1_generate.py), 
-you can easily find 8 examples.
+Through our customized approximater, 
+see [here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/graphoids.py#L476), 
+you can easily obtain the capacity under the specific biochemical constraint set.
+```python
+from dsw import LocalBioFilter, find_vertices, connect_valid_graph, approximate_capacity
 
-### Trade-off Calculator
-Through **SPECTRA**, you can obtain the theoretical trade-off under your requirements, that is,
+bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["ACA", "CAC", "GTG", "TGT"])
+vertices = find_vertices(length=10, bio_filter=bio_filter, save_path="local")
+graph = connect_valid_graph(length=10, vertices=vertices, save_path="local")
+print(approximate_capacity(graph=graph, replay=10))
+```
+
+
+### Automatic algorithm generator named SPIDER-WEB
+According to **SPIDER-WEB**, you can obtain the corresponding variable-length algorithms:
+
 ```python
 from numpy import load
-from dsw.spectra import calculate_capacity
-
-graph = load("local[g].npy")
-print(calculate_capacity(graph=graph, replay=10))
-```
-
-### Automatic Algorithm Generator
-According to **SPIDER-WEB**, you can obtain algorithms (fixed-length or variable-length):
-
-```python
-from numpy import load
-from dsw.spiderweb import connect_fixed_graph, connect_variable_graph
+from dsw import connect_coding_graph
 
 vertices = load(file="local" + "[v].npy")
-connect_fixed_graph(length=10, vertices=vertices, maximum_stride=5, save_path="../entities/FLC")
-connect_variable_graph(length=10, vertices=vertices, threshold=1, save_path="../entities/VLC")
+connect_coding_graph(length=10, vertices=vertices, threshold=1, save_path="../results/data/")
 ```
-In [pipelines folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/pipelines/step_1_generate.py), 
-you can easily find 8 examples.
+In [experiments folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/__init__.py), 
+you can easily find 12 examples in our experiments.
+
+## Basic evaluations
+
+Some basic evaluation results of **SPIDER-WEB** are recorded 
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/figures/).
+
+These figures are generated directly through the process Python scripts 
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
+
+Compared with 
+[**HEDGES**](https://www.pnas.org/content/117/31/18489.full), 
+[**DNA Fountain**](https://www.science.org/doi/abs/10.1126/science.aaj2038) and 
+[**Yin-Yang Code**](https://www.biorxiv.org/content/10.1101/829721v3), 
+the rough (not academic) conclusions are as follows:
+
+<p align="center">
+<img src="./experiments/results/figures/[0-0] result overviews.png" title="result overview" width="100%"/>
+</p>
 
 
-## Basic Evaluation
+## Availability of process data
 
-Some basic evaluation results of **SPECTRA**, and **SPIDER-WEB** are recorded [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/results).
+Please do not hesitate to contact zhanghaoling[at]genomics.cn.
 
 ## Citation
 If you think this repo helps or being used in your research, please consider refer this paper. 

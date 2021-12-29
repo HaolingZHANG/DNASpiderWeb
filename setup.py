@@ -14,10 +14,10 @@ setup(
     author_email="zhanghaoling@genomics.cn",
     url="https://github.com/HaolingZHANG/DNASpiderWeb",
     packages=["dsw"],
-    install_requires=["numpy", "scipy", "matplotlib"],
+    install_requires=["numpy", "scipy"],
     license="MIT",
     classifiers=["License :: OSI Approved :: MIT License",
                  "Programming Language :: Python :: 3",
                  "Operating System :: OS Independent"],
-    keywords="DNA Storage, Coding Scheme",
+    keywords="DNA Storage, Coding Algorithm, Automatic Algorithm Generator",
 )

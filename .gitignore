@@ -129,7 +129,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# output results
+# original output results
 *.npy
 *.pkl
 *.pdf
