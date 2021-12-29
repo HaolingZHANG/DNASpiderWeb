@@ -30,8 +30,8 @@ def generate_by_filters():
             save(file="./results/data/v" + index + "[g].npy", arr=accessor)
             print()
 
-        if not (path.exists("./results/data/a" + index + "[v].npy") and
-                path.exists("./results/data/a" + index + "[g].npy")):
+        if not (path.exists("./results/data/a" + index + "[v].npy")
+                and path.exists("./results/data/a" + index + "[g].npy")):
             vertices, accessor = connect_coding_graph(observed_length=10, vertices=vertices, threshold=2, verbose=True)
             save(file="./results/data/a" + index + "[v].npy", arr=vertices)
             save(file="./results/data/a" + index + "[g].npy", arr=accessor)
