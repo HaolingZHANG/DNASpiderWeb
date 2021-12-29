@@ -167,8 +167,8 @@ def evaluate_length_2(test_times):
 
     a, b = polyfit(errors, data, deg=1)
     estimated = a * errors + b
-    bounds = abs(std(errors) * sqrt(1.0 / len(errors) +
-                                    (errors - mean(errors)) ** 2 / sum((errors - mean(errors)) ** 2)))
+    bounds = abs(std(errors) * sqrt(1.0 / len(errors)
+                                    + (errors - mean(errors)) ** 2 / sum((errors - mean(errors)) ** 2)))
     pyplot.fill_between(errors, estimated - bounds, estimated + bounds, color=colors["trad2"], alpha=0.75, zorder=1)
     x = linspace(min(errors), max(errors), 100)
     y = a * x + b
