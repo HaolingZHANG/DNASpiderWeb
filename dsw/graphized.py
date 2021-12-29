@@ -180,8 +180,8 @@ def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
         next_indices = where(vertex == 1)[0].tolist()
         reference_latters = obtain_latters(current=vertex_index, observed_length=observed_length)
         if list(set(next_indices) | set(reference_latters)) != reference_latters:
-            raise ValueError("Wrong format in the adjacency matrix, " +
-                             "which cannot be converted to equivalent compressed accessor!")
+            raise ValueError("Wrong format in the adjacency matrix, "
+                             + "which cannot be converted to equivalent compressed accessor!")
         saved_information = [index if index in next_indices else -1 for index in reference_latters]
         accessor[vertex_index] = saved_information
 
@@ -505,8 +505,8 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
         array([ 1,  2, 13, 14])
     """
     if (accessor is not None) and (latter_map is not None):
-        raise ValueError("Too many variables (accessor and latter map) are assigned, " +
-                         "we do not know which variable needs to be used as a priority!")
+        raise ValueError("Too many variables (accessor and latter map) are assigned, "
+                         + "we do not know which variable needs to be used as a priority!")
 
     branch = [vertex_index]
 
@@ -742,11 +742,11 @@ def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotid
             print("Replace " + original + " to " + replace_nucleotide)
             if occur_location + observed_length < len(dna_string):
                 remain = len(dna_string) - (occur_location + observed_length)
-                print("         = [" + "-" * occur_location + segment + "-" * remain + "]" +
-                      " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                print("         = [" + "-" * occur_location + segment + "-" * remain + "]"
+                      + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
             else:
-                print("         = [" + "-" * occur_location + segment + "]" +
-                      " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                print("         = [" + "-" * occur_location + segment + "]"
+                      + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
 
         vertex_index, reliable = index_queue[occur_location], True
         for index, nucleotide in enumerate(segment):
@@ -759,12 +759,12 @@ def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotid
                     b_options = accessor[vertex_index][~(accessor[vertex_index] == -1)]
                     if occur_location + observed_length < len(dna_string):
                         remain = len(dna_string) - (occur_location + observed_length)
-                        print("           [" + "-" * (occur_location + index) + segment[index] +
-                              "-" * (remain + len(segment) - index - 1) + "]" +
-                              " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                        print("           [" + "-" * (occur_location + index) + segment[index]
+                              + "-" * (remain + len(segment) - index - 1) + "]"
+                              + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
                     else:
-                        print("           [" + "-" * (occur_location + index) + segment[index] + "]" +
-                              " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                        print("           [" + "-" * (occur_location + index) + segment[index] + "]"
+                              + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
 
                 vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
             else:
@@ -788,11 +788,11 @@ def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotid
                 print("Insert " + add_nucleotide + " in location " + str(occur_location))
                 if occur_location + observed_length < len(dna_string):
                     remain = len(dna_string) - (occur_location + observed_length)
-                    print("         = [" + "-" * occur_location + segment + "-" * remain + "]" +
-                          " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                    print("         = [" + "-" * occur_location + segment + "-" * remain + "]"
+                          + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
                 else:
-                    print("         = [" + "-" * occur_location + segment + "]" +
-                          " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                    print("         = [" + "-" * occur_location + segment + "]"
+                          + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
 
             vertex_index, reliable = index_queue[occur_location], True
             for index, nucleotide in enumerate(segment):
@@ -805,12 +805,12 @@ def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotid
                         b_options = accessor[vertex_index][~(accessor[vertex_index] == -1)]
                         if occur_location + observed_length < len(dna_string):
                             remain = len(dna_string) - (occur_location + observed_length)
-                            print("           [" + "-" * (occur_location + index) + segment[index] +
-                                  "-" * (remain + len(segment) - index - 1) + "]" +
-                                  " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                            print("           [" + "-" * (occur_location + index) + segment[index]
+                                  + "-" * (remain + len(segment) - index - 1) + "]"
+                                  + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
                         else:
-                            print("           [" + "-" * (occur_location + index) + segment[index] + "]" +
-                                  " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                            print("           [" + "-" * (occur_location + index) + segment[index] + "]"
+                                  + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
 
                     vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
                 else:
@@ -835,11 +835,11 @@ def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotid
             print("Delete " + check_segment[0] + " in location " + str(occur_location))
             if occur_location + observed_length < len(dna_string):
                 remain = len(dna_string) - (occur_location + observed_length)
-                print("         = [" + "-" * occur_location + segment + "-" * remain + "]" +
-                      " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                print("         = [" + "-" * occur_location + segment + "-" * remain + "]"
+                      + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
             else:
-                print("         = [" + "-" * occur_location + segment + "]" +
-                      " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                print("         = [" + "-" * occur_location + segment + "]"
+                      + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
 
         vertex_index, reliable = index_queue[occur_location], True
         for index, nucleotide in enumerate(segment):
@@ -852,12 +852,12 @@ def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotid
                     b_options = accessor[vertex_index][~(accessor[vertex_index] == -1)]
                     if occur_location + observed_length < len(dna_string):
                         remain = len(dna_string) - (occur_location + observed_length)
-                        print("           [" + "-" * (occur_location + index) + segment[index] +
-                              "-" * (remain + len(segment) - index - 1) + "]" +
-                              " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                        print("           [" + "-" * (occur_location + index) + segment[index]
+                              + "-" * (remain + len(segment) - index - 1) + "]"
+                              + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
                     else:
-                        print("           [" + "-" * (occur_location + index) + segment[index] + "]" +
-                              " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
+                        print("           [" + "-" * (occur_location + index) + segment[index] + "]"
+                              + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
 
                 vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
             else:

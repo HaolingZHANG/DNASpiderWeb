@@ -475,8 +475,8 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
         changed = sum(vertices) - sum(new_vertices)
 
         if verbose:
-            print(str(round(sum(new_vertices) / len(vertices) * 100, 2)) + "% (" + str(sum(new_vertices)) + ") " +
-                  "valid vertices are saved.")
+            print(str(round(sum(new_vertices) / len(vertices) * 100, 2)) + "% (" + str(sum(new_vertices)) + ") "
+                  + "valid vertices are saved.")
 
         if sum(new_vertices) < 1:
             raise ValueError("No algorithmic graph is created!")
