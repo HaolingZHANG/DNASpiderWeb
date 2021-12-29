@@ -9,7 +9,7 @@ from dsw import calculus_addition, calculus_subtraction, calculus_multiplication
 class TestAddition(TestCase):
 
     def setUp(self):
-        self.numbers = list(range(10000000))
+        self.numbers = list(range(1000))
         self.bases = [0, 1, 2, 3, 4]
 
     def test(self):
@@ -23,7 +23,7 @@ class TestAddition(TestCase):
 class TestSubtraction(TestCase):
 
     def setUp(self):
-        self.numbers = list(range(4, 10000000))
+        self.numbers = list(range(4, 1000))
         self.bases = [0, 1, 2, 3, 4]
 
     def test(self):
@@ -37,7 +37,7 @@ class TestSubtraction(TestCase):
 class TestMultiplication(TestCase):
 
     def setUp(self):
-        self.numbers = list(range(10000000))
+        self.numbers = list(range(1000))
         self.bases = [1, 2, 3, 4]
 
     def test(self):
@@ -51,7 +51,7 @@ class TestMultiplication(TestCase):
 class TestDivision(TestCase):
 
     def setUp(self):
-        self.numbers = list(range(4, 10000000))
+        self.numbers = list(range(4, 1000))
         self.bases = [2, 3, 4]
 
     def test(self):

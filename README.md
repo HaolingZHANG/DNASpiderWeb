@@ -33,7 +33,7 @@ class CustomizedBioFilter(DefaultBioFilter):
         super().__init__(screen_name="Custom")
         self.requirements = requirements
         
-    def valid(self, oligo):
+    def valid(self, dna_string):
         # TODO do validity screening through self.requirements.
         return True
 ```
@@ -84,9 +84,9 @@ These figures are generated directly through the process Python scripts
 [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
 
 Compared with 
-[**HEDGES**](https://www.pnas.org/content/117/31/18489.full), 
-[**DNA Fountain**](https://www.science.org/doi/abs/10.1126/science.aaj2038) and 
-[**Yin-Yang Code**](https://www.biorxiv.org/content/10.1101/829721v3), 
+[HEDGES](https://www.pnas.org/content/117/31/18489.full), 
+[DNA Fountain](https://www.science.org/doi/abs/10.1126/science.aaj2038) and 
+[Yin-Yang Code](https://www.biorxiv.org/content/10.1101/829721v3), 
 the rough (not academic) conclusions are as follows:
 
 <p align="center">
@@ -96,7 +96,7 @@ the rough (not academic) conclusions are as follows:
 
 ## Availability of process data
 
-Please do not hesitate to contact zhanghaoling[at]genomics.cn.
+Please do not hesitate to contact zhanghaoling/at/genomics.cn.
 
 ## Citation
 If you think this repo helps or being used in your research, please consider refer this paper. 
