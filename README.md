@@ -90,7 +90,7 @@ Compared with
 the rough (not academic) conclusions are as follows:
 
 <p align="center">
-<img src="./experiments/results/figures/[0-0] result overviews.png" title="result overview" width="100%"/>
+<img src="./experiments/results/figures/[6-0] result overviews.png" title="result overview" width="100%"/>
 </p>
 
 
