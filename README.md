@@ -1,8 +1,6 @@
 <p align="center">
-<img src="logo.svg" alt="DNA Spider-Web" title="DNASpiderWeb" width="20%"/>
+<img src="logo.svg" alt="DNA Spider-Web" title="DNASpiderWeb" width="75%"/>
 </p>
-
-# DNA SPIDER-WEB
 
 [![CircleCI](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb/tree/main.svg?style=shield&circle-token=6aeac22720c5828585591fa5e2f4917bcaae9a72)](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb/tree/main)
 [![Build Status](https://travis-ci.org/HaolingZHANG/DNASpiderWeb.svg)](https://travis-ci.org/HaolingZHANG/DNASpiderWeb)
