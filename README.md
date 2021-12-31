@@ -79,11 +79,11 @@ capacity = approximate_capacity(graph=graph)
 print(capacity)
 ```
 
-The capacity approximater is based on the Perron–Frobenius theorem, that is, $\log_2(\lambda)$
-We have proved its applicability for variable-length coding algorithms in the publication.
+The capacity approximater is based on the Perron–Frobenius theorem,
+we have proved its applicability for variable-length coding algorithms in the publication.
 
-Unfortunately, when the observed length (or window length) reaches $8$, 
-the data capacity will achieve $(4^{8 \times 8}) \times (8 \times 8) = 32.0$GB 
+Unfortunately, when the observed length (or window length) reaches 8, 
+the data capacity will achieve 32.0GB 
 with the data type (double-precision floating-point format), 
 which is unable to be allocated (both MATLAB and Python platforms).
 Therefore, see [here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/graphized.py),
@@ -92,7 +92,7 @@ to complete the representation of graphs and the solution of largest eigenvalues
  
 To verify its [reliability](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/step_2_reliability.py), 
 we compared our proposed method with Numpy ``linalg.eig'' function in some small-scale matrices.
-As part of the experimental results, the median value of relative error analysis is $2.97 \times 10^{-11}$, 
+As part of the experimental results, the median value of relative error analysis is 2.97E-11, 
 which represents our proposed method is high reliability and negligible error. 
 
 <p align="center">
