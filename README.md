@@ -43,15 +43,16 @@ Some additional libraries need to be installed, that is,
 [Chamaeleo>=1.34](https://pypi.org/project/Chamaeleo/) and [matplotlib>=3.1.1](https://pypi.org/project/matplotlib/).
 These experimental Python scripts [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments) are single threaded. 
 It may take about a month to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
-In order to further understand the experimental situation, like getting raw data (about 730MB), 
-please do not hesitate to contact zhanghaoling/at/genomics.cn.
+In order to further understand the experimental situation, 
+like getting [raw data](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/data/NOTES.md), 
+please do not hesitate to contact me.
 
 ## Basic evaluation
 Some investigations of 
 [SPIDER-WEB](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/figures/), 
-which are generated directly through the process Python scripts 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/figures/REPORTS.md), 
+which are generated directly through the [process Python scripts](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
+
 Compared with 
 [HEDGES](https://www.pnas.org/content/117/31/18489.full), 
 [DNA Fountain](https://www.science.org/doi/abs/10.1126/science.aaj2038) and 
@@ -68,6 +69,7 @@ where
 * [P-S] refers to the parameter sensibility, the statistical result of which is the normalized standard deviation of code rate;
 * [R-A] refers to the repairability, the statistical result of which is the normalized average DNA length of lossless decoding.
 
+For detailed design, evaluations and conclusions, please refer to our publication.
 
 ## Customization
 ### biochemical constraints set
@@ -116,9 +118,9 @@ you can easily obtain the capacity under the specific biochemical constraint set
 from dsw import LocalBioFilter, find_vertices, connect_valid_graph, approximate_capacity
 
 bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["GCC"])
-vertices = find_vertices(length=10, bio_filter=bio_filter)
-graph = connect_valid_graph(length=10, vertices=vertices)
-capacity = approximate_capacity(graph=graph)
+vertices = find_vertices(observed_length=10, bio_filter=bio_filter)
+accessor = connect_valid_graph(observed_length=10, vertices=vertices)  # representation of directed graph
+capacity = approximate_capacity(accessor=accessor)
 print(capacity)
 ```
 
@@ -148,11 +150,11 @@ According to SPIDER-WEB, you can obtain the corresponding variable-length algori
 from dsw import LocalBioFilter, find_vertices, connect_coding_graph
 
 bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["ACA", "CAC", "GTG", "TGT"])
-vertices = find_vertices(length=10, bio_filter=bio_filter)
-graph = connect_coding_graph(length=10, vertices=vertices, threshold=1)
+vertices = find_vertices(observed_length=10, bio_filter=bio_filter)
+accessor = connect_coding_graph(observed_length=10, vertices=vertices, threshold=1)  # representation of directed graph
 ```
 In [experiments folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/__init__.py), 
-you can easily find 12 examples in our experiments, the local biochemical constraint set are:
+you can easily find 12 examples in our experiments under the observed length 10, the local biochemical constraint set are:
 
 | set index | homopolymer run-length constraint | regionalized GC content constraint | undesired motif constraint | capacity |
 | ---- | ---- | ---- | ---- | ----|
