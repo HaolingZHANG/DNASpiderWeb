@@ -1,9 +1,8 @@
 <p align="center">
-<img src="logo.svg" alt="DNA Spider-Web" title="DNASpiderWeb" width="75%"/>
+<img src="logo.svg" alt="DNA Spider-Web" title="DNASpiderWeb" width="60%"/>
 </p>
 
 [![CircleCI](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb/tree/main.svg?style=shield&circle-token=6aeac22720c5828585591fa5e2f4917bcaae9a72)](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb/tree/main)
-[![Build Status](https://travis-ci.org/HaolingZHANG/DNASpiderWeb.svg)](https://travis-ci.org/HaolingZHANG/DNASpiderWeb)
 [![Coverage Status](https://coveralls.io/repos/HaolingZHANG/DNASpiderWeb/badge.svg?branch=master&service=github)](https://coveralls.io/github/HaolingZhang/DNASpiderWeb?branch=master)
 [![PythonVersion](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?maxAge=259200)](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/LICENSE)
