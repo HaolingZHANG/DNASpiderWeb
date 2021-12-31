@@ -142,7 +142,7 @@ def draw_data(algorithm_data):
     ax.tick_params(grid_color="black")
     ax.grid(True)
 
-    pyplot.savefig("./results/figures/[6-0] result overviews.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[6-0] result overviews.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

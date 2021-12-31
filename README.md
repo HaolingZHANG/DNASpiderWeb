@@ -43,7 +43,7 @@ Compared with
 the rough (not academic) conclusions are as follows:
 
 <p align="center">
-<img src="./experiments/results/figures/[6-0] result overviews.png" title="result overview" width="100%"/>
+<img src="./experiments/results/figures/[6-0] result overviews.svg" title="result overview" width="100%"/>
 </p>
 
 where 
@@ -98,7 +98,7 @@ As part of the experimental results, the median value of relative error analysis
 which represents our proposed method is high reliability and negligible error. 
 
 <p align="center">
-<img src="./experiments/results/figures/[2-2] reliability detailed.png" title="reliability" width="100%"/>
+<img src="./experiments/results/figures/[2-2] reliability detailed.svg" title="reliability" width="100%"/>
 </p>
 
 ### Automatic algorithm generator named SPIDER-WEB

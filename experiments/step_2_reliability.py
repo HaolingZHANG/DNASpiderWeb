@@ -87,7 +87,7 @@ def display_cases():
 
     figure.align_labels()
 
-    pyplot.savefig("./results/figures/[2-1] reliability regular.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[2-1] reliability regular.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -188,7 +188,7 @@ def evaluate_length_2(test_times):
     figure.text(0.018, 0.52, "B", va="center", ha="center")
 
     figure.align_labels()
-    pyplot.savefig("./results/figures/[2-2] reliability detailed.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[2-2] reliability detailed.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -264,7 +264,7 @@ def evaluate_growing(terminal_length, test_times):
                   fontsize=8)
     pyplot.xlabel("size of adjacency matrix", fontsize=8)
     pyplot.ylabel("relative error with NumPy \"linalg.eig\" function", fontsize=8)
-    pyplot.savefig("./results/figures/[2-3] reliability extended.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[2-3] reliability extended.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

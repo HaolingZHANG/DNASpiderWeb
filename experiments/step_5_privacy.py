@@ -214,8 +214,7 @@ def draw(bit_length):
     pyplot.ylabel("transmitted data capacity", fontsize=8)
     pyplot.yticks([0, 1, 2, 3, 4], ["B", "KB", "MB", "GB", "TB"], fontsize=8)
     pyplot.ylim(0, 4)
-    pyplot.savefig("./results/figures/[5-1] privacy reconstruction.png",
-                   format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[5-1] privacy reconstruction.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
     reference_strength = log(2.0 ** bit_length) / log(4)
@@ -300,8 +299,7 @@ def draw(bit_length):
 
     figure.text(0.080, 0.9, "A", va="center", ha="center")
     figure.text(0.515, 0.9, "B", va="center", ha="center")
-    pyplot.savefig("./results/figures/[5-2] privacy optional strategies.png",
-                   format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[5-2] privacy optional strategy.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

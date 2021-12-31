@@ -125,7 +125,7 @@ def display_performances():
     pyplot.ylabel("code rate", fontsize=8)
     pyplot.yticks([1, 1.2, 1.4, 1.6, 1.8, 2.0], [1.0, 1.2, 1.4, 1.6, 1.8, 2.0], fontsize=8)
     pyplot.ylim(0.92, 2.08)
-    pyplot.savefig("./results/figures/[1-1] compatibility code rates.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[1-1] compatibility code rates.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

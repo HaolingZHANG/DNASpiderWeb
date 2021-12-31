@@ -584,7 +584,7 @@ def draw_average_length(heap_preset_size, reference_length_1, reference_length_2
 
     figure.text(0.043, 0.9, "A", va="center", ha="center")
     figure.text(0.436, 0.9, "B", va="center", ha="center")
-    pyplot.savefig("./results/figures/[4-1] repairability totally.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[4-1] repairability totally.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -730,7 +730,7 @@ def draw_screen_record(heap_preset_size, error_rate):
     figure.text(0.513, 0.97, "B", va="center", ha="center")
     figure.text(0.020, 0.52, "C", va="center", ha="center")
     figure.text(0.513, 0.52, "D", va="center", ha="center")
-    pyplot.savefig("./results/figures/[4-2] repairability record.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[4-2] repairability record.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -809,7 +809,7 @@ def draw_heap_situation():
     figure.text(0.02, 0.98, "A", va="center", ha="center")
     figure.text(0.51, 0.98, "B", va="center", ha="center")
 
-    pyplot.savefig("./results/figures/[4-3] repairability heap.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[4-3] repairability heaps.svg", format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
