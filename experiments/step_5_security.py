@@ -48,8 +48,8 @@ def remove_evaluation(maximum_count, maximum_remove):
 
                 print("Do the remove test for the constraint set " + filter_index)
                 usage_3, usage_4 = len(outs[outs == 3]), len(outs[outs == 4]) * 2
-                print("There are " + str(usage_3) + " vertices with out-degree is 3 and " +
-                      str(usage_4) + " vertices with out-degree is 4.")
+                print("There are " + str(usage_3) + " vertices with out-degree is 3 and "
+                      + str(usage_4) + " vertices with out-degree is 4.")
                 records = [[] for _ in range(maximum_remove + 1)]
                 for count_3_1 in range(maximum_count + 1):
                     assign = [0, 0, 0]  # 3/1, 4/1, 4/2
@@ -121,8 +121,8 @@ def reconstruction(random_seed, sequencing_length, repeats, threshold=10000):
                 records = zeros(shape=(repeats, threshold + 1))
                 random.seed(random_seed)
                 for repeat in range(repeats):
-                    print("Do the reconstruction test for the constraint set " + filter_index +
-                          " with sequencing random " + str(sequencing_length) + "bp as repeat " + str(repeat + 1))
+                    print("Do the reconstruction test for the constraint set " + filter_index
+                          + " with sequencing random " + str(sequencing_length) + "bp as repeat " + str(repeat + 1))
 
                     monitor = Monitor()
                     visited, number, total, used = zeros(shape=(4 ** 10,), dtype=bool), 0, len(vertices), []
