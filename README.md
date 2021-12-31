@@ -134,6 +134,7 @@ you can easily find 12 examples in our experiments, the local biochemical constr
 | 10 |  4  |   N/A   | N/A | 1.9957 |
 | 11 |  5  |   N/A   | N/A | 1.9989 |
 | 12 |  6  |   N/A   | N/A | 1.9997 |
+
 where the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, and TCTAGA;
 and the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
 
