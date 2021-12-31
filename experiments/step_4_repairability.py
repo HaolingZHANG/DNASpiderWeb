@@ -51,7 +51,7 @@ def repair_examples():
                                 else:
                                     print("repair by deletion     = " + result)
             else:
-                print("Cannot find any repair strategy")
+                print("Cannot find any repair strategy.")
             print()
             print()
 
@@ -87,7 +87,7 @@ def repair_examples():
                                 else:
                                     print("repair by deletion     = " + result)
             else:
-                print("Cannot find any repair strategy")
+                print("Cannot find any repair strategy.")
             print()
             print()
 
@@ -122,7 +122,7 @@ def repair_examples():
                             else:
                                 print("Repair by insertion    = " + result)
         else:
-            print("Cannot find any repair strategy")
+            print("Cannot find any repair strategy.")
         print()
         print()
 
@@ -211,15 +211,20 @@ def calculate_performance(latter_map, observed_length, evaluation_repeats, verte
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
 
+    print("Convert latter map to accessor.")
+    monitor = Monitor()
     repaired_accessor = -ones(shape=(len(nucleotides) ** observed_length, len(nucleotides)), dtype=int)
     for index, (former_vertex, latter_vertices) in enumerate(latter_map.items()):
         for latter_vertex in latter_vertices:
             repaired_accessor[former_vertex, latter_vertex % len(nucleotides)] = latter_vertex
+        monitor.output(index + 1, len(latter_map))
 
     capacity = approximate_capacity(accessor=repaired_accessor, repeats=capacity_repeats,
-                                    maximum_iteration=maximum_iteration, verbose=False)
-    print("The approximated capacity is " + str(capacity))
-    if capacity < 0.2:
+                                    maximum_iteration=maximum_iteration, verbose=True)
+    print("Finally, the capacity is approximated as " + str(capacity) + ".")
+    # The observed length is 10, therefore, at least 10 nucleotides encode one bit.
+    # Otherwise, the Perron–Frobenius theorem is not suitable because the multi-connected branch.
+    if capacity < 0.1:
         return None
 
     counts = [0 for _ in range(len(nucleotides))]
@@ -238,12 +243,17 @@ def calculate_performance(latter_map, observed_length, evaluation_repeats, verte
     info = evaluate_repair_mechanism(accessor=repaired_accessor, vertices=repaired_vertices,
                                      wrong_location=observed_length + 5, repeats=evaluation_repeats)
 
+    strategy_numbers = sum(info[:, 4:7], axis=1)
+    strategy_numbers[strategy_numbers == 0] = 1
+    print("Average heap level is " + str(mean(strategy_numbers)) + ".")
+
     return capacity, counts, info
 
 
 def calculate_maximum_score(latter_map, round_number, nucleotides=None, observed_length=10, repair_indel=True):
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
+
     print("Calculate the score for each directed edge in round " + str(round_number) + ".")
     currents, depth, monitor = list(latter_map.keys()), observed_length - 1, Monitor()
     scores = zeros(shape=(len(nucleotides) ** observed_length, len(nucleotides)), dtype=int)
@@ -309,6 +319,7 @@ def screen_edges_for_repair(evaluation_repeats, vertex_count):
         print("Obtain latter map from accessor with the constraint set 1.")
         latter_map = accessor_to_latter_map(accessor=accessor, verbose=True)
         nucleotides, observed_length, repair_indel = ["A", "C", "G", "T"], 10, True
+        print()
 
         print("Screen directed edges based on the maximum score.")
         round_number, records, depth = 1, [], observed_length - 1
@@ -346,6 +357,7 @@ def screen_edges_for_repair(evaluation_repeats, vertex_count):
                                                        evaluation_repeats=evaluation_repeats, vertex_count=vertex_count,
                                                        nucleotides=nucleotides)
 
+            print()
             if performance_record is None:
                 break
 
@@ -367,10 +379,13 @@ def screen_edges_for_repair(evaluation_repeats, vertex_count):
                 latter_dna_string = number_to_dna(decimal_number=int(latter), dna_length=10, nucleotides=nucleotides)
                 edge_info = former_dna_string + " -> " + latter_dna_string
                 print("Remove the directed edge: " + edge_info + " with the score " + str(maximum_score) + ".")
-                print("Remain scores are \n" + str(score_record))
+                print("Remain scores are: \n" + str(score_record) + ".")
                 print("The out-degree information of this graph is as follow:")
-                for index, count in enumerate(counts):
-                    print(str(index + 1) + " out-degree: " + str(count))
+                print("Out degree | " + " " * 5 + "1" + " " * 5 + "2" + " " * 5 + "3" + " " * 5 + "4")
+                count_info = ""
+                for count in counts:
+                    count_info += " " * (6 - len(str(count))) + str(count)
+                print("Count      | " + count_info)
 
                 previous_count = len(latter_map)
                 latter_map = remove_useless(latter_map, threshold=1, verbose=False)
@@ -804,7 +819,7 @@ if __name__ == "__main__":
     repair_examples()
 
     analyze_repair_match(task_seed=2021, repeats=100, vertex_number=100)
-    screen_edges_for_repair(evaluation_repeats=20, vertex_count=20)
+    screen_edges_for_repair(evaluation_repeats=50, vertex_count=40)
 
     draw_average_length(heap_preset_size=1e6, reference_length_1=200, reference_length_2=1000)
     draw_screen_record(heap_preset_size=1e6, error_rate=0.1)

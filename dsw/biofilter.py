@@ -29,9 +29,12 @@ class DefaultBioFilter(object):
 
 class LocalBioFilter(DefaultBioFilter):
 
-    def __init__(self, max_homopolymer_runs=None, gc_range=None, undesired_motifs=None):
+    def __init__(self, observed_length, max_homopolymer_runs=None, gc_range=None, undesired_motifs=None):
         """
         Initialize the screen of local biochemical constraints.
+
+        :param observed_length: length of the DNA string observed in the window.
+        :type observed_length: int
 
         :param max_homopolymer_runs: maximum homopolymer runs.
         :type max_homopolymer_runs: int
@@ -62,7 +65,8 @@ class LocalBioFilter(DefaultBioFilter):
 
         ..example::
             >>> from dsw import LocalBioFilter
-            >>> bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["GC"])
+            >>> bio_filter = LocalBioFilter(observed_length=8, \
+                                            max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["GC"])
             >>> bio_filter.valid(dna_string="ACGTACGT")
             True
             >>> bio_filter.valid(dna_string="GCATGCAT")
@@ -71,41 +75,77 @@ class LocalBioFilter(DefaultBioFilter):
             False
         """
         super().__init__(screen_name="Local")
+        if max_homopolymer_runs is not None:
+            if observed_length < max_homopolymer_runs:
+                raise ValueError("The parameter \"observed_length\" must "
+                                 + "longer than the parameter \"max_homopolymer_runs\"!")
+        if undesired_motifs is not None:
+            for index, undesired_motif in enumerate(undesired_motifs):
+                if len(undesired_motif) > observed_length:
+                    raise ValueError("The parameter \"observed_length\" must "
+                                     + "longer than the length of any motif in the parameter \"undesired_motifs\"!")
+
+        self._observed_length = observed_length
         self._max_homopolymer_runs = max_homopolymer_runs
         self._gc_range = gc_range
         self._undesired_motifs = undesired_motifs
 
-    def valid(self, dna_string):
+    def valid(self, dna_string, only_last=True):
         """
         Judge whether the DNA string meets the local biochemical constraints.
 
         :param dna_string: DNA string to be judged.
         :type dna_string: str
 
+        :param only_last: only check the DNA string of the last observed window.
+        :type only_last: bool
+
         :return: judgement.
         :rtype: bool
+
+        ..note::
+            "only_last" parameter is interesting, which is used to save time.
+            For most tree-based coding algorithms,
+            it is not necessary to detect the sub DNA strings observed in each window from scratch every time.
         """
-        for nucleotide in dna_string:
+        if only_last:
+            observed_dna_string = dna_string[-self._observed_length:]
+        else:
+            observed_dna_string = dna_string
+
+        for nucleotide in observed_dna_string:
             if nucleotide not in "ACGT":
                 return False
 
         if self._max_homopolymer_runs is not None:
             for nucleotide in "ACGT":
-                if nucleotide * (1 + self._max_homopolymer_runs) in dna_string:
+                if nucleotide * (1 + self._max_homopolymer_runs) in observed_dna_string:
                     return False
-
-        if self._gc_range is not None:
-            gc = float(dna_string.count("C") + dna_string.count("G")) / float(len(dna_string))
-            if gc < self._gc_range[0] or gc > self._gc_range[1]:
-                return False
 
         if self._undesired_motifs is not None:
             for special in self._undesired_motifs:
-                if special in dna_string:
+                if special in observed_dna_string:
                     return False
                 reverse_complement = special.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
                 reverse_complement = reverse_complement[::-1].upper()
-                if reverse_complement in dna_string:
+                if reverse_complement in observed_dna_string:
+                    return False
+
+        if self._gc_range is not None:
+            if len(observed_dna_string) >= self._observed_length:
+                for index in range(len(observed_dna_string) - self._observed_length + 1):
+                    sub_dna_string = observed_dna_string[index: index + self._observed_length]
+                    gc_count = sub_dna_string.count("C") + sub_dna_string.count("G")
+                    if gc_count > self._gc_range[1] * self._observed_length:
+                        return False
+                    if gc_count < self._gc_range[0] * self._observed_length:
+                        return False
+            else:
+                gc_count = observed_dna_string.count("C") + observed_dna_string.count("G")
+                if gc_count > self._gc_range[1] * self._observed_length:
+                    return False
+                at_count = observed_dna_string.count("A") + observed_dna_string.count("T")
+                if at_count > (1 - self._gc_range[0]) * self._observed_length:
                     return False
 
         return True

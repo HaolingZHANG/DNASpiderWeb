@@ -3,7 +3,7 @@ __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 # noinspection PyPackageRequirements
 from matplotlib import pyplot
-from numpy import load, array, zeros, max, median, mean, deg2rad
+from numpy import load, array, zeros, median, mean, min, max, std, deg2rad
 
 from experiments import colors
 
@@ -18,37 +18,60 @@ def load_data():
 
     results = load(file="./results/data/step_3_stability_evaluation.npy")
 
-    # evaluate code rate. (constraint 9, 10, 11, 12)
-    values = [[[] for _ in range(4)] for _ in range(4)]
+    # evaluate code rate.
+    values = [[[] for _ in range(12)] for _ in range(4)]
     for sample in results:
-        if sample[1] >= 9:
-            values[int(sample[1]) - 9][int(sample[0])].append((8 * 1024 * 64) / sample[3])
-    rates = zeros(shape=(4, 4))
-    for filter_index in range(4):
-        for algorithm_index in range(4):
-            if len(values[filter_index][algorithm_index]) > 0:
-                rates[filter_index, algorithm_index] = median(array(values[filter_index][algorithm_index]))
-    for index in range(len(rates)):
-        rates[index] = rates[index] / max(rates[index])
+        if sample[2] > 0:
+            values[int(sample[0])][int(sample[1]) - 1].append((8 * 1024 * 64) / sample[2])
 
-    rates = mean(rates, axis=0)
-    algorithm_data["SPIDER-WEB"].append(rates[0])
+    code_rates = zeros(shape=(4, 12))
+    for algorithm_index in range(4):
+        for filter_index in range(12):
+            if len(values[algorithm_index][filter_index]) > 0:
+                code_rates[algorithm_index, filter_index] = median(array(values[algorithm_index][filter_index]))
+
+    for filter_index in range(12):
+        code_rates[:, filter_index] /= max(code_rates[:, filter_index])
+
+    algorithm_data["SPIDER-WEB"].append(mean(code_rates[0][code_rates[0] > 0]))
     # considering the section (Imposing DNA Output Sequence Constraints) of HEDGES,
     # transcoding efficiency of SPIDER-WEB and HEDGES should be equivalent.
-    algorithm_data["HEDGES"].append(rates[0])
-    algorithm_data["DNA Fountain"].append(rates[1])
-    algorithm_data["Yin-Yang Code"].append(rates[2])
+    algorithm_data["HEDGES"].append(mean(code_rates[1][code_rates[1] > 0]))
+    algorithm_data["DNA Fountain"].append(mean(code_rates[2][code_rates[2] > 0]))
+    algorithm_data["Yin-Yang Code"].append(mean(code_rates[3][code_rates[3] > 0]))
 
-    # evaluate stable.
-    counts = array([0, 0, 0, 0])
+    # evaluate the codability.
+    counts, total_counts = array([0, 0, 0, 0]), array([0, 0, 0, 0])
     for sample in results:
         counts[int(sample[0])] += sample[-1] > 0
-    counts = counts / max(counts)
-    counts[3] = 1
-    algorithm_data["SPIDER-WEB"].append(counts[0])
-    algorithm_data["HEDGES"].append(counts[1])
-    algorithm_data["DNA Fountain"].append(counts[2])
-    algorithm_data["Yin-Yang Code"].append(counts[3])
+        total_counts[int(sample[0])] += 1
+
+    codabilities = counts / total_counts
+    algorithm_data["SPIDER-WEB"].append(codabilities[0])
+    algorithm_data["HEDGES"].append(codabilities[1])
+    algorithm_data["DNA Fountain"].append(codabilities[2])
+    algorithm_data["Yin-Yang Code"].append(codabilities[3])
+
+    # evaluate the parameter sensibility.
+    sensibilities = zeros(shape=(4, 12))
+    for algorithm_index in range(4):
+        for filter_index in range(12):
+            if len(values[algorithm_index][filter_index]) > 0:
+                sensibilities[algorithm_index, filter_index] = 1 - std(array(values[algorithm_index][filter_index])) / 2
+
+    xx = [
+        mean(sensibilities[0][sensibilities[0] > 0]),
+        mean(sensibilities[1][sensibilities[1] > 0]),
+        mean(sensibilities[2][sensibilities[2] > 0]),
+        mean(sensibilities[3][sensibilities[3] > 0])
+    ]
+    xx = array(xx)
+    xx -= min(xx)
+    xx /= max(xx)
+    algorithm_data["SPIDER-WEB"].append(xx[0])
+    algorithm_data["HEDGES"].append(xx[1])
+    algorithm_data["DNA Fountain"].append(xx[2])
+    algorithm_data["Yin-Yang Code"].append(xx[3])
 
     # evaluate repairability.
     # unknown for DNA Fountain and Yin-Yang Code.
@@ -63,19 +86,20 @@ def load_data():
 
 # noinspection PyUnresolvedReferences
 def draw_data(algorithm_data):
-    labels = ["code rate", "stability", "repairability"]
-    angles = array([30, 150, 270])
+    labels = ["[C-R]", "[C-A]", "[P-S]", "[R-A]"]
+    angles = array([45, 135, 225, 315])
     positions = deg2rad(angles)
     x = positions.tolist() + [positions[0]]
 
-    figure = pyplot.figure(figsize=(10, 2.5), tight_layout=True)
+    pyplot.figure(figsize=(10, 2.5), tight_layout=True)
+
     pyplot.subplots_adjust(wspace=0.4, hspace=0.4)
     ax = pyplot.subplot(1, 4, 1, polar=True)
     pyplot.title("SPIDER-WEB", fontsize=8)
     y = algorithm_data["SPIDER-WEB"] + [algorithm_data["SPIDER-WEB"][0]]
     ax.plot(x, y, color=colors["algo1"], linewidth=1.5)
     ax.fill(positions, algorithm_data["SPIDER-WEB"], facecolor=colors["algo2"])
-    ax.set_thetagrids(angles, labels, fontsize=8, color="white")
+    ax.set_thetagrids(angles, labels, fontsize=8)
     ax.set_rmax(1)
     ax.set_rticks([])
     ax.set_rlabel_position(0)
@@ -87,7 +111,7 @@ def draw_data(algorithm_data):
     y = algorithm_data["HEDGES"] + [algorithm_data["HEDGES"][0]]
     ax.plot(x, y, color=colors["hedc1"], linewidth=1.5)
     ax.fill(positions, algorithm_data["HEDGES"], facecolor=colors["hedc2"])
-    ax.set_thetagrids(angles, labels, fontsize=8, color="white")
+    ax.set_thetagrids(angles, labels, fontsize=8)
     ax.set_rmax(1)
     ax.set_rticks([])
     ax.set_rlabel_position(0)
@@ -99,7 +123,7 @@ def draw_data(algorithm_data):
     y = algorithm_data["DNA Fountain"] + [algorithm_data["DNA Fountain"][0]]
     ax.plot(x, y, color=colors["foun1"], linewidth=1.5)
     ax.fill(positions, algorithm_data["DNA Fountain"], facecolor=colors["foun2"])
-    ax.set_thetagrids(angles, labels, fontsize=8, color="white")
+    ax.set_thetagrids(angles, labels, fontsize=8)
     ax.set_rmax(1)
     ax.set_rticks([])
     ax.set_rlabel_position(0)
@@ -111,29 +135,12 @@ def draw_data(algorithm_data):
     y = algorithm_data["Yin-Yang Code"] + [algorithm_data["Yin-Yang Code"][0]]
     ax.plot(x, y, color=colors["yyco1"], linewidth=1.5)
     ax.fill(positions, algorithm_data["Yin-Yang Code"], facecolor=colors["yyco2"])
-    ax.set_thetagrids(angles, labels, fontsize=8, color="white")
+    ax.set_thetagrids(angles, labels, fontsize=8)
     ax.set_rmax(1)
     ax.set_rticks([])
     ax.set_rlabel_position(0)
     ax.tick_params(grid_color="black")
     ax.grid(True)
-
-    figure.text(0.095, 0.095, "repairability", fontsize=8)
-    figure.text(0.341, 0.095, "repairability", fontsize=8)
-    figure.text(0.587, 0.095, "repairability", fontsize=8)
-    figure.text(0.834, 0.095, "repairability", fontsize=8)
-
-    x_bias, y_bias = 0, -0.102
-    figure.text(0.193 + x_bias, 0.698 + y_bias, "code rate", fontsize=8, rotation=-60)
-    figure.text(0.439 + x_bias, 0.698 + y_bias, "code rate", fontsize=8, rotation=-60)
-    figure.text(0.686 + x_bias, 0.698 + y_bias, "code rate", fontsize=8, rotation=-60)
-    figure.text(0.932 + x_bias, 0.698 + y_bias, "code rate", fontsize=8, rotation=-60)
-
-    x_bias, y_bias = 0.014, -0.089
-    figure.text(0.015 + x_bias, 0.698 + y_bias, "stability", fontsize=8, rotation=60)
-    figure.text(0.261 + x_bias, 0.698 + y_bias, "stability", fontsize=8, rotation=60)
-    figure.text(0.507 + x_bias, 0.698 + y_bias, "stability", fontsize=8, rotation=60)
-    figure.text(0.754 + x_bias, 0.698 + y_bias, "stability", fontsize=8, rotation=60)
 
     pyplot.savefig("./results/figures/[6-0] result overviews.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()

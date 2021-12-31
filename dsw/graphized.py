@@ -1,7 +1,7 @@
 __author__ = "Zhang, Haoling [hlzchn@gmail.com]"
 
 
-from numpy import zeros, ones, zeros_like, array, min, median, max, random, log, log2, log10, abs, all, where
+from numpy import zeros, ones, zeros_like, array, min, median, max, random, log, log2, sum, abs, all, where
 
 from dsw.operation import Monitor
 
@@ -601,6 +601,8 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
         else:
             return 0.0
 
+    ignore_positions = where(sum(accessor, axis=1) == -len(accessor[0]))[0]
+
     results, process = [], []
     for repeat in range(repeats):
         if verbose and repeats > 1:
@@ -608,15 +610,13 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
 
         process.append([])
         if repeats > 1:
-            last_eigenvector, last_eigenvalue = abs(random.random(size=(len(accessor),))), None
+            last_eigenvector = abs(random.random(size=(len(accessor),)))  # Random initialization for a faster fitness.
         else:
-            last_eigenvector, last_eigenvalue = ones(shape=(len(accessor),), dtype=float), None
+            last_eigenvector = ones(shape=(len(accessor),), dtype=float)
 
-        for vertex_index, vertex in enumerate(accessor):  # remove ignored vertex.
-            if all(vertex == -1):
-                last_eigenvector[vertex_index] = 0.0
+        last_eigenvector[ignore_positions] = 0.0  # refers to the vertex without follow-up vertices.
 
-        monitor, queue = Monitor(), []
+        monitor, queue, last_eigenvalue, current = Monitor(), [], None, 0
         while True:
             eigenvector = zeros_like(last_eigenvector)
             for positions in accessor.T:
@@ -630,36 +630,32 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
                 relative_error = abs(eigenvalue - last_eigenvalue) / last_eigenvalue
                 queue.append(eigenvalue)
 
-                if verbose:
-                    if 0.1 <= relative_error:
-                        monitor.output(1, -tolerance_level,
-                                       extra={"largest eigenvalue": "%.5f" % eigenvalue,
-                                              "relative error": "%.5f" % relative_error})
-                    elif 10 ** tolerance_level < relative_error < 0.1:
-                        monitor.output(int(-log10(relative_error)), -tolerance_level,
-                                       extra={"largest eigenvalue": "%.5f" % eigenvalue,
-                                              "relative error": "%.5f" % relative_error})
+                if verbose and current + 1 < maximum_iteration:
+                    monitor.output(current + 1, maximum_iteration,
+                                   extra={"largest eigenvalue": "%.5f" % eigenvalue,
+                                          "relative error": "%.5f" % relative_error})
 
+                is_finished = False
                 if relative_error < 10 ** tolerance_level:
                     if eigenvalue < 1.0:
                         eigenvalue = 1.0
                     results.append(log2(eigenvalue))
-                    if verbose:
-                        monitor.output(-tolerance_level, -tolerance_level,
-                                       extra={"capacity": "%.5f" % results[-1]})
-                    break
+                    is_finished = True
 
                 if len(queue) > maximum_iteration:
                     eigenvalue = median(queue)
-                    if eigenvalue < 1.0:
+                    if eigenvalue < 1.0:  # meaningless result.
                         eigenvalue = 1.0
                     results.append(log2(eigenvalue))
+                    is_finished = True
+
+                if is_finished:
                     if verbose:
-                        monitor.output(-tolerance_level, -tolerance_level,
+                        monitor.output(maximum_iteration, maximum_iteration,
                                        extra={"capacity": "%.5f" % results[-1]})
                     break
 
-            last_eigenvalue, last_eigenvector = eigenvalue, eigenvector
+            last_eigenvalue, last_eigenvector, current = eigenvalue, eigenvector, current + 1
 
     if need_process:
         return (median(results), process[0]) if repeats == 1 else (median(results), process)
@@ -667,10 +663,10 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
         return median(results)
 
 
-def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotides=None,
-                    has_insertion=False, has_deletion=False, verbose=False):
+def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides=None,
+                  has_insertion=False, has_deletion=False, verbose=False):
     """
-    Perform saturation repair at the selected position and obtain the DNA strings meeting conditions of accessor.
+    Perform saturation repair at the selected position and obtain the DNA strings matching the path of accessor.
 
     :param dna_string: DNA string waiting for saturation substitution in the specific location.
     :type dna_string: str
@@ -701,15 +697,15 @@ def repair_by_match(dna_string, accessor, index_queue, occur_location, nucleotid
 
     ..example::
         >>> from numpy import array
-        >>> from dsw import repair_by_match
+        >>> from dsw import path_matching
         >>> # accessor with GC-balanced
         >>> accessor = array([[-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1], \
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
         >>> dna_string = "TCTCTATCTCTC"  # "TCTCTCTCTCTC" is original DNA string
-        >>> repair_by_match(dna_string=dna_string, accessor=accessor, index_queue=[1, 7, 13, 7, 13, 7], \
-                            occur_location=4, has_insertion=True, has_deletion=True)
+        >>> path_matching(dna_string=dna_string, accessor=accessor, index_queue=[1, 7, 13, 7, 13, 7], \
+                          occur_location=4, has_insertion=True, has_deletion=True)
         [('D', 4, 'T', 'TCTCATCTCTC')]
     """
     if nucleotides is None:

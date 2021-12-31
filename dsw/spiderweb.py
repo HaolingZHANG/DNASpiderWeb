@@ -4,10 +4,11 @@ from numpy import zeros, ones, array, random, sum, log, argsort, where
 
 from dsw.operation import Monitor, calculus_addition, calculus_multiplication, calculus_division
 from dsw.operation import bit_to_number, number_to_bit, number_to_dna
-from dsw.graphized import obtain_latters, repair_by_match
+from dsw.graphized import obtain_latters, path_matching
 
 
-def encode(binary_message, accessor, start_index, nucleotides=None, shuffles=None, removed_edges=None):
+def encode(binary_message, accessor, start_index,
+           nucleotides=None, shuffles=None, removed_edges=None, verbose=False):
     """
     Encode a bit array by the specific accessor.
 
@@ -28,6 +29,9 @@ def encode(binary_message, accessor, start_index, nucleotides=None, shuffles=Non
 
     :param removed_edges: removed directed edges in accessor.
     :type removed_edges: list
+
+    :param verbose: need to print log.
+    :type verbose: bool
 
     :return: DNA string encoded by this graph.
     :rtype: str
@@ -52,7 +56,8 @@ def encode(binary_message, accessor, start_index, nucleotides=None, shuffles=Non
         for vertex_index, location in removed_edges:
             used_accessor[vertex_index, location] = -1
 
-    quotient, dna_string, vertex_index = bit_to_number(binary_message), "", start_index
+    quotient, dna_string, vertex_index, monitor = bit_to_number(binary_message), "", start_index, Monitor()
+    total_state = len(quotient)  # number of symbol.
 
     while quotient != "0":
         used_indices = where(used_accessor[vertex_index] >= 0)[0]
@@ -76,10 +81,17 @@ def encode(binary_message, accessor, start_index, nucleotides=None, shuffles=Non
 
         dna_string += nucleotide
 
+        if verbose:
+            if quotient != "0":
+                monitor.output(total_state - len(quotient), total_state)
+            else:
+                monitor.output(total_state, total_state)
+
     return dna_string
 
 
-def decode(dna_string, bit_length, accessor, start_index, nucleotides=None, shuffles=None, removed_edges=None):
+def decode(dna_string, bit_length, accessor, start_index,
+           nucleotides=None, shuffles=None, removed_edges=None, verbose=False):
     """
     Decode a DNA string by the specific accessor.
 
@@ -104,6 +116,9 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None, shuf
     :param removed_edges: removed directed edges in accessor.
     :type removed_edges: list
 
+    :param verbose: need to print log.
+    :type verbose: bool
+
     :return: binary message decoded by this graph.
     :rtype: numpy.ndarray
 
@@ -127,7 +142,7 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None, shuf
         for vertex_index, location in removed_edges:
             used_accessor[vertex_index, location] = -1
 
-    quotient, saved_values, vertex_index = "0", [], start_index
+    quotient, saved_values, vertex_index, monitor = "0", [], start_index, Monitor()
 
     for index, nucleotide in enumerate(dna_string):
         used_indices = where(used_accessor[vertex_index] >= 0)[0]
@@ -155,6 +170,9 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None, shuf
 
         else:  # current vertex is wrong.
             raise ValueError("Current vertex doesn't have an out-degree, the accessor or the start vertex is wrong!")
+
+        if verbose:
+            monitor.output(index + 1, len(dna_string))
 
     for index, (out_degree, number) in enumerate(saved_values[::-1]):
         quotient = calculus_multiplication(number=quotient, base=str(out_degree))
@@ -243,16 +261,13 @@ def repair_dna(dna_string, accessor, start_index, has_insertion=False, has_delet
                       + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
 
             # probe search
-            probe_dna_strings = repair_by_match(dna_string=dna_string, accessor=accessor, index_queue=index_queue,
-                                                occur_location=index, nucleotides=nucleotides,
-                                                has_insertion=has_insertion, has_deletion=has_deletion, verbose=verbose)
+            probe_dna_strings = path_matching(dna_string=dna_string, accessor=accessor, index_queue=index_queue,
+                                              occur_location=index, nucleotides=nucleotides,
+                                              has_insertion=has_insertion, has_deletion=has_deletion, verbose=verbose)
 
             for repair_type, location, repaired_nucleotide, repaired_dna_string in probe_dna_strings:
                 if (location, repaired_nucleotide, repaired_dna_string) not in repaired_dna_strings[repair_type]:
                     repaired_dna_strings[repair_type].append((location, repaired_nucleotide, repaired_dna_string))
-
-                    if len(repaired_dna_strings["D"]) is not None:
-                        print(index_queue)
 
             # recall search
             recall_queue = index_queue[::-1][:observed_length + 1]
@@ -263,17 +278,14 @@ def repair_dna(dna_string, accessor, start_index, has_insertion=False, has_delet
                     print("Search the error in the previous (" + str((recall_index + 1)) + ") location.")
                     print("Check location = " + dna_string[error] + " | " + str(error))
 
-                recall_dna_strings = repair_by_match(dna_string=dna_string, accessor=accessor, index_queue=index_queue,
-                                                     occur_location=error, nucleotides=nucleotides,
-                                                     has_insertion=has_insertion, has_deletion=has_deletion,
-                                                     verbose=verbose)
+                recall_dna_strings = path_matching(dna_string=dna_string, accessor=accessor, index_queue=index_queue,
+                                                   occur_location=error, nucleotides=nucleotides,
+                                                   has_insertion=has_insertion, has_deletion=has_deletion,
+                                                   verbose=verbose)
 
                 for repair_type, location, repaired_nucleotide, repaired_dna_string in recall_dna_strings:
                     if (location, repaired_nucleotide, repaired_dna_string) not in repaired_dna_strings[repair_type]:
                         repaired_dna_strings[repair_type].append((location, repaired_nucleotide, repaired_dna_string))
-
-                        if len(repaired_dna_strings["D"]) is not None:
-                            print(index_queue)
 
             return repaired_dna_strings
 
@@ -299,7 +311,7 @@ def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
 
     ..example::
         >>> from dsw import LocalBioFilter, find_vertices
-        >>> bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.5, 0.5])
+        >>> bio_filter = LocalBioFilter(observed_length=2, max_homopolymer_runs=2, gc_range=[0.5, 0.5])
         >>> # "True" refers to the available index of vertex.
         >>> find_vertices(observed_length=2, bio_filter=bio_filter)
         array([False,  True,  True, False,  True, False, False,  True,  True,
