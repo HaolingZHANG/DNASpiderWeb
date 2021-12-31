@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 # noinspection PyPackageRequirements
 from matplotlib import pyplot
 from numpy import load, array, zeros, median, mean, min, max, std, deg2rad

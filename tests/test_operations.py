@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 from unittest import TestCase
 
 from dsw import calculus_addition, calculus_subtraction, calculus_multiplication, calculus_division

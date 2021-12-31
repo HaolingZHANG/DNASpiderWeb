@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 # noinspection PyPackageRequirements
 from matplotlib import pyplot
 from numpy import random, load, save, array, zeros, zeros_like, linspace, log, min, median, max, sum, where
@@ -18,7 +15,7 @@ from experiments import create_folders
 def reconstruction(random_seed, sequencing_length, repeats, threshold=10000):
     nucleotides = ["A", "C", "G", "T"]
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    if not path.exists("./results/data/step_5_security_reconstruction.npy"):
+    if not path.exists("./results/data/step_5_privacy_reconstruction.npy"):
         reconstructions = []
         for index, filter_index in enumerate(filter_indices):
             if not path.exists("./results/temp/reconstruction" + filter_index + ".npy"):
@@ -60,14 +57,14 @@ def reconstruction(random_seed, sequencing_length, repeats, threshold=10000):
             reconstructions.append(records.tolist())
 
         reconstructions = array(reconstructions)
-        save(file="./results/data/step_5_security_reconstruction.npy", arr=reconstructions)
+        save(file="./results/data/step_5_privacy_reconstruction.npy", arr=reconstructions)
 
         for filter_index in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
             remove(path="./results/temp/reconstruction" + filter_index + ".npy")
 
 
 def shuffle_evaluation():
-    if not path.exists("./results/data/step_5_security_shuffle_evaluation.npy"):
+    if not path.exists("./results/data/step_5_privacy_shuffle_evaluation.npy"):
         follow_ups = zeros(shape=(12,))
         for index, filter_index in enumerate(["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]):
             accessor = load(file="./results/data/a" + filter_index + "[g].npy")
@@ -82,12 +79,12 @@ def shuffle_evaluation():
                     maximum = max(maximum, count)
             follow_ups[index] = [minimum, average, maximum]
 
-        save(file="./results/data/step_5_security_shuffle_evaluation.npy", arr=follow_ups)
+        save(file="./results/data/step_5_privacy_shuffle_evaluation.npy", arr=follow_ups)
 
 
 def remove_evaluation(maximum_count, maximum_remove):
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    if not path.exists("./results/data/step_5_security_remove_evaluation.pkl"):
+    if not path.exists("./results/data/step_5_privacy_remove_evaluation.pkl"):
         remove_data = {}
         for filter_index in filter_indices:
             if not path.exists("./results/temp/remove" + filter_index + ".pkl"):
@@ -153,7 +150,7 @@ def remove_evaluation(maximum_count, maximum_remove):
 
             remove_data[int(filter_index)] = records
 
-        with open("./results/data/step_5_security_remove_evaluation.pkl", "wb") as file:
+        with open("./results/data/step_5_privacy_remove_evaluation.pkl", "wb") as file:
             psave(remove_data, file)
 
         for filter_index in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
@@ -164,7 +161,7 @@ def draw(bit_length):
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
 
-    reconstructions = load(file="./results/data/step_5_security_reconstruction.npy")
+    reconstructions = load(file="./results/data/step_5_privacy_reconstruction.npy")
     with open("./results/data/step_1_compatibility_capacities.pkl", "rb") as file:
         capacities, _ = pload(file)
 
@@ -223,7 +220,7 @@ def draw(bit_length):
     pyplot.subplots_adjust(wspace=0.1)
 
     pyplot.subplot(1, 2, 1)
-    follow_ups = load(file="./results/data/step_5_security_shuffle_evaluation.npy")
+    follow_ups = load(file="./results/data/step_5_privacy_shuffle_evaluation.npy")
     pyplot.hlines(reference_strength, 0, 320,
                   color="silver", linewidth=0.75, linestyle="--", zorder=1)
     pyplot.text(4, 128 + 2, "reference", va="bottom", ha="left", fontsize=8)
@@ -248,7 +245,7 @@ def draw(bit_length):
     pyplot.yticks([0, 64, 128, 192, 256], [0, 128, 256, 384, 512], fontsize=8)
 
     pyplot.subplot(1, 2, 2)
-    with open("./results/data/step_5_security_remove_evaluation.pkl", "rb") as file:
+    with open("./results/data/step_5_privacy_remove_evaluation.pkl", "rb") as file:
         remove_data = pload(file)
 
     pyplot.text(0.5, 256 + 4, "reference", va="bottom", ha="left", fontsize=8)

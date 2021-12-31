@@ -1,5 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
 from numpy import zeros, ones, array, random, sum, log, argsort, where
 
 from dsw.operation import Monitor, calculus_addition, calculus_multiplication, calculus_division
@@ -292,7 +290,7 @@ def repair_dna(dna_string, accessor, start_index, has_insertion=False, has_delet
 
 def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
     """
-    Find valid vertices based on the given constraints.
+    Find valid vertices based on the given the biochemical constraints.
 
     :param observed_length: length of the DNA string in a vertex.
     :type observed_length: int

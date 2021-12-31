@@ -2,7 +2,6 @@
 <img src="logo.svg" alt="DNA Spider-Web" title="DNASpiderWeb" width="20%"/>
 </p>
 
-
 # DNA SPIDER-WEB
 
 [![CircleCI](https://circleci.com/gh/circleci/circleci-docs.svg?style=shield)](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb)
@@ -45,7 +44,68 @@ These experimental Python scripts [here](https://github.com/HaolingZHANG/DNASpid
 It may take about a month to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
 In order to further understand the experimental situation, 
 like getting [raw data](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/data/NOTES.md), 
-please do not hesitate to contact me.
+please do not hesitate to contact us.
+
+## Library structure
+The structure of this library is shown below:
+```html
+├── dsw                                     // Source codes of DNA SPIDER-WEB
+│    ├── __init__.py                        // Exhibition of class and method calls
+│    ├── biofilter.py                       // Biochemical constraint filter to judge whether the candidate DNA string is valid or invalid
+│    │    ├── DefaultBioFilter              // Default biochemical constraint filter inherited by all related filters
+│    │    ├── LocalBioFilter                // Local biochemical constraint filter in our work
+│    ├── graphized.py                       // Special data structures and functions related to graph theory
+│    │    ├── get_complete_accessor         // Get a complete accessor with the required observed length
+│    │    ├── adjacency_matrix_to_accessor  // Convert the adjacency matrix to the equivalent accessor (compressed matrix)
+│    │    ├── accessor_to_adjacency_matrix  // Convert the accessor to its equivalent adjacency matrix
+│    │    ├── latter_map_to_accessor        // Convert the latter map (linked storage structure of graph) to its equivalent accessor
+│    │    ├── accessor_to_latter_map        // Convert the accessor to its equivalent latter map
+│    │    ├── remove_useless                // Remove useless vertices (the out-degree of witch less than threshold) in the latter map
+│    │    ├── obtain_formers                // Obtain in-degree vertex indices based on the current vertex index
+│    │    ├── obtain_latters                // Obtain out-degree vertex indices based on the current vertex index
+│    │    ├── obtain_leaf_vertices          // Obtain leaf vertex indices based on the current vertex index and the depth
+│    │    ├── approximate_capacity          // Approximate the capacity of the specific graph through Perron–Frobenius theorem
+│    │    ├── path_matching                 // Perform saturation repair by matching the path of the accessor
+│    ├── operation.py                       // Progress monitor and digital calculation operation
+│    │    ├── Monitor                       // Monitor which outputting the progress based on current state and total state
+│    │    ├── calculus_addition             // Do huge number addition calculus with a small base value, as number + base
+│    │    ├── calculus_subtraction          // Do huge number subtraction calculus with a small base value, as number - base
+│    │    ├── calculus_multiplication       // Do huge number multiplication calculus with a small base value, as number * base
+│    │    ├── calculus_division             // Do huge number division calculus with a small base value, as number / base and number % base
+│    │    ├── bit_to_number                 // Convert a bit array to its equivalent decimal number
+│    │    ├── number_to_bit                 // Convert a decimal number to its equivalent bit array with specific length
+│    │    ├── dna_to_number                 // Convert a DNA string to its equivalent decimal number
+│    │    ├── number_to_dna                 // Convert a decimal number to its equivalent DNA string with specific length
+│    ├── spiderweb.py                       // Generating, transcoding, repairing pipelines of DNA SPIDER-WEB
+│    │    ├── encode                        // Encode a bit array by the specific accessor
+│    │    ├── decode                        // Decode a DNA string by the specific accessor
+│    │    ├── repair_dna                    // Repair the DNA string containing one (or more) errors
+│    │    ├── find_vertices                 // Find valid vertices based on the given the biochemical constraints
+│    │    ├── connect_valid_graph           // Connect a valid graph by valid vertices
+│    │    ├── connect_coding_graph          // Connect a coding algorithm by valid vertices and the threshold for minimum out-degree
+│    │    ├── create_random_shuffles        // Create the shuffles for accessor through the random mechanism
+│    │    ├── remove_random_edges           // Remove directed edges in accessor through the random mechanism
+├── experiments                             // Experiment module of DNA SPIDER-WEB
+│    ├── __init__.py                        // Local biochemical constraint set in this work
+│    ├── step_1_compatibility.py            // Experiments for the gap between code rates obtained from generated algorithms and the corresponding capacities
+│    ├── step_2_reliability.py              // Experiments for the relative errors of capacity approximation
+│    ├── step_3_stability.py                // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
+│    ├── step_4_repairability.py            // Experiments for the average DNA string length in case the heap preset size
+│    ├── step_5_privacy.py                  // Experiments for the hidden danger of graph (algorithm) reconstruction and two additional privacy algorithms
+│    ├── step_6_overviews.py                // Presentation of non-academic integrated results
+├── test                                    // Test module of source codes
+│    ├── test_accessor_vs_latter_map.py     // Unit test for the conversion between the accessor and the latter map
+│    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix
+│    ├── test_bio_filters.py                // Unit test for the correctness of the biochemical constraint filter
+│    ├── test_capacities.py                 // Unit test for the reliability if the capacity approximation 
+│    ├── test_number_vs_binary_message.py   // Unit test for the conversion between the decimal number and binary message
+│    ├── test_number_vs_dna_string.py       // Unit test for the conversion between the decimal number and DNA string
+│    ├── test_operations.py                 // Unit test for the correctness of large number basic operations
+│    ├── test_remove_edges.py               // Unit test for the transcoding correctness when using the removing edge strategy
+│    ├── test_shuffles.py                   // Unit test for the transcoding correctness when using the shuffle strategy
+├── README.md                               // Description document of library
+```
+The installation process only includes folder 'dsw' and its internal files.
 
 ## Basic evaluation
 Some investigations of 
@@ -156,7 +216,7 @@ accessor = connect_coding_graph(observed_length=10, vertices=vertices, threshold
 In [experiments folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/__init__.py), 
 you can easily find 12 examples in our experiments under the observed length 10, the local biochemical constraint set are:
 
-| set index | homopolymer run-length constraint | regionalized GC content constraint | undesired motif constraint | capacity |
+| set index | homopolymer run-length constraint | regionalized GC content constraint | undesired motif constraint | approximated capacity |
 | ---- | ---- | ---- | ---- | ----|
 | 1 |  2  | 50%~50% | restriction sites | 1.0000 |
 | 2 |  1  |   N/A   | N/A | 1.5850 |
@@ -171,8 +231,8 @@ you can easily find 12 examples in our experiments under the observed length 10,
 | 11 |  5  |   N/A   | N/A | 1.9989 |
 | 12 |  6  |   N/A   | N/A | 1.9997 |
 
-where the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, and TCTAGA;
-and the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
+Here the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, and TCTAGA.
+Meanwhile, the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
 
 The corresponding transcoding performances of generated coding algorithms are shown as below:
 

@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 from numpy import zeros, ones, zeros_like, array, min, median, max, random, log, log2, sum, abs, all, where
 
 from dsw.operation import Monitor
@@ -193,7 +190,7 @@ def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
 
 def accessor_to_latter_map(accessor, verbose=False):
     """
-    Convert the accessor to the equivalent latter map.
+    Convert the accessor to its equivalent latter map.
 
     :param accessor: accessor of graph.
     :type accessor: numpy.ndarray

@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 from itertools import product
 from math import log
 # noinspection PyPackageRequirements

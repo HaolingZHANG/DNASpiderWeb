@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 from datetime import datetime
 
 
@@ -216,7 +213,7 @@ def calculus_multiplication(number, base):
 
 def calculus_division(number, base):
     """
-    Do huge number division calculus with a small base value, as number * base.
+    Do huge number division calculus with a small base value, as number / base and number % base.
 
     :param number: huge number.
     :type number: str

@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 class DefaultBioFilter(object):
 
     def __init__(self, screen_name):

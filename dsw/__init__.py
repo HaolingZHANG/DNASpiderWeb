@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 from dsw.biofilter import DefaultBioFilter, LocalBioFilter
 
 from dsw.spiderweb import encode, decode, repair_dna

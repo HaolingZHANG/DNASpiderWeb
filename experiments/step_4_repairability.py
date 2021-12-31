@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 from collections import Counter
 from itertools import combinations
 # noinspection PyPackageRequirements
@@ -387,12 +384,8 @@ def screen_edges_for_repair(evaluation_repeats, vertex_count):
                     count_info += " " * (6 - len(str(count))) + str(count)
                 print("Count      | " + count_info)
 
-                previous_count = len(latter_map)
                 latter_map = remove_useless(latter_map, threshold=1, verbose=False)
-                current_count = len(latter_map)
-
                 transcode_flag = False
-                print("Remove " + str(previous_count - current_count) + " useless vertices that have no out-degree.")
                 for current_index, latter_indices in latter_map.items():
                     if len(latter_indices) >= 2:
                         transcode_flag = True
@@ -403,14 +396,14 @@ def screen_edges_for_repair(evaluation_repeats, vertex_count):
             round_number += 1
 
         whole_data = []
-        for data_index in range(round_number):
+        for data_index in range(round_number - 1):
             with open("./results/temp/screen" + str(data_index).zfill(4) + ".pkl", "rb") as file:
                 whole_data.append(pload(file))
 
         with open("./results/data/step_4_repairability_screen.pkl", "wb") as file:
             psave(whole_data, file)
 
-        for data_index in range(round_number):
+        for data_index in range(round_number - 1):
             remove(path="./results/temp/screen" + str(data_index).zfill(4) + ".pkl")
 
 
@@ -624,20 +617,20 @@ def draw_screen_record(heap_preset_size, error_rate):
     pyplot.fill_between(iterations, bottoms, capacity_group, color=colors["diffs"], linewidth=0, zorder=1)
     pyplot.plot(iterations, capacity_group, color="silver", linewidth=1, zorder=2)
 
-    pyplot.xticks([0, 393, 786, 1179, 1572], ["", "", "", "", ""], fontsize=8)
+    pyplot.xticks([0, 400, 800, 1200, 1550], ["", "", "", "", ""], fontsize=8)
     pyplot.yticks([0, 0.3, 0.6, 0.9, 1.2], ["0.0", "0.3", "0.6", "0.9", "1.2"], fontsize=8)
     pyplot.ylabel("screened capacity", fontsize=8)
-    pyplot.xlim(0, 1572)
+    pyplot.xlim(0, 1550)
     pyplot.ylim(0, 1.2)
 
     pyplot.subplot(2, 2, 2)
     pyplot.fill_between(iterations, bottoms, length_group, color=colors["diffs"], linewidth=0, zorder=1)
     pyplot.plot(list(range(len(length_group))), length_group, color="silver", linewidth=1, zorder=2)
 
-    pyplot.xticks([0, 393, 786, 1179, 1572], ["", "", "", "", ""], fontsize=8)
+    pyplot.xticks([0, 400, 800, 1200, 1550], ["", "", "", "", ""], fontsize=8)
     pyplot.yticks([0, 150, 300, 450, 600], [0, 150, 300, 450, 600], fontsize=8)
     pyplot.ylabel("average DNA length", fontsize=8)
-    pyplot.xlim(0, 1572)
+    pyplot.xlim(0, 1550)
     pyplot.ylim(0, 600)
 
     pyplot.subplot(2, 2, 3)
@@ -646,43 +639,37 @@ def draw_screen_record(heap_preset_size, error_rate):
     for index, area in enumerate(area_info):
         pyplot.fill_between(iterations, bottoms, area, color=gradient_colors[4 - index], linewidth=0)
 
-    pyplot.fill_between([1250, 1550], [200 - 140, 200 - 140], [1450 - 140, 1450 - 140],
-                        color="white", alpha=0.7)
-    pyplot.vlines(1250, 200 - 140, 1450 - 140, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.vlines(1550, 200 - 140, 1450 - 140, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.hlines(200 - 140, 1250, 1550, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.hlines(1450 - 140, 1250, 1550, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.text(x=1400, y=1250 - 140, s="out-degree", va="center", ha="center", fontsize=8, zorder=5)
-    pyplot.fill_between([1350, 1400], [300 - 140, 300 - 140], [450 - 140, 450 - 140],
-                        color=gradient_colors[0], zorder=5)
-    pyplot.fill_between([1350, 1400], [450 - 140, 450 - 140], [600 - 140, 600 - 140],
-                        color=gradient_colors[1], zorder=5)
-    pyplot.fill_between([1350, 1400], [600 - 140, 600 - 140], [750 - 140, 750 - 140],
-                        color=gradient_colors[2], zorder=5)
-    pyplot.fill_between([1350, 1400], [750 - 140, 750 - 140], [900 - 140, 900 - 140],
-                        color=gradient_colors[3], zorder=5)
-    pyplot.fill_between([1350, 1400], [900 - 140, 900 - 140], [1050 - 140, 1050 - 140],
-                        color=gradient_colors[3], zorder=5)
-    pyplot.vlines(1350, 300 - 140, 1050 - 140, color="black", linewidth=0.75, zorder=6)
-    pyplot.vlines(1400, 300 - 140, 1050 - 140, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines(300 - 140, 1350, 1400, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines(1050 - 140, 1350, 1400, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((300 + 450) / 2 - 140, 1400, 1420, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((450 + 600) / 2 - 140, 1400, 1420, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((600 + 750) / 2 - 140, 1400, 1420, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((750 + 900) / 2 - 140, 1400, 1420, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((900 + 1050) / 2 - 140, 1400, 1420, color="black", linewidth=0.75, zorder=6)
-    pyplot.text(1440, (300 + 450) / 2 - 10 - 140, 0, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1440, (450 + 600) / 2 - 10 - 140, 1, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1440, (600 + 750) / 2 - 10 - 140, 2, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1440, (750 + 900) / 2 - 10 - 140, 3, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1440, (900 + 1050) / 2 - 10 - 140, 4, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.fill_between([1225, 1525], [60, 60], [1310, 1310], color="white", alpha=0.7)
+    pyplot.vlines(1225, 60, 1310, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.vlines(1525, 60, 1310, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.hlines(60, 1225, 1525, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.hlines(1310, 1225, 1525, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.text(x=1375, y=1110, s="out-degree", va="center", ha="center", fontsize=8, zorder=5)
+    pyplot.fill_between([1325, 1375], [160, 160], [310, 310], color=gradient_colors[0], zorder=5)
+    pyplot.fill_between([1325, 1375], [310, 310], [460, 460], color=gradient_colors[1], zorder=5)
+    pyplot.fill_between([1325, 1375], [460, 460], [610, 610], color=gradient_colors[2], zorder=5)
+    pyplot.fill_between([1325, 1375], [610, 610], [760, 760], color=gradient_colors[3], zorder=5)
+    pyplot.fill_between([1325, 1375], [760, 760], [910, 910], color=gradient_colors[3], zorder=5)
+    pyplot.vlines(1325, 160, 910, color="black", linewidth=0.75, zorder=6)
+    pyplot.vlines(1375, 160, 910, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(160, 1325, 1375, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(910, 1325, 1375, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(235, 1375, 1395, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(385, 1375, 1395, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(535, 1375, 1395, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(685, 1375, 1395, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(835, 1375, 1395, color="black", linewidth=0.75, zorder=6)
+    pyplot.text(1415, 225, 0, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1419, 375, 1, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1415, 525, 2, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1415, 675, 3, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1415, 825, 4, va="center", ha="center", fontsize=8, zorder=6)
 
     pyplot.xlabel("screening iteration based on maximum overlap score", fontsize=8)
-    pyplot.xticks([0, 393, 786, 1179, 1572], [0, 393, 786, 1179, 1572], fontsize=8)
+    pyplot.xticks([0, 400, 800, 1200, 1550], [0, 400, 800, 1200, 1550], fontsize=8)
     pyplot.yticks([0, 600, 1200, 1800, 2400], [0, 600, 1200, 1800, 2400], fontsize=8)
     pyplot.ylabel("vertex number", fontsize=8)
-    pyplot.xlim(0, 1572)
+    pyplot.xlim(0, 1550)
     pyplot.ylim(0, 2400)
 
     pyplot.subplot(2, 2, 4)
@@ -691,37 +678,36 @@ def draw_screen_record(heap_preset_size, error_rate):
     for index, area in enumerate(area_info):
         pyplot.fill_between(iterations, bottoms, area, color=gradient_colors[100 - index], linewidth=0)
 
-    pyplot.fill_between([1250, 1550], [(200 - 140) * 2, (200 - 140) * 2], [(1450 - 140) * 2, (1450 - 140) * 2],
-                        color="white", alpha=0.7)
-    pyplot.vlines(1250, (200 - 140) * 2, (1450 - 140) * 2, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.vlines(1550, (200 - 140) * 2, (1450 - 140) * 2, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.hlines((200 - 140) * 2, 1250, 1550, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.hlines((1450 - 140) * 2, 1250, 1550, color=colors["diffs"], linewidth=0.75, zorder=5)
-    pyplot.text(x=1400, y=(1250 - 140) * 2, s="score", va="center", ha="center", fontsize=8, zorder=5)
+    pyplot.fill_between([1225, 1525], [120, 120], [2620, 2620], color="white", alpha=0.7)
+    pyplot.vlines(1225, 120, 2620, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.vlines(1525, 120, 2620, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.hlines(120, 1225, 1525, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.hlines(2620, 1225, 1525, color=colors["diffs"], linewidth=0.75, zorder=5)
+    pyplot.text(x=1373, y=1085 * 2, s="score", va="center", ha="center", fontsize=8, zorder=5)
     interval = (1050 - 300) / len(gradient_colors) * 2
     for index in range(len(gradient_colors)):
         lower, upper = 300 + interval * index, 300 + interval * (index + 1)
-        pyplot.fill_between([1310, 1360], [lower, lower], [upper, upper], color=gradient_colors[index], zorder=5)
-    pyplot.vlines(1310, (300 - 140) * 2, (1050 - 140) * 2, color="black", linewidth=0.75, zorder=6)
-    pyplot.vlines(1360, (300 - 140) * 2, (1050 - 140) * 2, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((300 - 140) * 2, 1310, 1360, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((1050 - 140) * 2, 1310, 1360, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((300 - 140) * 2, 1360, 1380, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((487.5 - 140) * 2, 1360, 1380, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((675 - 140) * 2, 1360, 1380, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((862.5 - 140) * 2, 1360, 1380, color="black", linewidth=0.75, zorder=6)
-    pyplot.hlines((1050 - 140) * 2, 1360, 1380, color="black", linewidth=0.75, zorder=6)
-    pyplot.text(1405, (300 - 140) * 2 - 15, 0, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1445, (487.5 - 140) * 2 - 15, 1024, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1443, (675 - 140) * 2 - 15, 2048, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1445, (862.5 - 140) * 2 - 15, 3072, va="center", ha="center", fontsize=8, zorder=6)
-    pyplot.text(1445, (1050 - 140) * 2 - 15, 4096, va="center", ha="center", fontsize=8, zorder=6)
+        pyplot.fill_between([1285, 1335], [lower, lower], [upper, upper], color=gradient_colors[index], zorder=5)
+    pyplot.vlines(1285, 320, 1820, color="black", linewidth=0.75, zorder=6)
+    pyplot.vlines(1335, 320, 1820, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(320, 1285, 1335, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(1820, 1285, 1335, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(320, 1335, 1355, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(695, 1335, 1355, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(1070, 1335, 1355, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(1445, 1335, 1355, color="black", linewidth=0.75, zorder=6)
+    pyplot.hlines(1820, 1335, 1355, color="black", linewidth=0.75, zorder=6)
+    pyplot.text(1380, 305, 0, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1420, 680, 1024, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1420, 1055, 2048, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1420, 1430, 3072, va="center", ha="center", fontsize=8, zorder=6)
+    pyplot.text(1420, 1805, 4096, va="center", ha="center", fontsize=8, zorder=6)
 
     pyplot.xlabel("screening iteration based on maximum overlap score", fontsize=8)
     pyplot.ylabel("edge number", fontsize=8)
-    pyplot.xticks([0, 393, 786, 1179, 1572], [0, 393, 786, 1179, 1572], fontsize=8)
+    pyplot.xticks([0, 400, 800, 1200, 1550], [0, 400, 800, 1200, 1550], fontsize=8)
     pyplot.yticks([0, 1200, 2400, 3600, 4800], [0, 1200, 2400, 3600, 4800], fontsize=8)
-    pyplot.xlim(0, 1572)
+    pyplot.xlim(0, 1550)
     pyplot.ylim(0, 4800)
 
     figure.align_labels()
@@ -779,12 +765,10 @@ def draw_heap_situation():
 
     strategy_numbers = [[] for _ in range(len(range_labels))]
     for capacity, _, _, repair_record in screened_data_group:
-        if capacity < 1:
+        if 0.2 <= capacity < 1:
             repair_data = sum(repair_record[:, 3:6], axis=1)
             repair_data[repair_data == 0] = 1
             strategy_numbers[int((capacity - 0.2) * 10)] += repair_data.tolist()
-
-    numbers = [len(values) for values in strategy_numbers]
 
     for index in range(len(strategy_numbers)):
         violin = pyplot.violinplot(strategy_numbers[index], positions=[index + 1], bw_method=0.5, showextrema=False)
@@ -799,8 +783,8 @@ def draw_heap_situation():
 
     pyplot.xlabel("screened capacity range (sample number)", fontsize=8)
     pyplot.xlim(0.5, 8.5)
-    x_tick_labels = [range_label + "\n(" + ("%.0e" % number).replace("+0", "") + ")"
-                     for range_label, number in zip(range_labels, numbers)]
+    x_tick_labels = [range_label + "\n(" + ("%.0e" % number).replace("e+0", "E+") + ")"
+                     for range_label, number in zip(range_labels, [len(values) for values in strategy_numbers])]
     pyplot.xticks(linspace(1, 8, 8), x_tick_labels, fontsize=8)
     pyplot.ylabel("  ", fontsize=8)
     pyplot.ylim(0, 16)

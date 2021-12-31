@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 # noinspection PyPackageRequirements
 from Chamaeleo.utils.indexer import connect_all
 # noinspection PyPackageRequirements

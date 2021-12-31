@@ -1,5 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
 from numpy import real, zeros, array, max, random, where, log2, linalg
 from unittest import TestCase
 

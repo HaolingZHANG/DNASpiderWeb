@@ -1,6 +1,3 @@
-__author__ = "Zhang, Haoling [hlzchn@gmail.com]"
-
-
 from os import path, makedirs
 
 from dsw import LocalBioFilter
