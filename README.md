@@ -3,7 +3,7 @@
 </p>
 
 
-# DNA Spider-Web
+# DNA SPIDER-WEB
 
 [![CircleCI](https://circleci.com/gh/circleci/circleci-docs.svg?style=shield)](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb)
 [![Build Status](https://travis-ci.org/HaolingZHANG/DNASpiderWeb.svg)](https://travis-ci.org/HaolingZHANG/DNASpiderWeb)
@@ -28,19 +28,17 @@ Through this work, applicable algorithms with appropriate density-compatibility 
 It is also suggested that more kinds of biochemical constraints can be further investigated as more complex operations would be needed in future DNA storage systems.
 
 
-## Basic evaluations
-
+## basic evaluations
 Some basic evaluation results of 
 [**SPIDER-WEB**](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/figures/).
-These figures are generated directly through the process Python scripts 
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/figures/), 
+which are generated directly through the process Python scripts 
 [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
-
 Compared with 
 [HEDGES](https://www.pnas.org/content/117/31/18489.full), 
 [DNA Fountain](https://www.science.org/doi/abs/10.1126/science.aaj2038) and 
 [Yin-Yang Code](https://www.biorxiv.org/content/10.1101/829721v3), 
-the rough (not academic) conclusions are as follows:
+the rough (**not academic**) conclusions are as follows:
 
 <p align="center">
 <img src="./experiments/results/figures/[6-0] result overviews.svg" title="result overview" width="100%"/>
@@ -53,12 +51,12 @@ where
 * [R-A] refers to the repairability, the statistical result of which is the normalized average DNA length of lossless decoding.
 
 
-## Usage and Customization
+## usage and customization
 ### local biochemical constraints set
 You can create your customized local biochemical constraint filter by inheriting [DefaultBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L4), such as
 Here is a simple example in this work named [LocalBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30).
 
-### Directed graph generated from valid DNA string
+### directed graph generated from valid DNA string
 You can generate your directed graph based on the above-mentioned customized filter or local biochemical constraint group:
 ```python
 from dsw import LocalBioFilter, find_vertices, connect_valid_graph
@@ -90,7 +88,7 @@ with the data type (double-precision floating-point format),
 which is unable to be allocated (both MATLAB and Python platforms).
 Therefore, see [here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/graphized.py),
 we provide a series of special data structures and approximation algorithms 
-to complete the representation of graphs and the solution of maximum eigenvalues.
+to complete the representation of graphs and the solution of largest eigenvalues.
  
 To verify its [reliability](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/step_2_reliability.py), 
 we compared our proposed method with Numpy ``linalg.eig'' function in some small-scale matrices.
@@ -101,7 +99,7 @@ which represents our proposed method is high reliability and negligible error.
 <img src="./experiments/results/figures/[2-2] reliability detailed.svg" title="reliability" width="100%"/>
 </p>
 
-### Automatic algorithm generator named SPIDER-WEB
+### automatic algorithm generator named SPIDER-WEB
 According to **SPIDER-WEB**, you can obtain the corresponding variable-length algorithms:
 
 ```python
@@ -114,23 +112,20 @@ graph = connect_coding_graph(length=10, vertices=vertices, threshold=1, save_pat
 In [experiments folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/__init__.py), 
 you can easily find 12 examples in our experiments.
 
-## Availability of process data
+## availability of process data
 
 Please do not hesitate to contact zhanghaoling/at/genomics.cn.
 
-## Citation
+## citation
 If you think this repo helps or being used in your research, please consider refer this paper.
- 
-Here is a Bibtex entry you can use to cite this project in a publication.
+Here is a Bibtex entry of this work:
 
 ````
-@article{zhang2021general,
-  title={General Trade-Off Calculator and Automatic Algorithm Generator for Arbitrary Local Biochemical Constraints in DNA Digital Data Storage},
+@article{zhang2021spider,
+  title={SPIDER-WEB is all your need for creating coding algorithms in DNA-based storage},
   author={Zhang, Haoling and Lan, Zhaojun and Ping, Zhi and Zhang, Yiwei and Shen, Yue},
   journal={XXX},
   year={XXX},
   pages={XXX},
 }
 ````
-
-Thank you!
