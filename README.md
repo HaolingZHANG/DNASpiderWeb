@@ -70,9 +70,43 @@ where
 
 
 ## Customization
-### local biochemical constraints set
-You can create your customized local biochemical constraint filter by inheriting [DefaultBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L4), such as
-Here is a simple example in this work named [LocalBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30).
+### biochemical constraints set
+You can create your customized biochemical constraint filter (as the biochemical constraints set) 
+by inheriting [DefaultBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L4).
+For example:
+
+```python
+from dsw import DefaultBioFilter
+
+class RegionalizedGCFilter(DefaultBioFilter):
+
+    def __init__(self, window_length, gc_bias):
+        super().__init__(screen_name="Regionalized GC content constraint")
+        self._window_length = window_length
+        self._gc_bias = gc_bias  # bias based on 0.5 (or 50%)
+    
+    def valid(self, dna_string):
+        if len(dna_string) >= self._window_length:
+            for index in range(len(dna_string) - self._window_length + 1):  # judge in a window
+                regional_dna_string = dna_string[index: index + self._window_length]
+                gc_count = regional_dna_string.count("C") + regional_dna_string.count("G")
+                if gc_count > (0.5 + self._gc_bias) * self._window_length:
+                    return False
+                if gc_count < (0.5 - self._gc_bias) * self._window_length:
+                    return False
+                    
+        else:
+            gc_count = dna_string.count("C") + dna_string.count("G")
+            if gc_count > (0.5 + self._gc_bias) * self._window_length:
+                return False
+            at_count = dna_string.count("A") + dna_string.count("T")
+            if at_count > (0.5 + self._gc_bias) * self._window_length:
+                return False
+                
+        return True
+```
+
+Here is an investigated example in this work named [LocalBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30).
 
 ### capacity approximation
 Through our customized approximater, 
@@ -138,7 +172,7 @@ you can easily find 12 examples in our experiments, the local biochemical constr
 where the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, and TCTAGA;
 and the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
 
-There simple transcoding performances of generated coding algorithms are as shown below:
+The corresponding transcoding performances of generated coding algorithms are shown as below:
 
 <p align="center">
 <img src="./experiments/results/figures/[1-1] compatibility code rates.svg" title="compatibility" width="100%"/>
