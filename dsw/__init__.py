@@ -1,8 +1,7 @@
 from dsw.biofilter import DefaultBioFilter, LocalBioFilter
 
 from dsw.spiderweb import encode, decode, repair_dna
-from dsw.spiderweb import find_vertices, connect_valid_graph, connect_coding_graph
-from dsw.spiderweb import create_random_shuffles, remove_random_edges
+from dsw.spiderweb import find_vertices, connect_valid_graph, connect_coding_graph, create_random_shuffles
 
 from dsw.graphized import accessor_to_adjacency_matrix, adjacency_matrix_to_accessor
 from dsw.graphized import accessor_to_latter_map, latter_map_to_accessor, remove_useless

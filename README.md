@@ -31,14 +31,14 @@ pip install dsw
 ```
 
 The packages requires a python version >=3.7, 
-as well as some basic libraries listed in [requirements file](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/requirements.txt).
-That is, [numpy>=1.17.1](https://pypi.org/project/numpy/) and [scipy>=1.3.1](https://pypi.org/project/scipy/).
+as well as some basic libraries (only [numpy 1.17.1](https://pypi.org/project/numpy/) and [scipy 1.3.1](https://pypi.org/project/scipy/)) listed in [requirements file](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/requirements.txt).
 
 Furthermore, if you want to try / repeat the completed experiments in this work.
 Some additional libraries need to be installed, that is, 
-[Chamaeleo>=1.34](https://pypi.org/project/Chamaeleo/) and [matplotlib>=3.1.1](https://pypi.org/project/matplotlib/).
+[Chamaeleo 1.34](https://pypi.org/project/Chamaeleo/), [matplotlib 3.1.1](https://pypi.org/project/matplotlib/), 
+and [biopython 1.78](https://pypi.org/project/biopython/).
 These experimental Python scripts [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments) are single threaded. 
-It may take about a month to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
+It may take about several months to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
 In order to further understand the experimental situation, 
 like getting [raw data](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/data/NOTES.md), 
 please do not hesitate to contact us.
@@ -81,7 +81,6 @@ The structure of this library is shown below:
 │    │    ├── connect_valid_graph           // Connect a valid graph by valid vertices
 │    │    ├── connect_coding_graph          // Connect a coding algorithm by valid vertices and the threshold for minimum out-degree
 │    │    ├── create_random_shuffles        // Create the shuffles for accessor through the random mechanism
-│    │    ├── remove_random_edges           // Remove directed edges in accessor through the random mechanism
 ├── experiments                             // Experiment module of DNA SPIDER-WEB
 │    ├── __init__.py                        // Local biochemical constraint set in this work
 │    ├── step_1_compatibility.py            // Experiments for the gap between code rates obtained from generated algorithms and the corresponding capacities
@@ -98,7 +97,6 @@ The structure of this library is shown below:
 │    ├── test_number_vs_binary_message.py   // Unit test for the conversion between the decimal number and binary message
 │    ├── test_number_vs_dna_string.py       // Unit test for the conversion between the decimal number and DNA string
 │    ├── test_operations.py                 // Unit test for the correctness of large number basic operations
-│    ├── test_remove_edges.py               // Unit test for the transcoding correctness when using the removing edge strategy
 │    ├── test_shuffles.py                   // Unit test for the transcoding correctness when using the shuffle strategy
 ├── README.md                               // Description document of library
 ```
@@ -122,7 +120,7 @@ the rough (**not academic**) conclusions are as follows:
 where 
 * [C-R] refers to the code rate, the statistical result of which is the average number of binary bits encoded per nucleotide; 
 * [C-A] refers to the codability, the statistical result of which is the success rate of encoding process;
-* [P-S] refers to the parameter sensibility, the statistical result of which is the normalized standard deviation of code rate;
+* [P-S] refers to the parameter sensibility, the statistical result of which is the reciprocal of normalized standard deviation of code rate;
 * [R-A] refers to the repairability, the statistical result of which is the normalized average DNA length of lossless decoding.
 
 For detailed design, evaluations and conclusions, please refer to our publication.

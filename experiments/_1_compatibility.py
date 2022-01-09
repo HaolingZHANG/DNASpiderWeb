@@ -128,8 +128,7 @@ def display_performances():
 
 if __name__ == "__main__":
     create_folders()
-    # generate algorithms from 12 sets of local biochemical constraint in
-    # https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/pipelines/__init__.py.
+    # generate algorithms from 12 sets of local biochemical constraint sets.
     generate_by_filters()
     # evaluate the performances of the generated algorithm.
     evaluate_performances(task_seed=2021, bit_length=100, repeats=100)

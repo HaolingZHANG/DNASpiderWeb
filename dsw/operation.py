@@ -356,7 +356,6 @@ def dna_to_number(dna_string, nucleotides=None, is_string=True):
         '6939'
         >>> dna_to_number(dna_string="ACGTACGT", is_string=False)
         6939
-
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]

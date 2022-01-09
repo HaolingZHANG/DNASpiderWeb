@@ -62,21 +62,28 @@ low_gc_bias = [0.1, 0.3]
 def obtain_filters():
     return {
         "01": LocalBioFilter(observed_length=10,
-                             max_homopolymer_runs=2, gc_range=balanced_gc_range, undesired_motifs=cut_segments),
+                             max_homopolymer_runs=2,
+                             gc_range=balanced_gc_range,
+                             undesired_motifs=cut_segments),
         "02": LocalBioFilter(observed_length=10,
                              max_homopolymer_runs=1),  # Goldman method
         "03": LocalBioFilter(observed_length=10,
                              gc_range=low_gc_bias),
         "04": LocalBioFilter(observed_length=10,
-                             max_homopolymer_runs=2, gc_range=accepted_gc_bias, undesired_motifs=nanopore_segments),
+                             max_homopolymer_runs=2,
+                             gc_range=accepted_gc_bias,
+                             undesired_motifs=nanopore_segments),
         "05": LocalBioFilter(observed_length=10,
-                             max_homopolymer_runs=2, gc_range=accepted_gc_bias),
+                             max_homopolymer_runs=2,
+                             gc_range=accepted_gc_bias),
         "06": LocalBioFilter(observed_length=10,
                              gc_range=high_gc_bias),
         "07": LocalBioFilter(observed_length=10,
-                             max_homopolymer_runs=3, gc_range=accepted_gc_bias),
+                             max_homopolymer_runs=3,
+                             gc_range=accepted_gc_bias),
         "08": LocalBioFilter(observed_length=10,
-                             max_homopolymer_runs=4, gc_range=accepted_gc_bias),  # HEDGES Code
+                             max_homopolymer_runs=4,
+                             gc_range=accepted_gc_bias),  # HEDGES Code
         "09": LocalBioFilter(observed_length=10,
                              max_homopolymer_runs=3),  # Church method
         "10": LocalBioFilter(observed_length=10,

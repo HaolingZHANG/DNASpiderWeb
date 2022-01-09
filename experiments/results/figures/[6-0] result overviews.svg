@@ -58,7 +58,7 @@ z
 " style="fill:#ffffff;"/>
    </g>
    <g id="patch_3">
-    <path clip-path="url(#pe825073577)" d="M 140.711137 50.199733 
+    <path clip-path="url(#pd6a1412bb4)" d="M 140.868184 50.042686 
 L 30.133835 50.042686 
 L 30.133835 160.777035 
 L 140.868184 160.777035 
@@ -68,9 +68,9 @@ z
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
      <g id="line2d_1">
-      <path clip-path="url(#pe825073577)" d="M 85.50101 105.409861 
+      <path clip-path="url(#pd6a1412bb4)" d="M 85.50101 105.409861 
 L 140.868184 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_1">
       <!-- [C-R] -->
@@ -161,9 +161,9 @@ z
     </g>
     <g id="xtick_2">
      <g id="line2d_2">
-      <path clip-path="url(#pe825073577)" d="M 85.50101 105.409861 
+      <path clip-path="url(#pd6a1412bb4)" d="M 85.50101 105.409861 
 L 30.133835 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_2">
       <!-- [C-A] -->
@@ -194,9 +194,9 @@ z
     </g>
     <g id="xtick_3">
      <g id="line2d_3">
-      <path clip-path="url(#pe825073577)" d="M 85.50101 105.409861 
+      <path clip-path="url(#pd6a1412bb4)" d="M 85.50101 105.409861 
 L 30.133835 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_3">
       <!-- [P-S] -->
@@ -263,9 +263,9 @@ z
     </g>
     <g id="xtick_4">
      <g id="line2d_4">
-      <path clip-path="url(#pe825073577)" d="M 85.50101 105.409861 
+      <path clip-path="url(#pd6a1412bb4)" d="M 85.50101 105.409861 
 L 140.868184 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_4">
       <!-- [R-A] -->
@@ -281,11 +281,11 @@ L 140.868184 160.777035
    </g>
    <g id="matplotlib.axis_2"/>
    <g id="line2d_5">
-    <path clip-path="url(#pe825073577)" d="M 140.711137 50.199733 
+    <path clip-path="url(#pd6a1412bb4)" d="M 140.868184 50.042686 
 L 30.133835 50.042686 
 L 30.133835 160.777035 
 L 140.868184 160.777035 
-L 140.711137 50.199733 
+L 140.868184 50.042686 
 " style="fill:none;stroke:#fe817d;stroke-linecap:square;stroke-width:1.5;"/>
    </g>
    <g id="patch_4">
@@ -448,9 +448,9 @@ z
 " style="fill:#ffffff;"/>
    </g>
    <g id="patch_6">
-    <path clip-path="url(#p385a86909e)" d="M 316.815602 51.395268 
+    <path clip-path="url(#p6eb4bc3ae0)" d="M 316.969248 51.241622 
 L 207.433835 50.042686 
-L 228.414403 139.796467 
+L 250.765731 117.445139 
 L 318.168184 160.777035 
 z
 " style="fill:#ffdb75;"/>
@@ -458,9 +458,9 @@ z
    <g id="matplotlib.axis_3">
     <g id="xtick_5">
      <g id="line2d_6">
-      <path clip-path="url(#p385a86909e)" d="M 262.80101 105.409861 
+      <path clip-path="url(#p6eb4bc3ae0)" d="M 262.80101 105.409861 
 L 318.168184 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_6">
       <!-- [C-R] -->
@@ -475,9 +475,9 @@ L 318.168184 50.042686
     </g>
     <g id="xtick_6">
      <g id="line2d_7">
-      <path clip-path="url(#p385a86909e)" d="M 262.80101 105.409861 
+      <path clip-path="url(#p6eb4bc3ae0)" d="M 262.80101 105.409861 
 L 207.433835 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_7">
       <!-- [C-A] -->
@@ -492,9 +492,9 @@ L 207.433835 50.042686
     </g>
     <g id="xtick_7">
      <g id="line2d_8">
-      <path clip-path="url(#p385a86909e)" d="M 262.80101 105.409861 
+      <path clip-path="url(#p6eb4bc3ae0)" d="M 262.80101 105.409861 
 L 207.433835 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_8">
       <!-- [P-S] -->
@@ -509,9 +509,9 @@ L 207.433835 160.777035
     </g>
     <g id="xtick_8">
      <g id="line2d_9">
-      <path clip-path="url(#p385a86909e)" d="M 262.80101 105.409861 
+      <path clip-path="url(#p6eb4bc3ae0)" d="M 262.80101 105.409861 
 L 318.168184 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_9">
       <!-- [R-A] -->
@@ -527,11 +527,11 @@ L 318.168184 160.777035
    </g>
    <g id="matplotlib.axis_4"/>
    <g id="line2d_10">
-    <path clip-path="url(#p385a86909e)" d="M 316.815602 51.395268 
+    <path clip-path="url(#p6eb4bc3ae0)" d="M 316.969248 51.241622 
 L 207.433835 50.042686 
-L 228.414403 139.796467 
+L 250.765731 117.445139 
 L 318.168184 160.777035 
-L 316.815602 51.395268 
+L 316.969248 51.241622 
 " style="fill:none;stroke:#ffc000;stroke-linecap:square;stroke-width:1.5;"/>
    </g>
    <g id="patch_7">
@@ -648,9 +648,9 @@ z
 " style="fill:#ffffff;"/>
    </g>
    <g id="patch_9">
-    <path clip-path="url(#p155a2c685e)" d="M 489.407185 56.103685 
+    <path clip-path="url(#p9dea8f42dc)" d="M 489.547438 55.963432 
 L 421.645285 86.954136 
-L 440.10101 105.409861 
+L 434.828638 110.682232 
 L 440.10101 105.409861 
 z
 " style="fill:#d3c2fe;"/>
@@ -658,9 +658,9 @@ z
    <g id="matplotlib.axis_5">
     <g id="xtick_9">
      <g id="line2d_11">
-      <path clip-path="url(#p155a2c685e)" d="M 440.10101 105.409861 
+      <path clip-path="url(#p9dea8f42dc)" d="M 440.10101 105.409861 
 L 495.468184 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_11">
       <!-- [C-R] -->
@@ -675,9 +675,9 @@ L 495.468184 50.042686
     </g>
     <g id="xtick_10">
      <g id="line2d_12">
-      <path clip-path="url(#p155a2c685e)" d="M 440.10101 105.409861 
+      <path clip-path="url(#p9dea8f42dc)" d="M 440.10101 105.409861 
 L 384.733835 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_12">
       <!-- [C-A] -->
@@ -692,9 +692,9 @@ L 384.733835 50.042686
     </g>
     <g id="xtick_11">
      <g id="line2d_13">
-      <path clip-path="url(#p155a2c685e)" d="M 440.10101 105.409861 
+      <path clip-path="url(#p9dea8f42dc)" d="M 440.10101 105.409861 
 L 384.733835 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_13">
       <!-- [P-S] -->
@@ -709,9 +709,9 @@ L 384.733835 160.777035
     </g>
     <g id="xtick_12">
      <g id="line2d_14">
-      <path clip-path="url(#p155a2c685e)" d="M 440.10101 105.409861 
+      <path clip-path="url(#p9dea8f42dc)" d="M 440.10101 105.409861 
 L 495.468184 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_14">
       <!-- [R-A] -->
@@ -727,11 +727,11 @@ L 495.468184 160.777035
    </g>
    <g id="matplotlib.axis_6"/>
    <g id="line2d_15">
-    <path clip-path="url(#p155a2c685e)" d="M 489.407185 56.103685 
+    <path clip-path="url(#p9dea8f42dc)" d="M 489.547438 55.963432 
 L 421.645285 86.954136 
+L 434.828638 110.682232 
 L 440.10101 105.409861 
-L 440.10101 105.409861 
-L 489.407185 56.103685 
+L 489.547438 55.963432 
 " style="fill:none;stroke:#ad94ff;stroke-linecap:square;stroke-width:1.5;"/>
    </g>
    <g id="patch_10">
@@ -964,9 +964,9 @@ z
 " style="fill:#ffffff;"/>
    </g>
    <g id="patch_12">
-    <path clip-path="url(#p4e2a30a204)" d="M 656.26314 66.547731 
+    <path clip-path="url(#p3736491fca)" d="M 656.373684 66.437186 
 L 562.033835 50.042686 
-L 607.646975 115.163895 
+L 611.128901 111.68197 
 L 617.40101 105.409861 
 z
 " style="fill:#adedd9;"/>
@@ -974,9 +974,9 @@ z
    <g id="matplotlib.axis_7">
     <g id="xtick_13">
      <g id="line2d_16">
-      <path clip-path="url(#p4e2a30a204)" d="M 617.40101 105.409861 
+      <path clip-path="url(#p3736491fca)" d="M 617.40101 105.409861 
 L 672.768184 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_16">
       <!-- [C-R] -->
@@ -991,9 +991,9 @@ L 672.768184 50.042686
     </g>
     <g id="xtick_14">
      <g id="line2d_17">
-      <path clip-path="url(#p4e2a30a204)" d="M 617.40101 105.409861 
+      <path clip-path="url(#p3736491fca)" d="M 617.40101 105.409861 
 L 562.033835 50.042686 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_17">
       <!-- [C-A] -->
@@ -1008,9 +1008,9 @@ L 562.033835 50.042686
     </g>
     <g id="xtick_15">
      <g id="line2d_18">
-      <path clip-path="url(#p4e2a30a204)" d="M 617.40101 105.409861 
+      <path clip-path="url(#p3736491fca)" d="M 617.40101 105.409861 
 L 562.033835 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_18">
       <!-- [P-S] -->
@@ -1025,9 +1025,9 @@ L 562.033835 160.777035
     </g>
     <g id="xtick_16">
      <g id="line2d_19">
-      <path clip-path="url(#p4e2a30a204)" d="M 617.40101 105.409861 
+      <path clip-path="url(#p3736491fca)" d="M 617.40101 105.409861 
 L 672.768184 160.777035 
-" style="fill:none;stroke:#000000;stroke-linecap:square;stroke-width:0.8;"/>
+" style="fill:none;stroke:#c0c0c0;stroke-linecap:square;stroke-width:0.8;"/>
      </g>
      <g id="text_19">
       <!-- [R-A] -->
@@ -1043,11 +1043,11 @@ L 672.768184 160.777035
    </g>
    <g id="matplotlib.axis_8"/>
    <g id="line2d_20">
-    <path clip-path="url(#p4e2a30a204)" d="M 656.26314 66.547731 
+    <path clip-path="url(#p3736491fca)" d="M 656.373684 66.437186 
 L 562.033835 50.042686 
-L 607.646975 115.163895 
+L 611.128901 111.68197 
 L 617.40101 105.409861 
-L 656.26314 66.547731 
+L 656.373684 66.437186 
 " style="fill:none;stroke:#00c382;stroke-linecap:square;stroke-width:1.5;"/>
    </g>
    <g id="patch_13">
@@ -1187,7 +1187,7 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pe825073577">
+  <clipPath id="pd6a1412bb4">
    <path d="M 163.802019 105.409861 
 C 163.802019 95.127466 161.776612 84.945055 157.84171 75.445361 
 C 153.906808 65.945668 148.138935 57.313436 140.868184 50.042686 
@@ -1226,7 +1226,7 @@ M 163.802019 105.409861
 z
 "/>
   </clipPath>
-  <clipPath id="p385a86909e">
+  <clipPath id="p6eb4bc3ae0">
    <path d="M 341.102019 105.409861 
 C 341.102019 95.127466 339.076612 84.945055 335.14171 75.445361 
 C 331.206808 65.945668 325.438935 57.313436 318.168184 50.042686 
@@ -1265,7 +1265,7 @@ M 341.102019 105.409861
 z
 "/>
   </clipPath>
-  <clipPath id="p155a2c685e">
+  <clipPath id="p9dea8f42dc">
    <path d="M 518.402019 105.409861 
 C 518.402019 95.127466 516.376612 84.945055 512.44171 75.445361 
 C 508.506808 65.945668 502.738935 57.313436 495.468184 50.042686 
@@ -1304,7 +1304,7 @@ M 518.402019 105.409861
 z
 "/>
   </clipPath>
-  <clipPath id="p4e2a30a204">
+  <clipPath id="p3736491fca">
    <path d="M 695.702019 105.409861 
 C 695.702019 95.127466 693.676612 84.945055 689.74171 75.445361 
 C 685.806808 65.945668 680.038935 57.313436 672.768184 50.042686 

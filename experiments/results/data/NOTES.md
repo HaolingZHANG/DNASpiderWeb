@@ -61,7 +61,7 @@ Through step 1 ~ 5 in the experiments, you will obtain the 58 following process 
 ├── step_5_privacy_remove_evaluation.pkl     // evaluation results of remove edge strategy
 ```
 
-Totally, these files occupy a total of 122GB.
+Totally, these files occupy a total of 1.22GB.
 
 If you want to further check the raw data in our work,
 please do not hesitate to contact zhanghaoling@genomics.cn.
