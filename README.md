@@ -244,7 +244,7 @@ Here is a Bibtex entry:
 
 ````
 @article{zhang2021spider,
-  title={SPIDER-WEB is all your need for creating coding algorithms in DNA-based storage},
+  title={SPIDER-WEB is all you need for creating coding algorithms in DNA-based storage},
   author={Zhang, Haoling and Lan, Zhaojun and Ping, Zhi and Zhang, Yiwei and Shen, Yue},
   journal={XXX},
   year={XXX},

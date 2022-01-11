@@ -21,7 +21,7 @@ class TestEncode(TestCase):
         dna_string, vt_list = encode(accessor=self.accessor, binary_message=self.binary_message,
                                      start_index=self.start_index, vt_length=self.vt_length)
         self.assertEqual("TCTCTCT", dna_string)
-        self.assertEqual("AGTC", vt_list)
+        self.assertEqual("ATTA", vt_list)
 
 
 class TestDecode(TestCase):
@@ -48,7 +48,7 @@ class TestRepair(TestCase):
                                [-1, 1, 2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1],
                                [-1, -1, -1, -1], [4, -1, -1, 7], [8, -1, -1, 11], [-1, -1, -1, -1]])
         self.dna_string = "TCTCTATCTCTC"  # "TCTCTCTCTCTC" is original DNA string
-        self.vt_check = "CTTG"  # check list of Varshamov-Tenengolts code.
+        self.vt_check = "GCCG"  # check list of Varshamov-Tenengolts code.
 
     def test(self):
         detect_flag, repaired_dna_strings = repair_dna(dna_string=self.dna_string,

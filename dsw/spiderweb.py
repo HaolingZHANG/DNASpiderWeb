@@ -46,7 +46,7 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
         >>> encode(accessor=accessor, binary_message=binary_message, start_index=1)
         'TCTCTCT'
         >>> encode(accessor=accessor, binary_message=binary_message, start_index=1, vt_length=4)
-        ('TCTCTCT', 'AGTC')
+        ('TCTCTCT', 'ATTA')
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -74,10 +74,10 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
 
         nucleotide, vertex_index = nucleotides[value], accessor[vertex_index][value]
 
-        if vt_length > 0:
-            vt_value += (value * len(dna_string)) % (4 ** vt_length)
-
         dna_string += nucleotide
+
+        if vt_length > 0:
+            vt_value += value * len(dna_string)
 
         if verbose:
             if quotient != "0":
@@ -86,6 +86,7 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
                 monitor.output(total_state, total_state)
 
     if vt_length > 0:
+        vt_value %= 4 ** vt_length
         return dna_string, number_to_dna(decimal_number=int(vt_value), dna_length=vt_length)
     else:
         return dna_string
@@ -140,7 +141,7 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
 
     quotient, saved_values, vt_value, vertex_index, monitor = "0", [], 0, start_index, Monitor()
 
-    for index, nucleotide in enumerate(dna_string):
+    for location, nucleotide in enumerate(dna_string):
         used_indices = where(accessor[vertex_index] >= 0)[0]
 
         if len(used_indices) > 1:  # current vertex contains information.
@@ -169,17 +170,19 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
                              + "the accessor, the start vertex, or DNA string is wrong!")
 
         if vt_check is not None:
-            vt_value += (nucleotides.index(nucleotide) * index) % (4 ** len(vt_check))
+            vt_value += nucleotides.index(nucleotide) * (location + 1)
 
         if verbose:
-            monitor.output(index + 1, len(dna_string))
+            monitor.output(location + 1, len(dna_string))
 
     if vt_check is not None:
+        vt_value %= 4 ** len(vt_check)
         vt_list = number_to_dna(decimal_number=vt_value, dna_length=len(vt_check))
+        print(vt_list)
         if vt_check != vt_list:
             raise ValueError("At least one error is found in this DNA string!")
 
-    for index, (out_degree, number) in enumerate(saved_values[::-1]):
+    for location, (out_degree, number) in enumerate(saved_values[::-1]):
         quotient = calculus_multiplication(number=quotient, base=str(out_degree))
         quotient = calculus_addition(number=quotient, base=str(number))
 
@@ -236,7 +239,7 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
         >>> repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, \
                        check_iterations=1, has_insertion=True, has_deletion=True, verbose=False)
         (True, ['TCTCTCTCTCTC', 'TCTCTGTCTCTC'])
-        >>> vt_check = "CTTG"  # check list of Varshamov-Tenengolts code.
+        >>> vt_check = "GCCG"  # check list of Varshamov-Tenengolts code.
         >>> repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, \
                        check_iterations=1, vt_check=vt_check, has_insertion=True, has_deletion=True, verbose=False)
         (True, ['TCTCTCTCTCTC'])
@@ -277,7 +280,7 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
                         if dna_string not in new_dna_strings:
                             new_dna_strings.append(dna_string)
 
-                    recall_queue = index_queue[::-1][:observed_length + 1]
+                    recall_queue = index_queue[::-1][:observed_length - 1]
                     for recall_index, original_vertex_index in enumerate(recall_queue):
                         error_index = location - recall_index - 1
                         if verbose:
@@ -310,11 +313,14 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
                 vertex_index, vt_value = start_index, 0
                 for location, nucleotide in enumerate(repaired_dna_string):
                     vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
-                    vt_value += (nucleotides.index(nucleotide) * location) % (4 ** len(vt_check))
+                    vt_value += nucleotides.index(nucleotide) * (location + 1)
 
+                vt_value %= 4 ** len(vt_check)
                 vt_list = number_to_dna(decimal_number=int(vt_value), dna_length=len(vt_check))
                 if vt_check == vt_list:
                     results.append(repaired_dna_string)
+                else:
+                    detected_flag = True
             else:
                 results.append(repaired_dna_string)
 

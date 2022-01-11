@@ -9,7 +9,7 @@ def show_single_examples():
     accessor, vertices = load(file="./results/data/a01[g].npy"), load(file="./results/data/a01[v].npy")
 
     start_index = where(vertices == 1)[0][0]
-    binary_message = [0, 1] * 20
+    binary_message = [0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1]
     wrong_location = 14
     right_dna_string, vt_check = encode(binary_message=binary_message, accessor=accessor, start_index=start_index,
                                         vt_length=10)
@@ -38,7 +38,7 @@ def show_single_examples():
         print()
 
     start_index = where(vertices == 1)[0][0]
-    binary_message = [0, 1] * 20
+    binary_message = [0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1]
     wrong_location = 14
     right_dna_string, vt_check = encode(binary_message=binary_message, accessor=accessor, start_index=start_index,
                                         vt_length=10)
@@ -67,7 +67,7 @@ def show_single_examples():
         print()
 
     start_index = where(vertices == 1)[0][0]
-    binary_message = [0, 1] * 20
+    binary_message = [0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1]
     wrong_location = 14
     right_dna_string, vt_check = encode(binary_message=binary_message, accessor=accessor, start_index=start_index,
                                         vt_length=10)
@@ -167,20 +167,28 @@ def show_multiple_examples():
     random.seed(None)
 
 
-def evaluate_single_error(accessor, start_indices, observed_length, repeats):
-    monitor, current, total, records, nucleotides = Monitor(), 1, repeats * len(start_indices), [], ["A", "C", "G", "T"]
+def evaluate_single_error(accessor, start_indices, repeats):
+    monitor, current, total, records = Monitor(), 1, repeats * len(start_indices), []
+    nucleotides, observed_length, vt_length, error_position, dna_length = ["A", "C", "G", "T"], 10, 10, 12, 30
     for _ in range(repeats):
         for start_index in start_indices:
-            # obtain ideal DNA string.
-            binary_message = random.randint(0, 2, size=((observed_length + 2) * 4,))
-            right_dna_string, vt_check = encode(binary_message=binary_message, accessor=accessor,
-                                                start_index=start_index, vt_length=10)
+            # create ideal DNA string randomly.
+            vertex_index, right_dna_string, vt_value = start_index, "", 0
+            for location in range(30):
+                used_indices = where(accessor[vertex_index] >= 0)[0]
+                used_index = random.choice(used_indices)
+                nucleotide, vertex_index = nucleotides[used_index], accessor[vertex_index][used_index]
+                vt_value += used_index * (location + 1)
+                right_dna_string += nucleotide
+            vt_value %= 4 ** vt_length
+            vt_check = number_to_dna(decimal_number=int(vt_value), dna_length=vt_length)
 
             # occur substitution (3 types)
-            for nucleotide in list(filter(lambda n: n != right_dna_string[observed_length + 2], nucleotides)):
+            for nucleotide in list(filter(lambda n: n != right_dna_string[error_position], nucleotides)):
                 wrong_dna_string = list(right_dna_string)
-                wrong_dna_string[observed_length + 2] = nucleotide
+                wrong_dna_string[error_position] = nucleotide
                 wrong_dna_string = "".join(wrong_dna_string)
+
                 # repair without check list of Varshamov-Tenengolts code.
                 detect_flag_1, repaired_dna_strings_1 = repair_dna(dna_string=wrong_dna_string,
                                                                    accessor=accessor, start_index=start_index,
@@ -197,7 +205,7 @@ def evaluate_single_error(accessor, start_indices, observed_length, repeats):
             # occur insertion (4 types)
             for nucleotide in list(["A", "C", "G", "T"]):
                 wrong_dna_string = list(right_dna_string)
-                wrong_dna_string.insert(observed_length + 2, nucleotide)
+                wrong_dna_string.insert(error_position, nucleotide)
                 wrong_dna_string = "".join(wrong_dna_string)
                 # repair without check list of Varshamov-Tenengolts code.
                 detect_flag_1, repaired_dna_strings_1 = repair_dna(dna_string=wrong_dna_string,
@@ -214,7 +222,7 @@ def evaluate_single_error(accessor, start_indices, observed_length, repeats):
 
             # occur deletion (1 type)
             wrong_dna_string = list(right_dna_string)
-            del wrong_dna_string[observed_length + 2]
+            del wrong_dna_string[error_position]
             wrong_dna_string = "".join(wrong_dna_string)
             # repair without check list of Varshamov-Tenengolts code.
             detect_flag_1, repaired_dna_strings_1 = repair_dna(dna_string=wrong_dna_string,
@@ -252,8 +260,9 @@ def evaluate_repair_multiple_errors(random_seed, accessor, vertices, observed_le
             used_indices = where(accessor[vertex_index] >= 0)[0]
             used_index = random.choice(used_indices)
             nucleotide, vertex_index = nucleotides[used_index], accessor[vertex_index][used_index]
-            vt_value += (used_index * location) % (4 ** vt_length)
+            vt_value += used_index * (location + 1)
             right_dna_string += nucleotide
+        vt_value %= 4 ** vt_length
         right_vt_check = number_to_dna(decimal_number=int(vt_value), dna_length=vt_length)
 
         # introduce error under most dense.
