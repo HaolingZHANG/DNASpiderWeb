@@ -1,7 +1,8 @@
+from copy import deepcopy
 from numpy import zeros, ones, array, random, sum, argsort, where
 
 from dsw.operation import Monitor, calculus_addition, calculus_multiplication, calculus_division
-from dsw.operation import bit_to_number, number_to_bit, number_to_dna
+from dsw.operation import bit_to_number, number_to_bit, number_to_dna, dna_to_number
 from dsw.graphized import obtain_latters, path_matching
 
 
@@ -33,6 +34,9 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
 
     :return: DNA string encoded by this graph.
     :rtype: str
+
+    ..note::
+        Reference [1] R. R. Varshamov and G. M. Tenengolts (1965) Avtomat. i Telemekh.
 
     ..example::
         >>> from numpy import array
@@ -123,6 +127,9 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
 
     :return: binary message decoded by this graph.
     :rtype: numpy.ndarray
+
+    ..note::
+        Reference [1] R. R. Varshamov and G. M. Tenengolts (1965) Avtomat. i Telemekh.
 
     ..example::
         >>> from numpy import array
@@ -227,6 +234,10 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
     :return: repaired DNA strings (may contain multiple repair results).
     :rtype: list
 
+    ..note::
+        Reference [1] David Avis and Komei Fukuda (1996). Discrete applied mathematics.
+        Reference [2] R. R. Varshamov and G. M. Tenengolts (1965) Avtomat. i Telemekh.
+
     ..example::
         >>> from numpy import array
         >>> from dsw import repair_dna
@@ -246,6 +257,8 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
+
+    original_dna_string = deepcopy(dna_string)  # save if need the original VT repair.
 
     dna_strings, repaired_dna_strings, detected_flag = [dna_string], [], False
     for _ in range(check_iterations + 1):
@@ -324,6 +337,118 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
             else:
                 results.append(repaired_dna_string)
 
+    # use original Varshamov-Tenengolts repair.
+    if len(results) == 0 and vt_check is not None:
+        if verbose:
+            print()
+            print("No result check, we use original Varshamov-Tenengolts repair.")
+            print()
+
+        right_vt_value = dna_to_number(dna_string=vt_check, is_string=False)
+
+        vertex_index, wrong_vt_value = start_index, 0
+        for location, nucleotide in enumerate(original_dna_string):
+            vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+            wrong_vt_value += nucleotides.index(nucleotide) * (location + 1)
+        wrong_vt_value %= 4 ** len(vt_check)
+
+        # substitution error checking through Varshamov-Tenengolts principle.
+        # wrong vt value - right vt value = (s[p] - u) * p.
+        for assume_location in range(len(original_dna_string)):
+            wrong_value = nucleotides.index(dna_string[assume_location])
+            for nucleotide_value in [0, 1, 2, 3]:
+                if (wrong_vt_value - right_vt_value) == (wrong_value - nucleotide_value) * (assume_location + 1):
+                    if verbose:
+                        right_nucleotide = nucleotides[nucleotide_value]
+                        wrong_nucleotide = dna_string[assume_location]
+                        print("-" * 50)
+                        print("Find the substitution error (" + str(assume_location) + ") location.")
+                        print(wrong_nucleotide + " needs to be substituted by " + right_nucleotide + ".")
+
+                    repaired_dna_string = list(original_dna_string)
+                    repaired_dna_string[assume_location] = nucleotides[nucleotide_value]
+                    repaired_dna_string = "".join(repaired_dna_string)
+
+                    # recheck the biochemical constraints.
+                    vertex_index, reliable = start_index, True
+                    for index, nucleotide in enumerate(repaired_dna_string):
+                        inner_used_indices = where(accessor[vertex_index] >= 0)[0]
+                        used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
+                        if nucleotide in used_nucleotides:
+                            vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+                        else:
+                            print("But it is not satisfying the established biochemical constraints. Ignore it!")
+                            reliable = False
+                            break
+                    if reliable:
+                        results.append(repaired_dna_string)
+
+        if has_insertion:
+            # insertion error checking through Varshamov-Tenengolts principle.
+            # wrong vt value - right vt value = u * p + sum_{i = p + 1}^n s[i].
+            values = list(map(nucleotides.index, original_dna_string))
+            for assume_location in range(len(original_dna_string)):
+                assume_difference = values[assume_location] * (assume_location + 1) + sum(values[assume_location + 1:])
+                if wrong_vt_value - right_vt_value == assume_difference:
+                    if verbose:
+                        nucleotide = original_dna_string[assume_location]
+                        print("-" * 50)
+                        print("Find the insertion error (" + str(assume_location) + ") location.")
+                        print(nucleotide + " needs to be deleted.")
+
+                    repaired_dna_string = list(original_dna_string)
+                    del repaired_dna_string[assume_location]
+                    repaired_dna_string = "".join(repaired_dna_string)
+
+                    # recheck the biochemical constraints.
+                    vertex_index, reliable = start_index, True
+                    for index, nucleotide in enumerate(repaired_dna_string):
+                        inner_used_indices = where(accessor[vertex_index] >= 0)[0]
+                        used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
+                        if nucleotide in used_nucleotides:
+                            vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+                        else:
+                            print("But it is not satisfying the established biochemical constraints. Ignore it!")
+                            reliable = False
+                            break
+                    if reliable:
+                        results.append(repaired_dna_string)
+
+        if has_deletion:
+            # deletion error checking through Varshamov-Tenengolts principle.
+            # wrong vt value - right vt value = - u * p - sum_{i = p}^n s[i].
+            values = list(map(nucleotides.index, original_dna_string))
+            for assume_location in range(len(original_dna_string)):
+                for nucleotide_value in [0, 1, 2, 3]:
+                    assume_difference = - nucleotide_value * (assume_location + 1) - sum(values[assume_location:])
+                    if right_vt_value - wrong_vt_value == assume_difference:
+                        if verbose:
+                            nucleotide = original_dna_string[assume_location]
+                            print("-" * 50)
+                            print("Find the deletion error (" + str(assume_location) + ") location.")
+                            print(nucleotide + " need to be inserted.")
+
+                        repaired_dna_string = list(original_dna_string)
+                        repaired_dna_string.insert(assume_location, nucleotides[nucleotide_value])
+                        repaired_dna_string = "".join(repaired_dna_string)
+
+                        # recheck the biochemical constraints.
+                        vertex_index, reliable = start_index, True
+                        for index, nucleotide in enumerate(repaired_dna_string):
+                            inner_used_indices = where(accessor[vertex_index] >= 0)[0]
+                            used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
+                            if nucleotide in used_nucleotides:
+                                vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+                            else:
+                                print("But it is not satisfying the established biochemical constraints. Ignore it!")
+                                reliable = False
+                                break
+                        if reliable:
+                            results.append(repaired_dna_string)
+
+        if len(results):
+            raise ValueError("The DNA string contains too many errors to find a suitable repair strategy!")
+
     return detected_flag, results
 
 
@@ -345,6 +470,9 @@ def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
 
     :return: available vertices.
     :rtype: numpy.ndarray
+
+    ..note::
+        Reference [1] Florent Capelli and Yann Strozecki (2019) Discrete Applied Mathematics.
 
     ..example::
         >>> from dsw import LocalBioFilter, find_vertices
@@ -397,6 +525,9 @@ def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=Fal
 
     :return: accessor of the valid graph.
     :rtype: numpy.ndarray
+
+    ..note::
+        Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae.
 
     ..example::
         >>> from numpy import array
@@ -473,6 +604,9 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
 
     :return: coding vertices and coding accessor.
     :rtype: (numpy.ndarray, numpy.ndarray)
+
+    ..note::
+        Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae.
 
     ..example::
         >>> from numpy import array

@@ -1,6 +1,6 @@
 # noinspection PyPackageRequirements
 from matplotlib import pyplot
-from numpy import load, array, zeros, median, mean, max, std, deg2rad
+from numpy import load, array, zeros, median, mean, min, max, std, deg2rad, log
 
 from experiments import colors
 
@@ -33,10 +33,10 @@ def load_data():
     scores = array([mean(code_rates[0][code_rates[0] > 0]), mean(code_rates[1][code_rates[1] > 0]),
                     mean(code_rates[2][code_rates[2] > 0]), mean(code_rates[3][code_rates[3] > 0])])
     scores /= max(scores)
-    algorithm_data["SPIDER-WEB"].append(scores[0])
-    algorithm_data["HEDGES"].append(scores[1])
-    algorithm_data["DNA Fountain"].append(scores[2])
-    algorithm_data["Yin-Yang Code"].append(scores[3])
+    algorithm_data["DNA Fountain"].append(scores[0])
+    algorithm_data["Yin-Yang Code"].append(scores[1])
+    algorithm_data["HEDGES"].append(scores[2])
+    algorithm_data["SPIDER-WEB"].append(scores[3])
 
     # evaluate the codability.
     counts, total_counts = array([0, 0, 0, 0]), array([0, 0, 0, 0])
@@ -45,10 +45,10 @@ def load_data():
         total_counts[int(sample[0])] += 1
 
     codabilities = counts / total_counts
-    algorithm_data["SPIDER-WEB"].append(codabilities[0])
-    algorithm_data["HEDGES"].append(codabilities[1])
-    algorithm_data["DNA Fountain"].append(codabilities[2])
-    algorithm_data["Yin-Yang Code"].append(codabilities[3])
+    algorithm_data["DNA Fountain"].append(codabilities[0])
+    algorithm_data["Yin-Yang Code"].append(codabilities[1])
+    algorithm_data["HEDGES"].append(codabilities[2])
+    algorithm_data["SPIDER-WEB"].append(codabilities[3])
 
     # evaluate the parameter sensibility.
     sensibilities = zeros(shape=(4, 12))
@@ -59,13 +59,11 @@ def load_data():
 
     scores = array([mean(sensibilities[0][sensibilities[0] > 0]), mean(sensibilities[1][sensibilities[1] > 0]),
                     mean(sensibilities[2][sensibilities[2] > 0]), mean(sensibilities[3][sensibilities[3] > 0])])
-    scores = 1.0 / scores
-    scores /= max(scores)
-
-    algorithm_data["SPIDER-WEB"].append(scores[0])
-    algorithm_data["HEDGES"].append(scores[1])
-    algorithm_data["DNA Fountain"].append(scores[2])
-    algorithm_data["Yin-Yang Code"].append(scores[3])
+    scores = log(scores) / log(min(scores))
+    algorithm_data["DNA Fountain"].append(scores[0])
+    algorithm_data["Yin-Yang Code"].append(scores[1])
+    algorithm_data["HEDGES"].append(scores[2])
+    algorithm_data["SPIDER-WEB"].append(scores[3])
 
     # evaluate repairability.
     # unknown for DNA Fountain and Yin-Yang Code.
@@ -113,18 +111,6 @@ def draw_data(algorithm_data):
     ax.grid(True)
 
     ax = pyplot.subplot(1, 4, 3, polar=True)
-    pyplot.title("DNA Fountain", fontsize=8)
-    y = algorithm_data["DNA Fountain"] + [algorithm_data["DNA Fountain"][0]]
-    ax.plot(x, y, color=colors["foun1"], linewidth=1.5)
-    ax.fill(positions, algorithm_data["DNA Fountain"], facecolor=colors["foun2"])
-    ax.set_thetagrids(angles, labels, fontsize=8)
-    ax.set_rmax(1)
-    ax.set_rticks([])
-    ax.set_rlabel_position(0)
-    ax.tick_params(grid_color="silver")
-    ax.grid(True)
-
-    ax = pyplot.subplot(1, 4, 4, polar=True)
     pyplot.title("Yin-Yang Code", fontsize=8)
     y = algorithm_data["Yin-Yang Code"] + [algorithm_data["Yin-Yang Code"][0]]
     ax.plot(x, y, color=colors["yyco1"], linewidth=1.5)
@@ -136,7 +122,19 @@ def draw_data(algorithm_data):
     ax.tick_params(grid_color="silver")
     ax.grid(True)
 
-    pyplot.savefig("./results/figures/[6-0] result overviews.svg", format="svg", bbox_inches="tight", dpi=600)
+    ax = pyplot.subplot(1, 4, 4, polar=True)
+    pyplot.title("DNA Fountain", fontsize=8)
+    y = algorithm_data["DNA Fountain"] + [algorithm_data["DNA Fountain"][0]]
+    ax.plot(x, y, color=colors["foun1"], linewidth=1.5)
+    ax.fill(positions, algorithm_data["DNA Fountain"], facecolor=colors["foun2"])
+    ax.set_thetagrids(angles, labels, fontsize=8)
+    ax.set_rmax(1)
+    ax.set_rticks([])
+    ax.set_rlabel_position(0)
+    ax.tick_params(grid_color="silver")
+    ax.grid(True)
+
+    pyplot.savefig("./results/figures/[6-0] result overviews.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

@@ -561,6 +561,8 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
         Reference [1] Oskar Perron (1907) Mathematische Annalen.
         Reference [2] Georg Frobenius (1912) Sitzungsberichte der Königlich Preussischen Akademie der Wissenschaften.
         Reference [3] Brian H. Marcus et al. (2001) Lecture notes.
+        Reference [4] Nabil Kahale (1995) Journal of the ACM.
+        Reference [5] William Ford (2014) Academic Press.
 
     ..example::
         >>> from numpy import array, random
