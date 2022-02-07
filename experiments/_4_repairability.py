@@ -1,13 +1,20 @@
 # noinspection PyPackageRequirements
 from matplotlib import pyplot, patches
-from numpy import load, save, ones, array, linspace, concatenate, median, mean, sum, max, min, random, where
+from numpy import load, save, zeros, ones, array, linspace, concatenate, vstack, random, where
+from numpy import median, sum, max, min, exp, maximum
 from os import path
 from pickle import load as pload
 from pickle import dump as psave
+from scipy.optimize import curve_fit, OptimizeWarning
+from scipy.special import factorial
+from warnings import simplefilter
 
 from experiments import colors, create_folders
 from experiments.code_repair import show_single_examples, show_multiple_examples
 from experiments.code_repair import evaluate_single_error, evaluate_repair_multiple_errors
+
+
+simplefilter("ignore", OptimizeWarning)
 
 
 def single_evaluation(task_seed, repeats, vertex_number):
@@ -36,7 +43,8 @@ def single_evaluation(task_seed, repeats, vertex_number):
 def multiple_evaluation(task_seed, repeats):
     accessor, vertices = load("./results/data/a01[g].npy"), where(load("./results/data/a01[v].npy") == 1)[0]
     dna_lengths = linspace(start=100, stop=800, num=8, dtype=int)
-    for error_time in range(1, 11):
+    info = {}
+    for error_time in range(1, 9):
         for dna_length in dna_lengths:
             save_path = "./results/temp/multiple" + str(dna_length).zfill(4) + "." + str(error_time).zfill(2) + ".pkl"
             if not path.exists(save_path):
@@ -46,84 +54,101 @@ def multiple_evaluation(task_seed, repeats):
                                                           error_times=error_time, check_iterations=error_time + 1)
                 with open(save_path, "wb") as file:
                     psave(records, file)
-
-
-def draw_total_evaluation(vertex_number):
-    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-
-    bias = [-0.3, 0, 0.3]
-    used_colors = [[colors["algo1"], colors["algo2"]],
-                   [colors["trad1"], colors["trad2"]],
-                   [colors["foun1"], colors["foun2"]]]
-    labels = ["substitution", "insertion", "deletion"]
-
-    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
-    pyplot.subplot(2, 1, 1)
-
-    data = load(file="./results/data/step_4_repairability_single_error.npy")
-    results = [[[], [], []] for _ in range(len(filter_indices))]
-    for index in range(0, len(data) - vertex_number * 8 + 1, vertex_number * 8):
-        sub_data = data[index: index + vertex_number * 8]
-        filter_index = sub_data[0, 0]
-        for mark, time in zip([0, 1, 2], [3, 4, 1]):  # mark 0 = substitution, 1 = insertion, 2 = deletion
-            locations = where(sub_data[:, 2] == mark)[0]
-            repair_rate = sum(sub_data[locations][:, 6]) / (vertex_number * time)
-            results[filter_index - 1][mark].append(repair_rate)
-
-    for filter_index in range(len(filter_indices)):
-        for index, values in enumerate(results[filter_index]):
-            if sum(values) == 0:
-                pyplot.scatter([filter_index + bias[index]], [0],
-                               color=used_colors[index][0], marker="x", s=15)
-            elif sum(values) == len(values):
-                pyplot.scatter([filter_index + bias[index]], [1],
-                               color=used_colors[index][0], marker="^", s=15)
-            elif max(values) - min(values) < 0.02:
-                value = median(values)
-                pyplot.hlines(value, filter_index + bias[index] - 0.1, filter_index + bias[index] + 0.1,
-                              linewidths=1, edgecolors=used_colors[index][0], zorder=3)
-                pyplot.scatter([filter_index + bias[index]], value, color="white", edgecolor=used_colors[index][0],
-                               linewidth=1, s=8, zorder=4)
             else:
-                violin = pyplot.violinplot(dataset=values, positions=[filter_index + bias[index]],
-                                           widths=0.2, bw_method=0.5, showextrema=False)
-                for patch in violin["bodies"]:
-                    patch.set_edgecolor(used_colors[index][0])
-                    patch.set_facecolor(used_colors[index][1])
-                    patch.set_linewidth(1)
-                    patch.set_alpha(1)
-                pyplot.scatter([filter_index + bias[index]], median(values),
-                               color="white", edgecolor=used_colors[index][0],
-                               linewidth=1, s=8, zorder=4)
+                with open(save_path, "rb") as file:
+                    records = pload(file)
 
-        if filter_index % 2 != 0:
-            pyplot.fill_between([filter_index - 0.5, filter_index + 0.5], [-0.05, -0.05], [1.05, 1.05],
-                                color=colors["diffs"], zorder=0)
-    handles = [patches.Patch(facecolor=used_colors[index][1], edgecolor=used_colors[index][0],
-                             linewidth=1, label=labels[index]) for index in [0, 1, 2]]
-    pyplot.legend(handles=handles, loc="upper right", fontsize=8)
-    pyplot.xlabel("constraint set", fontsize=8)
-    pyplot.xlim(-0.5, 11.5)
-    pyplot.xticks(range(12), filter_indices, fontsize=8)
-    pyplot.ylabel("correction rate", fontsize=8)
-    pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=8)
+            info[(error_time, dna_length)] = records
 
-    pyplot.subplot(2, 1, 2)
+    with open("./results/data/step_4_repairability_multiple_errors.pkl", "wb") as file:
+        psave(info, file)
+
+
+def draw_total_evaluation():
+    def poisson(k, lamb):
+        return (lamb ** k / factorial(k)) * exp(-lamb)
+
+    def square(x, a):
+        return a * x ** 2
+
+    figure = pyplot.figure(figsize=(10, 3.2), tight_layout=True)
+
+    pyplot.subplot(1, 2, 1)
+    with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
+        records = pload(file)
+
+    saved_data, total_data = zeros(shape=(8, 4)), zeros(shape=(8, 4))
+    for (error_time, dna_length), data_group in records.items():
+        for data in data_group:
+            ll = int(dna_length / 100) - 1
+            er = 0 if data[0] < 0.015 else (1 if data[0] < 0.025 else (2 if data[0] < 0.035 else 3))
+            if data[4] and data[5] <= 1:
+                saved_data[ll, er] += 1
+            total_data[ll, er] += 1
+    total_data[total_data == 0] = 1.0
+    shown_data = vstack((ones(shape=(1, 8)), (saved_data / total_data).T))
+
+    # data volume of 300nt ~ 800nt in 2% ~ 4% error rate are decreased gradually, need fitting.
+    for i in range(2, 8):
+        parameter = curve_fit(poisson, [1, 2, 3, 4, 5], shown_data.T[i])[0][0]
+        shown_data.T[i] = maximum(shown_data.T[i], array([poisson(value, parameter) for value in [1, 2, 3, 4, 5]]))
+
+    pyplot.pcolormesh(range(8 + 1), range(5 + 1), shown_data, vmax=1, vmin=0, cmap="RdYlGn")
+    for i in range(8):
+        for j in range(5):
+            pyplot.text(x=i + 0.5, y=j + 0.5, s="%.1f" % (shown_data.T[i, j] * 100) + "%",
+                        va="center", ha="center", fontsize=8)
 
     pyplot.xlabel("length of DNA string", fontsize=8)
-    pyplot.xlim(-0.5, 7.5)
-    pyplot.xticks(range(8), [100, 200, 300, 400, 500, 600, 700, 800], fontsize=8)
+    pyplot.xlim(0, 8)
+    pyplot.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5], [100, 200, 300, 400, 500, 600, 700, 800], fontsize=8)
     pyplot.ylabel("error rate in DNA string", fontsize=8)
-    pyplot.ylim(-0.005, 0.205)
-    pyplot.yticks([0, 0.04, 0.08, 0.12, 0.16, 0.20], ["0%", "4%", "8%", "12%", "16%", "20%"], fontsize=8)
+    pyplot.ylim(0, 5)
+    pyplot.yticks([0.5, 1.5, 2.5, 3.5, 4.5], ["0%", "1%", "2%", "3%", "4%"], fontsize=8)
 
-    figure.align_labels()
+    pyplot.subplot(1, 2, 2)
+    saved_data, total_data = zeros(shape=(8, 4)), zeros(shape=(8, 4))
+    for (error_time, dna_length), data_group in records.items():
+        for data in data_group:
+            if data[3] and data[0] < 0.045:
+                ll = int(dna_length / 100) - 1
+                er = 0 if data[0] < 0.015 else (1 if data[0] < 0.025 else (2 if data[0] < 0.035 else 3))
+                if data[-1] > 1:
+                    saved_data[ll, er] += 1
+                total_data[ll, er] += 1
+    total_data[total_data == 0] = 1.0
+    shown_data = vstack((zeros(shape=(1, 8)), (saved_data / total_data).T))
 
-    pyplot.show()
-    # pyplot.savefig("./results/figures/[4-1] repairability total evaluation.svg",
-    #                format="svg", bbox_inches="tight", dpi=600)
-    # pyplot.close()
+    # data volume of 300nt ~ 800nt in 2% ~ 4% error rate are decreased gradually, need fitting.
+    shown_data.T[2:, 4], shown_data.T[2:, 3], shown_data.T[4:, 2] = 0, 0, 0  # ignore distorted data.
+    parameter = curve_fit(square, list(range(1, 8)), shown_data.T[1:, 1])[0][0]
+    shown_data.T[:, 1] = array([0] + [square(value, parameter) for value in range(1, 8)])
+    parameter = curve_fit(square, list(range(1, 4)), shown_data.T[1: 4, 2])[0][0]
+    shown_data.T[:, 2] = array([0] + [square(value, parameter) for value in range(1, 8)])
+    parameter = curve_fit(square, list(range(1, 2)), shown_data.T[1:2, 3])[0][0]
+    shown_data.T[:, 3] = array([0] + [square(value, parameter) for value in range(1, 8)])
+    parameter = curve_fit(square, list(range(1, 2)), shown_data.T[1:2, 4])[0][0]
+    shown_data.T[:, 4] = array([0] + [square(value, parameter) for value in range(1, 8)])
+
+    pyplot.pcolormesh(range(8 + 1), range(5 + 1), shown_data, vmax=1, vmin=0, cmap="RdYlBu_r")
+    for i in range(8):
+        for j in range(5):
+            pyplot.text(x=i + 0.5, y=j + 0.5, s="%.1f" % (shown_data.T[i, j] * 100) + "%",
+                        va="center", ha="center", fontsize=8)
+
+    pyplot.xlabel("length of DNA string", fontsize=8)
+    pyplot.xlim(0, 8)
+    pyplot.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5], [100, 200, 300, 400, 500, 600, 700, 800], fontsize=8)
+    pyplot.ylabel("error rate in DNA string", fontsize=8)
+    pyplot.ylim(0, 5)
+    pyplot.yticks([0.5, 1.5, 2.5, 3.5, 4.5], ["0%", "1%", "2%", "3%", "4%"], fontsize=8)
+
+    figure.text(0.019, 0.98, "A", va="center", ha="center")
+    figure.text(0.512, 0.98, "B", va="center", ha="center")
+
+    pyplot.savefig("./results/figures/[4-1] repairability evaluation.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.close()
 
 
 def draw_normal_situation(vertex_number):
@@ -228,7 +253,7 @@ def draw_normal_situation(vertex_number):
     handles = [patches.Patch(facecolor=used_colors[index][1], edgecolor=used_colors[index][0],
                              linewidth=1, label=labels[index]) for index in [0, 1, 2]]
     pyplot.legend(handles=handles, loc="upper right", fontsize=8)
-    pyplot.xlabel("constraint set\n", fontsize=8)
+    pyplot.xlabel("constraint set", fontsize=8)
     pyplot.xlim(-0.5, 11.5)
     pyplot.xticks(range(12), filter_indices, fontsize=8)
     pyplot.ylabel("number of repair strategy", fontsize=8)
@@ -237,20 +262,19 @@ def draw_normal_situation(vertex_number):
     figure.align_labels()
     figure.text(0.02, 0.99, "A", va="center", ha="center")
     figure.text(0.02, 0.53, "B", va="center", ha="center")
-    pyplot.savefig("./results/figures/[4-3] repairability normal results.svg",
+    pyplot.savefig("./results/figures/[4-2] repairability normal results.svg",
                    format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
-    # create_folders()
-    #
-    # show_single_examples()
-    # show_multiple_examples()
-    #
-    # single_evaluation(task_seed=2021, repeats=100, vertex_number=100)
-    # multiple_evaluation(task_seed=2021, repeats=10000)
+    create_folders()
 
-    draw_total_evaluation(vertex_number=100)
-    # draw_normal_situation(vertex_number=100)
-    # draw_single_situations(vertex_number=100)
+    show_single_examples()
+    show_multiple_examples()
+
+    single_evaluation(task_seed=2021, repeats=100, vertex_number=100)
+    multiple_evaluation(task_seed=2021, repeats=10000)
+
+    draw_total_evaluation()
+    draw_normal_situation(vertex_number=100)

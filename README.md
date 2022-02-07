@@ -107,22 +107,6 @@ Some investigations of
 [SPIDER-WEB](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
 [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/figures/REPORTS.md), 
 which are generated directly through the [process Python scripts](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
-Compared with 
-[HEDGES](https://www.pnas.org/content/117/31/18489.full), 
-[DNA Fountain](https://www.science.org/doi/abs/10.1126/science.aaj2038) and 
-[Yin-Yang Code](https://www.biorxiv.org/content/10.1101/829721v3), 
-the rough (**not academic**) conclusions are as follows:
-
-<p align="center">
-<img src="./experiments/results/figures/[6-0] result overviews.svg" title="result overview" width="100%"/>
-</p>
-
-where 
-* [C-R] refers to the code rate, the statistical result of which is the average number of binary bits encoded per nucleotide; 
-* [C-A] refers to the codability, the statistical result of which is the success rate of encoding process;
-* [P-S] refers to the parameter sensibility, the statistical result of which is the reciprocal of normalized standard deviation of code rate;
-* [R-A] refers to the repairability, the statistical result of which is the normalized average DNA length of lossless decoding.
-
 For detailed design, evaluations and conclusions, please refer to our publication.
 
 ## Customization

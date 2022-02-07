@@ -446,9 +446,6 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
                         if reliable:
                             results.append(repaired_dna_string)
 
-        if len(results):
-            raise ValueError("The DNA string contains too many errors to find a suitable repair strategy!")
-
     return detected_flag, results
 
 

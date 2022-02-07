@@ -115,7 +115,7 @@ def yinyang(binary_messages, bio_filter, rule_index):
 
     yang_rule, yin_rule, virtual_nucleotide = find_rule_param(index=rule_index)
     method = Code(yang_rule=yang_rule, yin_rule=yin_rule, virtual_nucleotide=virtual_nucleotide)
-    obtained_dna_strings = method.trans(bit_segments=binary_messages, screen=bio_filter)
+    obtained_dna_strings = method.trans(bit_arrays=binary_messages, screen=bio_filter)
 
     return sum([len(dna_string) for dna_string in obtained_dna_strings])
 
