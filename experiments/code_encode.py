@@ -19,12 +19,12 @@ def generated(binary_messages, accessor, start_index):
     return nucleotide_number
 
 
-def hedges(binary_messages, bio_filter):
+def hedges(binary_messages, mapping, bio_filter):
     nucleotide_number, monitor = 0, Monitor()
 
     # consider the out-degree 3 is 2 and ignore the hash function for rough implementation.
     for current, binary_message in enumerate(binary_messages):
-        dna_string, available_nucleotides, bit_location = "", ["A", "C", "G", "T"], 0
+        dna_string, available_nucleotides, bit_location = "", mapping, 0
         while bit_location < len(binary_message):
             if len(available_nucleotides) == 1:
                 nucleotide = available_nucleotides[0]
@@ -44,7 +44,7 @@ def hedges(binary_messages, bio_filter):
             dna_string += nucleotide
 
             available_nucleotides = []
-            for potential_nucleotide in ["A", "C", "G", "T"]:
+            for potential_nucleotide in mapping:
                 if bio_filter.valid(dna_string + potential_nucleotide, only_last=True):
                     available_nucleotides.append(potential_nucleotide)
 

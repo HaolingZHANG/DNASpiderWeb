@@ -92,7 +92,7 @@ def display_performances():
     with open("./results/data/step_1_compatibility_code_rates.pkl", "rb") as file:
         transcode_results = pload(file)
 
-    pyplot.figure(figsize=(10, 5))
+    pyplot.figure(figsize=(10, 8))
     for index, filter_index in enumerate(filter_indices):
         capacity, code_rates = capacities[index], transcode_results[index]
         pyplot.text(x=index, y=capacity + 0.02, s="%.4f" % capacity, ha="center", va="bottom", fontsize=8)
@@ -117,12 +117,14 @@ def display_performances():
                                 color=colors["diffs"], zorder=0)
 
     pyplot.xlabel("constraint set", fontsize=8)
-    pyplot.xticks(range(12), range(1, 13), fontsize=8)
+    pyplot.xticks(range(12), filter_indices, fontsize=8)
     pyplot.xlim(-0.5, 11.5)
     pyplot.ylabel("code rate", fontsize=8)
-    pyplot.yticks([1, 1.2, 1.4, 1.6, 1.8, 2.0], [1.0, 1.2, 1.4, 1.6, 1.8, 2.0], fontsize=8)
-    pyplot.ylim(0.92, 2.08)
-    pyplot.savefig("./results/figures/[1-1] compatibility code rates.svg", format="svg", bbox_inches="tight", dpi=600)
+    pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
+                  ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=8)
+    pyplot.ylim(0.95, 2.05)
+    pyplot.savefig("./results/figures/[1-1] compatibility code rates.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

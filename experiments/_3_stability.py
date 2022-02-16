@@ -1,3 +1,4 @@
+from itertools import permutations
 # noinspection PyPackageRequirements
 from matplotlib import pyplot, patches
 from numpy import random, array, load, save, sum, median, min, max, where
@@ -49,15 +50,16 @@ def trans_yinyang(dataset, shape, index_length, random_seed, param_number):
 
 def trans_hedges(dataset, shape, index_length):
     print("Calculate HEDGES Code.")
-    records, current, total = [], 0, 12 * len(dataset)
+    records, current, total = [], 0, 12 * len(dataset) * 24
 
     for filter_index, bio_filter in obtain_filters().items():
         for data_index, data in enumerate(dataset):
-            print("task (" + str(current + 1) + " / " + str(total) + ").")
             matrix = array(insert_index(data=data.reshape(shape).tolist(), index_length=index_length))
-            nucleotide_number = hedges(binary_messages=matrix, bio_filter=bio_filter)
-            records.append([2, int(filter_index), nucleotide_number])
-            current += 1
+            for mapping in permutations(["A", "C", "G", "T"]):
+                print("task (" + str(current + 1) + " / " + str(total) + ").")
+                nucleotide_number = hedges(binary_messages=matrix, mapping=mapping, bio_filter=bio_filter)
+                records.append([2, int(filter_index), nucleotide_number])
+                current += 1
 
     return records
 
@@ -105,6 +107,7 @@ def evaluate(dataset):
 
 
 def draw():
+    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     display_data = [[[] for _ in range(12)] for _ in range(4)]
     for sample in load(file="./results/data/step_3_stability_evaluation.npy"):
         if sample[2] > 0:
@@ -112,7 +115,7 @@ def draw():
         else:
             display_data[int(sample[0])][int(sample[1]) - 1].append(-1)
 
-    pyplot.figure(figsize=(10, 5), tight_layout=True)
+    pyplot.figure(figsize=(10, 4), tight_layout=True)
     bias = [-0.375, -0.125, 0.125, 0.375]
     used_colors = [[colors["foun1"], colors["foun2"]], [colors["yyco1"], colors["yyco2"]],
                    [colors["hedc1"], colors["hedc2"]], [colors["algo1"], colors["algo2"]]]
@@ -148,7 +151,7 @@ def draw():
     pyplot.legend(handles=legends, loc="upper left", fontsize=8)
     pyplot.xlim(-0.5, 11.5)
     pyplot.ylim(-0.08, 2.08)
-    pyplot.xticks(range(12), range(1, 13), fontsize=8)
+    pyplot.xticks(range(12), filter_indices, fontsize=8)
     pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
                   ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0"], fontsize=8)
     pyplot.xlabel("constraint set", fontsize=8)

@@ -48,18 +48,15 @@ def display_cases():
             for y in range(16):
                 if case[x, y] == 1:
                     pyplot.fill_between(x=[x, x + 1], y1=[y, y], y2=[y + 1, y + 1], color=colors["trad1"])
-        pyplot.xticks(array(list(range(16))) + 0.5,
-                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=8)
-        if index > 0:
-            pyplot.yticks(array(list(range(16))) + 0.5,
-                          ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""])
-        else:
-            pyplot.yticks(array(list(range(16))) + 0.5,
-                          ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=8)
-            pyplot.ylabel("index of latter DNA string", fontsize=8)
+
         for value in range(16):
             pyplot.vlines(value, 0, 16, color="black", linewidth=0.5)
             pyplot.hlines(value, 0, 16, color="black", linewidth=0.5)
+        pyplot.xticks(array(list(range(16))) + 0.5,
+                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=8)
+        pyplot.yticks(array(list(range(16))) + 0.5,
+                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=8)
+        pyplot.ylabel("index of latter DNA string", fontsize=8)
         pyplot.xlabel("index of former DNA string", fontsize=8)
         pyplot.xlim(0, 16)
         pyplot.ylim(0, 16)
@@ -71,10 +68,8 @@ def display_cases():
         pyplot.text(len(process) - 0.8, process[-1], "%.3f" % process[-1], va="center", ha="left")
         pyplot.xlim(-0.1, 2.1)
         pyplot.ylim(-0.1, 2.1)
-        if index > 0:
-            pyplot.yticks([0, 0.5, 1, 1.5, 2], ["", "", "", "", ""], fontsize=8)
-        else:
-            pyplot.ylabel("capacity", fontsize=8)
+        pyplot.yticks([0, 0.5, 1, 1.5, 2], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=8)
+        pyplot.ylabel("capacity", fontsize=8)
         pyplot.xticks([0, 1, 2], [1, 2, 3], fontsize=8)
         pyplot.xlabel("iteration", fontsize=8)
         # noinspection PyUnresolvedReferences
@@ -83,8 +78,12 @@ def display_cases():
         axes.spines["top"].set_visible(False)
 
     figure.align_labels()
-
-    pyplot.savefig("./results/figures/[2-1] reliability regular.svg", format="svg", bbox_inches="tight", dpi=600)
+    figure.text(0.020, 0.99, "A", va="center", ha="center")
+    figure.text(0.265, 0.99, "B", va="center", ha="center")
+    figure.text(0.512, 0.99, "C", va="center", ha="center")
+    figure.text(0.758, 0.99, "D", va="center", ha="center")
+    pyplot.savefig("./results/figures/[2-1] reliability regular.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -123,7 +122,7 @@ def evaluate_length_2(test_times):
     [v_25, v_50, v_75] = percentile(a=errors, q=[25, 50, 75])
     lower, upper = v_25 - 1.5 * (v_75 - v_25), 1.5 * (v_75 - v_25) + v_75
 
-    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
     pyplot.subplots_adjust(wspace=0.3, hspace=0.3)
     pyplot.subplot(2, 1, 1)
 
@@ -150,7 +149,10 @@ def evaluate_length_2(test_times):
     pyplot.ylim(-0.5, 10.5)
     pyplot.ylabel("frequency", fontsize=8)
     pyplot.xticks([-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4],
-                  ["", "", "", "", "", "", "", "", "", "", ""], fontsize=8)
+                  ["$10^{-14}$", "$10^{-13}$", "$10^{-12}$", "$10^{-11}$", "$10^{-10}$",
+                   "$10^{-09}$", "$10^{-08}$", "$10^{-07}$", "$10^{-06}$", "$10^{-05}$", "$10^{-04}$"],
+                  fontsize=8)
+    pyplot.xlabel("relative error with NumPy \"linalg.eig\" function", fontsize=8)
     pyplot.yticks([0, 2, 4, 6, 8, 10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=8)
 
     pyplot.subplot(2, 1, 2)
@@ -181,11 +183,12 @@ def evaluate_length_2(test_times):
     pyplot.xlabel("relative error with NumPy \"linalg.eig\" function", fontsize=8)
     pyplot.ylabel("capacity using SPIDER-WEB", fontsize=8)
 
-    figure.text(0.018, 0.98, "A", va="center", ha="center")
-    figure.text(0.018, 0.52, "B", va="center", ha="center")
+    figure.text(0.018, 0.99, "A", va="center", ha="center")
+    figure.text(0.018, 0.50, "B", va="center", ha="center")
 
     figure.align_labels()
-    pyplot.savefig("./results/figures/[2-2] reliability detailed.svg", format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[2-2] reliability detailed.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -261,7 +264,8 @@ def evaluate_growing(terminal_length, test_times):
                   fontsize=8)
     pyplot.xlabel("size of adjacency matrix", fontsize=8)
     pyplot.ylabel("relative error with NumPy \"linalg.eig\" function", fontsize=8)
-    pyplot.savefig("./results/figures/[2-3] reliability extended.svg", format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[2-3] reliability extended.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

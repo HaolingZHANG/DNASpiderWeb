@@ -1,14 +1,17 @@
 from collections import Counter
 # noinspection PyPackageRequirements
 from matplotlib import pyplot
-from numpy import random, load, save, array, zeros, linspace, log, log2, median, sum, where
+from numpy import random, load, save, array, zeros, linspace, log, log2, median, sum, min, max, argmax, where
 from os import path
 from pickle import load as pload
 from scipy.optimize import curve_fit
+from warnings import filterwarnings
 
 from dsw import Monitor
 
 from experiments import create_folders
+
+filterwarnings("ignore")
 
 
 def reconstruction(random_seed, sequencing_length, repeats, threshold=10000):
@@ -59,10 +62,103 @@ def reconstruction(random_seed, sequencing_length, repeats, threshold=10000):
         save(file="./results/data/step_5_privacy_reconstruction.npy", arr=reconstructions)
 
 
+def draw_total(bit_length):
+    def estimated_equation(x, a):
+        return a ** x
+
+    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
+    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
+
+    pyplot.subplot(1, 2, 1)
+    reconstructions = load(file="./results/data/step_5_privacy_reconstruction.npy")
+
+    with open("./results/data/step_1_compatibility_capacities.pkl", "rb") as file:
+        capacities, _ = pload(file)
+
+    collected_data = zeros(shape=(12, 100))
+    for index, data in enumerate(reconstructions):
+        number = sum(load(file="./results/data/a" + filter_indices[index] + "[v].npy"))
+        for iteration_index, iteration_data in enumerate(data):
+            if number > max(iteration_data):
+                sequences = linspace(0, 10000, 10001)
+                parameter = curve_fit(estimated_equation, xdata=iteration_data, ydata=sequences)[0][0]
+                log_sequence_number = number * log(parameter)
+            else:
+                log_sequence_number = log(argmax(iteration_data))
+            value = (log_sequence_number + log(100) + log(capacities[index]) - log(8)) / log(1024.0)
+            collected_data[index, iteration_index] = value
+
+    for index in range(12):
+        if max(collected_data[index]) - min(collected_data[index]) > 0.05:
+            pyplot.hlines(max(collected_data[index]), index - 0.25, index + 0.25, linewidth=1.0)
+            pyplot.hlines(min(collected_data[index]), index - 0.25, index + 0.25, linewidth=1.0)
+            pyplot.vlines(index, min(collected_data[index]), max(collected_data[index]), linewidth=1.0)
+        else:
+            pyplot.hlines(median(collected_data[index]), index - 0.25, index + 0.25, linewidth=1.5)
+
+        pyplot.scatter([index], [median(collected_data[index])],
+                       color=gradient_colors[index], edgecolor="black", linewidth=1, s=20, zorder=2)
+
+    pyplot.xlabel("constraint set", fontsize=8)
+    pyplot.xticks(range(12), filter_indices, fontsize=8)
+    pyplot.xlim(-0.5, 11.5)
+    pyplot.ylabel("transmitted data capacity", fontsize=8)
+    pyplot.yticks([0, 1, 2, 3], ["B", "KB", "MB", "GB"], fontsize=8)
+    pyplot.ylim(0, 3)
+
+    pyplot.subplot(1, 2, 2)
+    follow_ups = zeros(shape=(12, 3))  # [2, 3, 4]
+    for index, filter_index in enumerate(filter_indices):
+        accessor = load(file="./results/data/a" + filter_index + "[g].npy")
+        out_degrees, counts = array(list(Counter(where(accessor >= 0)[0]).values())), zeros(shape=(3,), dtype=float)
+        for out_degree in [2, 3, 4]:
+            counts[out_degree - 2] = len(where(out_degrees == out_degree)[0])
+        counts /= sum(counts)
+        follow_ups[index] = counts
+
+    pyplot.hlines(bit_length, 0, 320, color="silver", linewidth=0.75, linestyle="--", zorder=1)
+    pyplot.text(4, 256 + 4, "reference", va="bottom", ha="left", fontsize=8)
+    for index, filter_index in enumerate(filter_indices):
+        lengths = linspace(0, 320, 321)
+        rate = follow_ups[index][0] * 2.0 + follow_ups[index][1] * 6.0 + follow_ups[index][2] * 24.0
+        values = lengths * log2(rate)
+        pyplot.plot(lengths, values, color=gradient_colors[index], alpha=0.5, linewidth=2, zorder=2)
+
+        reference_length = bit_length / log2(rate)
+        pyplot.vlines(reference_length, 0, bit_length,
+                      color="silver", linewidth=0.75, linestyle="--", zorder=1)
+        if index > 0:
+            pyplot.scatter(reference_length, bit_length,
+                           color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
+                           label=" %.2f" % reference_length)
+        else:
+            pyplot.scatter(reference_length, bit_length,
+                           color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
+                           label="%.2f" % reference_length)
+
+    pyplot.legend(loc="upper right", ncol=2, fontsize=8)
+    pyplot.xlabel("DNA string length", fontsize=8)
+    pyplot.xlim(0, 320)
+    pyplot.xticks([0, 64, 128, 192, 256, 320], ["0nt", "64nt", "128nt", "192nt", "256nt", "320nt"], fontsize=8)
+    pyplot.ylabel("equivalent key strength", fontsize=8)
+    pyplot.ylim(0, 384)
+    pyplot.yticks([0, 128, 256, 384], [0, 128, 256, 384], fontsize=8)
+
+    figure.align_labels()
+    figure.text(0.018, 0.98, "A", va="center", ha="center")
+    figure.text(0.500, 0.98, "B", va="center", ha="center")
+
+    pyplot.savefig("./results/figures/[5-1] privacy evaluation.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
 def draw_reason():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    gradient_colors = pyplot.get_cmap(name="RdYlGn")(linspace(0, 1, 100))[::-1]
-    pyplot.figure(figsize=(10, 5))
+    gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
+
+    pyplot.figure(figsize=(10, 8))
     reconstructions = load(file="./results/data/step_5_privacy_reconstruction.npy")
     with open("./results/data/step_1_compatibility_capacities.pkl", "rb") as file:
         capacities, _ = pload(file)
@@ -84,94 +180,26 @@ def draw_reason():
 
         numbers = array(list(range(len(medians))))
         parameter = curve_fit(estimated_equation, xdata=medians[1:], ydata=numbers[1:], p0=(2,))[0][0]
-        used_capacities = parameter ** percentages * 100 * capacities[index] / 8.0
+        used_capacities = parameter ** percentages * 100 * capacities[index] / 8
         display_data[index] = used_capacities
 
-    for index, values in display_data.items():
-        locations = log(values) / log(1024.0)
-        pyplot.fill_between(x=[index - 0.25, index + 0.25], y1=[0, 0], y2=[locations[0], locations[0]],
-                            color=gradient_colors[0])
+    for index, locations in display_data.items():
+        pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2)
 
-        for gradient, (former, latter) in enumerate(zip(locations[:-1], locations[1:])):
-            pyplot.fill_between(x=[index - 0.25, index + 0.25], y1=[former, former], y2=[latter, latter],
-                                color=gradient_colors[gradient])
-        pyplot.vlines(index - 0.25, 0, locations[-1], color="black", linewidth=0.5, zorder=2)
-        pyplot.vlines(index + 0.25, 0, locations[-1], color="black", linewidth=0.5, zorder=2)
-        pyplot.hlines(locations[-1], index - 0.25, index + 0.25, color="black", linewidth=0.5, zorder=2)
-
-        value, size = values[-1], 0
-        sizes = ["B", "KB", "MB", "GB", "TB"]
-        while value > 1024:
-            size += 1
-            value /= 1024.0
-        pyplot.text(x=index, y=locations[-1] + 0.05, s="%.1f" % value + sizes[size],
-                    va="bottom", ha="center", fontsize=8)
-
-    for index, gradient_color in enumerate(gradient_colors):
-        pyplot.fill_between(x=[9 + index * 0.02, 9 + (index + 1) * 0.02], y1=[3.5, 3.5], y2=[3.7, 3.7],
-                            color=gradient_color)
-
-    pyplot.vlines(9, 3.5, 3.7, color="black", linewidth=0.5, zorder=2)
-    pyplot.vlines(11, 3.5, 3.7, color="black", linewidth=0.5, zorder=2)
-    pyplot.hlines(3.5, 9, 11, color="black", linewidth=0.5, zorder=2)
-    pyplot.hlines(3.7, 9, 11, color="black", linewidth=0.5, zorder=2)
-    pyplot.text(x=10, y=3.75, s="percentage to recreate graph", va="bottom", ha="center", fontsize=8)
-    pyplot.text(x=9, y=3.45, s="0%", va="top", ha="center", fontsize=8)
-    pyplot.text(x=10, y=3.45, s="50%", va="top", ha="center", fontsize=8)
-    pyplot.text(x=11, y=3.45, s="100%", va="top", ha="center", fontsize=8)
-
-    pyplot.xlabel("constraint set", fontsize=8)
-    pyplot.xticks(range(12), filter_indices, fontsize=8)
-    pyplot.xlim(-0.5, 11.5)
+    pyplot.xlabel("graph reconstruction percentage", fontsize=8)
+    pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=8)
+    pyplot.xlim(0, 1)
     pyplot.ylabel("transmitted data capacity", fontsize=8)
-    pyplot.yticks([0, 1, 2, 3, 4], ["B", "KB", "MB", "GB", "TB"], fontsize=8)
-    pyplot.ylim(0, 4)
-    pyplot.savefig("./results/figures/[5-1] privacy reason.svg", format="svg", bbox_inches="tight", dpi=600)
-    pyplot.close()
+    pyplot.yticks([0.0 * 1e8, 0.2 * 1e8, 0.4 * 1e8, 0.6 * 1e8, 0.8 * 1e8, 1.0 * 1e8,
+                   1.2 * 1e8, 1.4 * 1e8, 1.6 * 1e8, 1.8 * 1e8, 2.0 * 1e8],
+                  ["0.0E+8 bytes", "0.2E+8 bytes", "0.4E+8 bytes", "0.6E+8 bytes", "0.8E+8 bytes", "1.0E+8 bytes",
+                   "1.2E+8 bytes", "1.4E+8 bytes", "1.6E+8 bytes", "1.8E+8 bytes", "2.0E+8 bytes"],
+                  fontsize=8)
+    pyplot.ylim(0, 2 * 1e8)
 
-
-def draw_result(bit_length):
-    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
-
-    pyplot.figure(figsize=(10, 5), tight_layout=True)
-    follow_ups = zeros(shape=(12, 3))  # [2, 3, 4]
-    for index, filter_index in enumerate(filter_indices):
-        accessor = load(file="./results/data/a" + filter_index + "[g].npy")
-        out_degrees, counts = array(list(Counter(where(accessor >= 0)[0]).values())), zeros(shape=(3,), dtype=float)
-        for out_degree in [2, 3, 4]:
-            counts[out_degree - 2] = len(where(out_degrees == out_degree)[0])
-        counts /= sum(counts)
-        follow_ups[index] = counts
-
-    pyplot.hlines(bit_length, 0, 320, color="silver", linewidth=0.75, linestyle="--", zorder=1)
-    pyplot.text(2, 256 + 4, "reference", va="bottom", ha="left", fontsize=8)
-    for index, filter_index in enumerate(filter_indices):
-        lengths = linspace(0, 320, 321)
-        rate = follow_ups[index][0] * 2.0 + follow_ups[index][1] * 6.0 + follow_ups[index][2] * 24.0
-        values = lengths * log2(rate)
-        pyplot.plot(lengths, values, color=gradient_colors[index], alpha=0.5, linewidth=2, zorder=2)
-
-        reference_length = bit_length / log2(rate)
-        pyplot.vlines(reference_length, 0, bit_length,
-                      color="silver", linewidth=0.75, linestyle="--", zorder=1)
-        if index > 0:
-            pyplot.scatter(reference_length, bit_length,
-                           color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
-                           label="[" + filter_index + "]   " + "%.2f" % reference_length)
-        else:
-            pyplot.scatter(reference_length, bit_length,
-                           color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
-                           label="[" + filter_index + "] " + "%.2f" % reference_length)
-
-    pyplot.legend(loc="upper right", ncol=2, fontsize=8)
-    pyplot.xlabel("encoded DNA string length", fontsize=8)
-    pyplot.xlim(0, 320)
-    pyplot.xticks([0, 64, 128, 192, 256, 320], [0, 64, 128, 192, 256, 320], fontsize=8)
-    pyplot.ylabel("equivalent key strength", fontsize=8)
-    pyplot.ylim(0, 512)
-    pyplot.yticks([0, 128, 256, 384, 512], [0, 128, 256, 384, 512], fontsize=8)
-    pyplot.savefig("./results/figures/[5-2] privacy shuffle results.svg", format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[5-2] privacy reason.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -180,8 +208,8 @@ if __name__ == "__main__":
 
     # why do we need to pay attention to privacy?
     reconstruction(random_seed=2021, sequencing_length=100, repeats=100)
-    draw_reason()
 
     # bit length or key strength is 256.
     # British Standards Institution (2020). Cryptographic Mechanisms: Recommendations and Key Lengths.
-    draw_result(bit_length=256)
+    draw_total(bit_length=256)
+    draw_reason()

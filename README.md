@@ -86,9 +86,8 @@ The structure of this library is shown below:
 │    ├── step_1_compatibility.py            // Experiments for the gap between code rates obtained from generated algorithms and the corresponding capacities
 │    ├── step_2_reliability.py              // Experiments for the relative errors of capacity approximation
 │    ├── step_3_stability.py                // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
-│    ├── step_4_repairability.py            // Experiments for the average DNA string length in case the heap preset size
+│    ├── step_4_repairability.py            // Experiments for the probabilistic correction of encoded DNA strings with multiple errors
 │    ├── step_5_privacy.py                  // Experiments for the hidden danger of graph (algorithm) reconstruction and two additional privacy algorithms
-│    ├── step_6_overviews.py                // Presentation of non-academic integrated results
 ├── test                                    // Test module of source codes
 │    ├── test_accessor_vs_latter_map.py     // Unit test for the conversion between the accessor and the latter map
 │    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix

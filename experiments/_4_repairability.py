@@ -1,12 +1,13 @@
 # noinspection PyPackageRequirements
 from matplotlib import pyplot, patches
 from numpy import load, save, zeros, ones, array, linspace, concatenate, vstack, random, where
-from numpy import median, sum, max, min, exp, maximum
+from numpy import median, sum, max, min, maximum, abs, std, mean, corrcoef
 from os import path
 from pickle import load as pload
 from pickle import dump as psave
 from scipy.optimize import curve_fit, OptimizeWarning
-from scipy.special import factorial
+from scipy.stats import poisson as p
+
 from warnings import simplefilter
 
 from experiments import colors, create_folders
@@ -66,25 +67,28 @@ def multiple_evaluation(task_seed, repeats):
 
 def draw_total_evaluation():
     def poisson(k, lamb):
-        return (lamb ** k / factorial(k)) * exp(-lamb)
+        return p.pmf(k=k, mu=lamb)
 
     def square(x, a):
         return a * x ** 2
 
+    with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
+        records = pload(file)
+
+    fitted_data = []
     figure = pyplot.figure(figsize=(10, 3.2), tight_layout=True)
 
     pyplot.subplot(1, 2, 1)
-    with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
-        records = pload(file)
 
     saved_data, total_data = zeros(shape=(8, 4)), zeros(shape=(8, 4))
     for (error_time, dna_length), data_group in records.items():
         for data in data_group:
-            ll = int(dna_length / 100) - 1
-            er = 0 if data[0] < 0.015 else (1 if data[0] < 0.025 else (2 if data[0] < 0.035 else 3))
-            if data[4] and data[5] <= 1:
-                saved_data[ll, er] += 1
-            total_data[ll, er] += 1
+            if data[0] < 0.045:
+                ll = int(dna_length / 100) - 1
+                er = 0 if data[0] < 0.015 else (1 if data[0] < 0.025 else (2 if data[0] < 0.035 else 3))
+                if data[4] and data[5] <= 1:
+                    saved_data[ll, er] += 1
+                total_data[ll, er] += 1
     total_data[total_data == 0] = 1.0
     shown_data = vstack((ones(shape=(1, 8)), (saved_data / total_data).T))
 
@@ -93,15 +97,17 @@ def draw_total_evaluation():
         parameter = curve_fit(poisson, [1, 2, 3, 4, 5], shown_data.T[i])[0][0]
         shown_data.T[i] = maximum(shown_data.T[i], array([poisson(value, parameter) for value in [1, 2, 3, 4, 5]]))
 
+    fitted_data.append(shown_data)
     pyplot.pcolormesh(range(8 + 1), range(5 + 1), shown_data, vmax=1, vmin=0, cmap="RdYlGn")
     for i in range(8):
         for j in range(5):
             pyplot.text(x=i + 0.5, y=j + 0.5, s="%.1f" % (shown_data.T[i, j] * 100) + "%",
                         va="center", ha="center", fontsize=8)
 
-    pyplot.xlabel("length of DNA string", fontsize=8)
+    pyplot.xlabel("DNA string length", fontsize=8)
     pyplot.xlim(0, 8)
-    pyplot.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5], [100, 200, 300, 400, 500, 600, 700, 800], fontsize=8)
+    pyplot.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5],
+                  ["100nt", "200nt", "300nt", "400nt", "500nt", "600nt", "700nt", "800nt"], fontsize=8)
     pyplot.ylabel("error rate in DNA string", fontsize=8)
     pyplot.ylim(0, 5)
     pyplot.yticks([0.5, 1.5, 2.5, 3.5, 4.5], ["0%", "1%", "2%", "3%", "4%"], fontsize=8)
@@ -130,15 +136,17 @@ def draw_total_evaluation():
     parameter = curve_fit(square, list(range(1, 2)), shown_data.T[1:2, 4])[0][0]
     shown_data.T[:, 4] = array([0] + [square(value, parameter) for value in range(1, 8)])
 
+    fitted_data.append(shown_data)
     pyplot.pcolormesh(range(8 + 1), range(5 + 1), shown_data, vmax=1, vmin=0, cmap="RdYlBu_r")
     for i in range(8):
         for j in range(5):
             pyplot.text(x=i + 0.5, y=j + 0.5, s="%.1f" % (shown_data.T[i, j] * 100) + "%",
                         va="center", ha="center", fontsize=8)
 
-    pyplot.xlabel("length of DNA string", fontsize=8)
+    pyplot.xlabel("DNA string length", fontsize=8)
     pyplot.xlim(0, 8)
-    pyplot.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5], [100, 200, 300, 400, 500, 600, 700, 800], fontsize=8)
+    pyplot.xticks([0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5],
+                  ["100nt", "200nt", "300nt", "400nt", "500nt", "600nt", "700nt", "800nt"], fontsize=8)
     pyplot.ylabel("error rate in DNA string", fontsize=8)
     pyplot.ylim(0, 5)
     pyplot.yticks([0.5, 1.5, 2.5, 3.5, 4.5], ["0%", "1%", "2%", "3%", "4%"], fontsize=8)
@@ -149,6 +157,8 @@ def draw_total_evaluation():
     pyplot.savefig("./results/figures/[4-1] repairability evaluation.svg",
                    format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
+
+    return fitted_data
 
 
 def draw_normal_situation(vertex_number):
@@ -178,7 +188,7 @@ def draw_normal_situation(vertex_number):
                    [colors["foun1"], colors["foun2"]]]
     labels = ["substitution", "insertion", "deletion"]
 
-    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
     pyplot.subplot(2, 1, 1)
     for filter_index in range(len(filter_indices)):
         for index, values in enumerate(results[0][filter_index]):
@@ -261,8 +271,103 @@ def draw_normal_situation(vertex_number):
     pyplot.yticks([0, 12, 24, 36, 48, 60], [0, 12, 24, 36, 48, 60], fontsize=8)
     figure.align_labels()
     figure.text(0.02, 0.99, "A", va="center", ha="center")
-    figure.text(0.02, 0.53, "B", va="center", ha="center")
+    figure.text(0.02, 0.52, "B", va="center", ha="center")
     pyplot.savefig("./results/figures/[4-2] repairability normal results.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
+def draw_pearson(fitted_data):
+    with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
+        records = pload(file)
+
+    digital_mapping = {"-": 0, "A": 1, "C": 2, "G": 3, "T": 4}
+    data_1, data_2 = {}, {}
+    for (error_time, dna_length), data_group in records.items():
+        for data in data_group:
+            right = array(list(map(digital_mapping.get, data[1])))
+            wrong = array(list(map(digital_mapping.get, data[2])))
+            value = (where(abs(right - wrong).astype(bool).astype(int) == 1)[0] / dna_length)
+            if len(value) > 0:
+                value = std(value) / mean(value)  # variation coefficient
+                if value in data_1:
+                    data_1[value].append(data[4] and data[5] <= 1)
+                else:
+                    data_1[value] = [data[4] and data[5] <= 1]
+
+                if value in data_2:
+                    data_2[value].append(data[-1] > 1)
+                else:
+                    data_2[value] = [data[-1] > 1]
+
+    info_1, info_2 = zeros(shape=(51, 2)), zeros(shape=(51, 2))
+    for key, value in data_1.items():
+        info_1[int((key / 2.0) * 50.0 + 0.5), 0] += sum(value)
+        info_1[int((key / 2.0) * 50.0 + 0.5), 1] += len(value)
+    info_1 = info_1.T
+    info_1[1, info_1[1] == 0] = 1.0
+
+    for key, value in data_2.items():
+        info_2[int((key / 2.0) * 50.0 + 0.5), 0] += sum(value)
+        info_2[int((key / 2.0) * 50.0 + 0.5), 1] += len(value)
+    info_2 = info_2.T
+    info_2[1, info_2[1] == 0] = 1.0
+
+    numbers = []
+    for time in range(5):
+        for length in range(100, 801, 100):
+            numbers.append(time / 100 * length)
+    numbers = array(numbers)
+
+    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
+
+    pyplot.subplot(2, 2, 1)
+    pyplot.scatter(numbers, fitted_data[0].reshape(-1), color=colors["yyco1"], edgecolor="black", s=25)
+    pyplot.xlabel("introduced error number", fontsize=8)
+    pyplot.xlim(-1, 33)
+    pyplot.xticks(range(0, 33, 4), range(0, 33, 4), fontsize=8)
+    pyplot.ylabel("average correction rate", fontsize=8)
+    pyplot.ylim(-0.04, 1.04)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=8)
+    print(corrcoef(numbers, fitted_data[0].reshape(-1))[0, 1])
+
+    pyplot.subplot(2, 2, 2)
+    pyplot.scatter(linspace(0, 2, 51), info_1[0] / info_1[1], color=colors["yyco1"], edgecolor="black", s=25)
+    pyplot.xlabel("average variation coefficient of errors", fontsize=8)
+    pyplot.xlim(-0.08, 2.08)
+    pyplot.xticks([0, 0.4, 0.8, 1.2, 1.6, 2.0], ["0.0", "0.4", "0.8", "1.2", "1.6", "2.0"], fontsize=8)
+    pyplot.ylabel("average correction rate", fontsize=8)
+    pyplot.ylim(-0.04, 1.04)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=8)
+    print(corrcoef(linspace(0, 2, 51), info_1[0] / info_1[1])[0, 1])
+
+    pyplot.subplot(2, 2, 3)
+    pyplot.scatter(numbers, fitted_data[1].reshape(-1), color=colors["trad1"], edgecolor="black", s=25)
+    pyplot.xlabel("introduced error number", fontsize=8)
+    pyplot.xlim(-1, 33)
+    pyplot.xticks(range(0, 33, 4), range(0, 33, 4), fontsize=8)
+    pyplot.ylabel("average false positive rate", fontsize=8)
+    pyplot.ylim(-0.04, 1.04)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=8)
+    print(corrcoef(numbers, fitted_data[1].reshape(-1))[0, 1])
+
+    pyplot.subplot(2, 2, 4)
+    pyplot.scatter(linspace(0, 2, 51), info_2[0] / info_2[1], color=colors["trad1"], edgecolor="black", s=25)
+    pyplot.xlabel("average variation coefficient of errors", fontsize=8)
+    pyplot.xlim(-0.08, 2.08)
+    pyplot.xticks([0, 0.4, 0.8, 1.2, 1.6, 2.0], ["0.0", "0.4", "0.8", "1.2", "1.6", "2.0"], fontsize=8)
+    pyplot.ylabel("average false positive rate", fontsize=8)
+    pyplot.ylim(-0.04, 1.04)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=8)
+    print(corrcoef(linspace(0, 2, 51), info_2[0] / info_2[1])[0, 1])
+
+    figure.align_labels()
+    figure.text(0.019, 0.99, "A", va="center", ha="center")
+    figure.text(0.512, 0.99, "B", va="center", ha="center")
+    figure.text(0.019, 0.50, "C", va="center", ha="center")
+    figure.text(0.512, 0.50, "D", va="center", ha="center")
+
+    pyplot.savefig("./results/figures/[4-3] repairability correlation.svg",
                    format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
@@ -276,5 +381,6 @@ if __name__ == "__main__":
     single_evaluation(task_seed=2021, repeats=100, vertex_number=100)
     multiple_evaluation(task_seed=2021, repeats=10000)
 
-    draw_total_evaluation()
+    fit_data = draw_total_evaluation()
     draw_normal_situation(vertex_number=100)
+    draw_pearson(fitted_data=fit_data)
