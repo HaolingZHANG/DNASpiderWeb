@@ -266,6 +266,6 @@ def evaluate_detailed(test_times, terminal_length):
 
 
 if __name__ == "__main__":
-    # create_folders()
-    # display_cases()
+    create_folders()
+    display_cases()
     evaluate_detailed(test_times=100, terminal_length=6)
