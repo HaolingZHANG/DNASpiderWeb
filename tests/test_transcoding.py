@@ -21,7 +21,7 @@ class TestEncode(TestCase):
         dna_string, vt_list = encode(accessor=self.accessor, binary_message=self.binary_message,
                                      start_index=self.start_index, vt_length=self.vt_length)
         self.assertEqual("TCTCTCT", dna_string)
-        self.assertEqual("ATTA", vt_list)
+        self.assertEqual("TATA", vt_list)
 
 
 class TestDecode(TestCase):
@@ -48,18 +48,19 @@ class TestRepair(TestCase):
                                [-1, 1, 2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1],
                                [-1, -1, -1, -1], [4, -1, -1, 7], [8, -1, -1, 11], [-1, -1, -1, -1]])
         self.dna_string = "TCTCTATCTCTC"  # "TCTCTCTCTCTC" is original DNA string
-        self.vt_check = "GCCG"  # check list of Varshamov-Tenengolts code.
+        self.vt_check = "ACTG"  # check list of Varshamov-Tenengolts code.
 
     def test(self):
-        detect_flag, repaired_dna_strings = repair_dna(dna_string=self.dna_string,
-                                                       accessor=self.accessor, start_index=1,
-                                                       observed_length=2, check_iterations=1,
-                                                       has_insertion=True, has_deletion=True, verbose=False)
-        self.assertEqual(detect_flag, True)
+        repaired_dna_strings, additions = repair_dna(dna_string=self.dna_string,
+                                                     accessor=self.accessor, start_index=1,
+                                                     observed_length=2, check_iterations=1,
+                                                     has_insertion=True, has_deletion=True, verbose=False)
         self.assertEqual(repaired_dna_strings, ["TCTCTCTCTCTC", "TCTCTGTCTCTC"])
-        detect_flag, repaired_dna_strings = repair_dna(dna_string=self.dna_string, vt_check=self.vt_check,
-                                                       accessor=self.accessor, start_index=1,
-                                                       observed_length=2, check_iterations=1,
-                                                       has_insertion=True, has_deletion=True, verbose=False)
-        self.assertEqual(detect_flag, True)
+        self.assertEqual(additions, (True, False, 2))
+
+        repaired_dna_strings, additions = repair_dna(dna_string=self.dna_string, vt_check=self.vt_check,
+                                                     accessor=self.accessor, start_index=1,
+                                                     observed_length=2, check_iterations=1,
+                                                     has_insertion=True, has_deletion=True, verbose=False)
         self.assertEqual(repaired_dna_strings, ["TCTCTCTCTCTC"])
+        self.assertEqual(additions, (True, True, 2))
