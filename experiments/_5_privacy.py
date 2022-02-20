@@ -184,8 +184,10 @@ def draw_reason():
         display_data[index] = used_capacities
 
     for index, locations in display_data.items():
-        pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2)
+        pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2,
+                    label="constraint set " + str(index + 1).zfill(2))
 
+    pyplot.legend(loc="upper left", fontsize=8)
     pyplot.xlabel("graph reconstruction percentage", fontsize=8)
     pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
                   ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=8)

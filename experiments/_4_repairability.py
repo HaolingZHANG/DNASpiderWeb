@@ -1,7 +1,6 @@
 # noinspection PyPackageRequirements
 from matplotlib import pyplot
-from numpy import load, save, zeros, array, linspace, where
-from numpy import sum, max, mean, median, clip, inf, log, log10, corrcoef
+from numpy import load, save, zeros, array, linspace, sum, max, mean, clip, inf, log, log10, corrcoef, where
 from os import path
 from pickle import load as pload
 from pickle import dump as psave
@@ -257,7 +256,7 @@ def draw_corr():
     for filter_index in range(1, 13):
         rates.append(sum(task_1[filter_index, 1][:, 2]) / 2000.0)
     pyplot.bar(linspace(1, 12, 12), log10(array(rates) * 10000),
-               width=0.4, color=colors["algo1"], edgecolor="black")
+               width=0.4, color="silver", edgecolor="black")
 
     pyplot.xlabel("constraint set", fontsize=8)
     pyplot.xticks(range(1, 13), filter_indices, fontsize=8)
@@ -271,8 +270,8 @@ def draw_corr():
     figure.text(0.019, 0.67, "B", va="center", ha="center")
     figure.text(0.019, 0.34, "C", va="center", ha="center")
 
-    pyplot.savefig("./results/figures/[4-2] repairability correlations.pdf",
-                   format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[4-2] repairability correlations.svg",
+                   format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
