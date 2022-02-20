@@ -87,7 +87,7 @@ def display_cases():
     pyplot.close()
 
 
-def evaluate_length_2(test_times):
+def evaluate_detailed(test_times, terminal_length):
     if not path.exists("./results/data/step_2_reliability_detail.pkl"):
         random.seed(2021)
         feed_matrix = accessor_to_adjacency_matrix(get_complete_accessor(observed_length=2))
@@ -122,9 +122,9 @@ def evaluate_length_2(test_times):
     [v_25, v_50, v_75] = percentile(a=errors, q=[25, 50, 75])
     lower, upper = v_25 - 1.5 * (v_75 - v_25), 1.5 * (v_75 - v_25) + v_75
 
-    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
-    pyplot.subplots_adjust(wspace=0.3, hspace=0.3)
-    pyplot.subplot(2, 1, 1)
+    figure = pyplot.figure(figsize=(10, 10), tight_layout=True)
+    pyplot.subplots_adjust(wspace=0.2, hspace=0.2)
+    pyplot.subplot(3, 1, 1)
 
     pyplot.plot(x, y, color=colors["trad1"], linewidth=1.5, zorder=4)
     pyplot.fill_between(x, y, zeros_like(y), color=colors["trad2"], alpha=0.75, zorder=3)
@@ -152,10 +152,10 @@ def evaluate_length_2(test_times):
                   ["$10^{-14}$", "$10^{-13}$", "$10^{-12}$", "$10^{-11}$", "$10^{-10}$",
                    "$10^{-09}$", "$10^{-08}$", "$10^{-07}$", "$10^{-06}$", "$10^{-05}$", "$10^{-04}$"],
                   fontsize=8)
-    pyplot.xlabel("relative error with NumPy \"linalg.eig\" function", fontsize=8)
+    pyplot.xlabel("relative error", fontsize=8)
     pyplot.yticks([0, 2, 4, 6, 8, 10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=8)
 
-    pyplot.subplot(2, 1, 2)
+    pyplot.subplot(3, 1, 2)
     pyplot.scatter(errors, data, color=colors["trad1"], edgecolor="black", zorder=3)
 
     temp_errors, temp_data = [], []
@@ -180,19 +180,9 @@ def evaluate_length_2(test_times):
                    "$10^{-09}$", "$10^{-08}$", "$10^{-07}$", "$10^{-06}$", "$10^{-05}$", "$10^{-04}$"],
                   fontsize=8)
     pyplot.yticks([0, 0.5, 1.0, 1.5, 2.0], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=8)
-    pyplot.xlabel("relative error with NumPy \"linalg.eig\" function", fontsize=8)
-    pyplot.ylabel("capacity using SPIDER-WEB", fontsize=8)
+    pyplot.xlabel("relative error", fontsize=8)
+    pyplot.ylabel("capacity from SPIDER-WEB", fontsize=8)
 
-    figure.text(0.018, 0.99, "A", va="center", ha="center")
-    figure.text(0.018, 0.50, "B", va="center", ha="center")
-
-    figure.align_labels()
-    pyplot.savefig("./results/figures/[2-2] reliability detailed.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
-    pyplot.close()
-
-
-def evaluate_growing(terminal_length, test_times):
     if not path.exists("./results/data/step_2_reliability_extend.pkl"):
         random.seed(2021)
         whole_data = {}
@@ -219,7 +209,7 @@ def evaluate_growing(terminal_length, test_times):
         with open("./results/data/step_2_reliability_extend.pkl", "rb") as file:
             whole_data = load(file)
 
-    pyplot.figure(figsize=(10, 5), tight_layout=True)
+    pyplot.subplot(3, 1, 3)
 
     pyplot.fill_between([1.5, 2.5], [-15, -15], [-3, -3], color=colors["diffs"], zorder=0)
     pyplot.fill_between([3.5, 4.5], [-15, -15], [-3, -3], color=colors["diffs"], zorder=0)
@@ -263,14 +253,19 @@ def evaluate_growing(terminal_length, test_times):
                   ["$10^{-15}$", "$10^{-13}$", "$10^{-11}$", "$10^{-09}$", "$10^{-07}$", "$10^{-05}$", "$10^{-03}$"],
                   fontsize=8)
     pyplot.xlabel("size of adjacency matrix", fontsize=8)
-    pyplot.ylabel("relative error with NumPy \"linalg.eig\" function", fontsize=8)
-    pyplot.savefig("./results/figures/[2-3] reliability extended.svg",
+    pyplot.ylabel("relative error", fontsize=8)
+
+    figure.text(0.018, 0.99, "A", va="center", ha="center")
+    figure.text(0.018, 0.66, "B", va="center", ha="center")
+    figure.text(0.018, 0.34, "C", va="center", ha="center")
+
+    figure.align_labels()
+    pyplot.savefig("./results/figures/[2-2] reliability detailed.svg",
                    format="svg", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
-    create_folders()
-    display_cases()
-    evaluate_length_2(test_times=100)
-    evaluate_growing(terminal_length=6, test_times=100)
+    # create_folders()
+    # display_cases()
+    evaluate_detailed(test_times=100, terminal_length=6)

@@ -2,12 +2,12 @@ from copy import deepcopy
 from numpy import zeros, ones, array, random, sum, argsort, where
 
 from dsw.operation import Monitor, calculus_addition, calculus_multiplication, calculus_division
-from dsw.operation import bit_to_number, number_to_bit, number_to_dna, dna_to_number
+from dsw.operation import bit_to_number, number_to_bit, number_to_dna
 from dsw.graphized import obtain_latters, path_matching
 
 
 def encode(binary_message, accessor, start_index, nucleotides=None,
-           vt_length=False, shuffles=None, verbose=False):
+           vt_length=0, shuffles=None, verbose=False):
     """
     Encode a bit array by the specific accessor.
 
@@ -24,7 +24,7 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
     :type nucleotides: list or None
 
     :param vt_length: length of Varshamov-Tenengolts code for error-correction.
-    :type vt_length: int
+    :type vt_length: int or None
 
     :param shuffles: shuffle relationships for bit-nucleotide mapping.
     :type: numpy.ndarray
@@ -34,9 +34,6 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
 
     :return: DNA string encoded by this graph.
     :rtype: str
-
-    ..note::
-        Reference [1] R. R. Varshamov and G. M. Tenengolts (1965) Avtomat. i Telemekh.
 
     ..example::
         >>> from numpy import array
@@ -49,14 +46,14 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
         >>> binary_message = array([0, 1, 0, 1, 0, 1, 0, 1])
         >>> encode(accessor=accessor, binary_message=binary_message, start_index=1)
         'TCTCTCT'
-        >>> encode(accessor=accessor, binary_message=binary_message, start_index=1, vt_length=4)
-        ('TCTCTCT', 'ATTA')
+        >>> encode(accessor=accessor, binary_message=binary_message, start_index=1, vt_length=5)
+        ('TCTCTCT', 'TAATA')
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
 
-    quotient, dna_string, vertex_index, vt_value, monitor = bit_to_number(binary_message), "", start_index, 0, Monitor()
-    total_state = len(quotient)   # number of symbol.
+    quotient, dna_string, vertex_index, monitor = bit_to_number(binary_message), "", start_index, Monitor()
+    total_state = len(quotient)  # number of symbol.
 
     while quotient != "0":
         used_indices = where(accessor[vertex_index] >= 0)[0]
@@ -80,9 +77,6 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
 
         dna_string += nucleotide
 
-        if vt_length > 0:
-            vt_value += value * len(dna_string)
-
         if verbose:
             if quotient != "0":
                 monitor.output(total_state - len(quotient), total_state)
@@ -90,8 +84,8 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
                 monitor.output(total_state, total_state)
 
     if vt_length > 0:
-        vt_value %= 4 ** vt_length
-        return dna_string, number_to_dna(decimal_number=int(vt_value), dna_length=vt_length)
+        vt_check = set_vt(dna_string=dna_string, vt_length=vt_length, nucleotides=nucleotides)
+        return dna_string, vt_check
     else:
         return dna_string
 
@@ -101,7 +95,7 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
     """
     Decode a DNA string by the specific accessor.
 
-    :param dna_string: DNA string encoded bt this graph.
+    :param dna_string: DNA string encoded by this graph.
     :type dna_string: str
 
     :param bit_length: length of the bit array.
@@ -116,7 +110,7 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
     :param nucleotides: usage of nucleotides.
     :type nucleotides: list or None
 
-    :param vt_check: check list of Varshamov-Tenengolts code.
+    :param vt_check: check string of Varshamov-Tenengolts code.
     :type vt_check: str or None
 
     :param shuffles: shuffle relationships for bit-nucleotide mapping.
@@ -127,9 +121,6 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
 
     :return: binary message decoded by this graph.
     :rtype: numpy.ndarray
-
-    ..note::
-        Reference [1] R. R. Varshamov and G. M. Tenengolts (1965) Avtomat. i Telemekh.
 
     ..example::
         >>> from numpy import array
@@ -142,11 +133,14 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
         >>> dna_string = "TCTCTCT"
         >>> decode(accessor=accessor, dna_string=dna_string, start_index=1, bit_length=8)
         array([0, 1, 0, 1, 0, 1, 0, 1])
+        >>> vt_check = "TAATA"
+        >>> decode(accessor=accessor, dna_string=dna_string, start_index=1, vt_check=vt_check, bit_length=8)
+        array([0, 1, 0, 1, 0, 1, 0, 1])
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
 
-    quotient, saved_values, vt_value, vertex_index, monitor = "0", [], 0, start_index, Monitor()
+    quotient, saved_values, vertex_index, monitor = "0", [], start_index, Monitor()
 
     for location, nucleotide in enumerate(dna_string):
         used_indices = where(accessor[vertex_index] >= 0)[0]
@@ -176,17 +170,11 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
             raise ValueError("Current vertex doesn't have an out-degree, "
                              + "the accessor, the start vertex, or DNA string is wrong!")
 
-        if vt_check is not None:
-            vt_value += nucleotides.index(nucleotide) * (location + 1)
-
         if verbose:
             monitor.output(location + 1, len(dna_string))
 
     if vt_check is not None:
-        vt_value %= 4 ** len(vt_check)
-        vt_list = number_to_dna(decimal_number=vt_value, dna_length=len(vt_check))
-        print(vt_list)
-        if vt_check != vt_list:
+        if vt_check != set_vt(dna_string=dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
             raise ValueError("At least one error is found in this DNA string!")
 
     for location, (out_degree, number) in enumerate(saved_values[::-1]):
@@ -196,8 +184,53 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
     return array(number_to_bit(decimal_number=quotient, bit_length=bit_length), dtype=int)
 
 
-def repair_dna(dna_string, accessor, start_index, observed_length, check_iterations=1,
-               vt_check=None, has_insertion=False, has_deletion=False, nucleotides=None, verbose=False):
+def set_vt(dna_string, vt_length, nucleotides=None):
+    """
+    Set Varshamov-Tenengolts-based path check from DNA string (payload).
+
+    :param dna_string: DNA string encoded through SPIDER-WEB.
+    :type dna_string: str
+
+     :param vt_length: length of DNA string (path check).
+    :type vt_length: int or None
+
+    :param nucleotides: usage of nucleotides.
+    :type nucleotides: list or None
+
+    :return: path check DNA string with required length.
+
+    ..note::
+        Reference [1] Rom R. Varshamov and Grigory M. Tenengolts (1965) Avtomat. i Telemekh.
+        Reference [2] Grigory Tenengolts (1984) IEEE Transactions on Information Theory.
+
+    ..example::
+        >>> from numpy import array
+        >>> from dsw import decode
+        >>> dna_string = "TCTCTCT"
+        >>> vt_length = 5
+        >>> set_vt(dna_string=dna_string, vt_length=vt_length)
+        'TAATA'
+    """
+    if nucleotides is None:
+        nucleotides = ["A", "C", "G", "T"]
+
+    vt_flag, vt_value = 0, 0
+    for location, nucleotide in enumerate(dna_string):
+        value = nucleotides.index(nucleotide)
+        if location > 0 and value >= nucleotides.index(dna_string[location - 1]):
+            vt_value += location
+        vt_flag += value
+    vt_value %= 4 ** (vt_length - 1)
+    vt_flag %= 4
+
+    former = nucleotides[vt_flag % len(nucleotides)]
+    latter = number_to_dna(decimal_number=vt_value % len(nucleotides) ** (vt_length - 1), dna_length=vt_length - 1)
+
+    return former + latter
+
+
+def repair_dna(dna_string, accessor, start_index, observed_length, check_iterations=1, heap_size=1e6, vt_check=None,
+               has_insertion=False, has_deletion=False, nucleotides=None, verbose=False):
     """
     Repair the DNA string containing one (or more) errors.
 
@@ -216,7 +249,10 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
     :param check_iterations: repair check iterations, which greater than or equal to the estimated number of errors.
     :type check_iterations: int
 
-    :param vt_check: check list of Varshamov-Tenengolts code.
+    :param heap_size: available set size of repaired DNA strings.
+    :type heap_size: int or None
+
+    :param vt_check: check string of Varshamov-Tenengolts code.
     :type vt_check: str or None
 
     :param has_insertion: consider insertion error.
@@ -231,12 +267,8 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
     :param nucleotides: usage of nucleotides.
     :type nucleotides: list
 
-    :return: repaired DNA strings (may contain multiple repair results).
-    :rtype: list
-
-    ..note::
-        Reference [1] David Avis and Komei Fukuda (1996). Discrete applied mathematics.
-        Reference [2] R. R. Varshamov and G. M. Tenengolts (1965) Avtomat. i Telemekh.
+    :return: repaired DNA string set and additional information (includes detect flags and initial repaired strings).
+    :rtype: (list, (bool, bool, int))
 
     ..example::
         >>> from numpy import array
@@ -249,18 +281,17 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
         >>> dna_string = "TCTCTATCTCTC"  # "TCTCTCTCTCTC" is original DNA string
         >>> repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, \
                        check_iterations=1, has_insertion=True, has_deletion=True, verbose=False)
-        (True, ['TCTCTCTCTCTC', 'TCTCTGTCTCTC'])
-        >>> vt_check = "GCCG"  # check list of Varshamov-Tenengolts code.
+        (['TCTCTCTCTCTC', 'TCTCTGTCTCTC'], (True, False, 2))
+        >>> vt_check = "AACTG"  # check list of Varshamov-Tenengolts code.
         >>> repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, \
                        check_iterations=1, vt_check=vt_check, has_insertion=True, has_deletion=True, verbose=False)
-        (True, ['TCTCTCTCTCTC'])
+        (['TCTCTCTCTCTC'], (True, True, 2))
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
 
-    original_dna_string = deepcopy(dna_string)  # save if need the original VT repair.
-
-    dna_strings, repaired_dna_strings, detected_flag = [dna_string], [], False
+    original_dna_string = deepcopy(dna_string)
+    dna_strings, repaired_dna_strings, detected_flag_1, detected_flag_2 = [dna_string], [], False, False
     for _ in range(check_iterations + 1):
         new_dna_strings = []
         for detected_dna_string in dna_strings:
@@ -283,7 +314,7 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
                               + detected_dna_string[location] + " | "
                               + str(o_options).replace("\'", "") + ", " + str(b_options))
 
-                    found_wrong, detected_flag = True, True
+                    found_wrong, detected_flag_1 = True, True
                     for _, _, _, dna_string in path_matching(dna_string=detected_dna_string,
                                                              accessor=accessor, index_queue=index_queue,
                                                              occur_location=location,
@@ -314,139 +345,106 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
             if (not found_wrong) and (detected_dna_string not in repaired_dna_strings):
                 repaired_dna_strings.append(detected_dna_string)
 
-        if len(new_dna_strings) != 0:
+        if 0 <= len(new_dna_strings) <= heap_size:
             dna_strings = new_dna_strings
         else:
             break
 
-    results = []
+    repaired_results = []
     if len(repaired_dna_strings) > 0:
         for repaired_dna_string in repaired_dna_strings:
             if vt_check is not None:
-                vertex_index, vt_value = start_index, 0
-                for location, nucleotide in enumerate(repaired_dna_string):
-                    vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
-                    vt_value += nucleotides.index(nucleotide) * (location + 1)
-
-                vt_value %= 4 ** len(vt_check)
-                vt_list = number_to_dna(decimal_number=int(vt_value), dna_length=len(vt_check))
-                if vt_check == vt_list:
-                    results.append(repaired_dna_string)
+                if vt_check == set_vt(dna_string=repaired_dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
+                    repaired_results.append(repaired_dna_string)
                 else:
-                    detected_flag = True
+                    detected_flag_2 = True
             else:
-                results.append(repaired_dna_string)
+                repaired_results.append(repaired_dna_string)
 
-    # use original Varshamov-Tenengolts repair.
-    if len(results) == 0 and vt_check is not None:
+    if len(repaired_results) == 0:  # use original Varshamov-Tenengolts repair (only one error).
         if verbose:
             print()
             print("No result check, we use original Varshamov-Tenengolts repair.")
             print()
 
-        right_vt_value = dna_to_number(dna_string=vt_check, is_string=False)
-
-        vertex_index, wrong_vt_value = start_index, 0
-        for location, nucleotide in enumerate(original_dna_string):
-            vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
-            wrong_vt_value += nucleotides.index(nucleotide) * (location + 1)
-        wrong_vt_value %= 4 ** len(vt_check)
-
-        # substitution error checking through Varshamov-Tenengolts principle.
-        # wrong vt value - right vt value = (s[p] - u) * p.
+        # no mathematical method, using saturated attempt (substitute nucleotide in each location).
         for assume_location in range(len(original_dna_string)):
-            wrong_value = nucleotides.index(dna_string[assume_location])
-            for nucleotide_value in [0, 1, 2, 3]:
-                if (wrong_vt_value - right_vt_value) == (wrong_value - nucleotide_value) * (assume_location + 1):
-                    if verbose:
-                        right_nucleotide = nucleotides[nucleotide_value]
-                        wrong_nucleotide = dna_string[assume_location]
-                        print("-" * 50)
-                        print("Find the substitution error (" + str(assume_location) + ") location.")
-                        print(wrong_nucleotide + " needs to be substituted by " + right_nucleotide + ".")
+            for assume_nucleotide in list(filter(lambda n: n != original_dna_string[assume_location], nucleotides)):
+                if verbose:
+                    print("-" * 50)
+                    print("Find the substitution error (" + str(assume_location) + ") location.")
+                    print(original_dna_string[assume_location] + " needs to be substituted by "
+                          + assume_nucleotide + ".")
 
-                    repaired_dna_string = list(original_dna_string)
-                    repaired_dna_string[assume_location] = nucleotides[nucleotide_value]
-                    repaired_dna_string = "".join(repaired_dna_string)
+                # substitution error checking through Varshamov-Tenengolts principle.
+                repaired_dna_string = list(original_dna_string)
+                repaired_dna_string[assume_location] = assume_nucleotide
+                repaired_dna_string = "".join(repaired_dna_string)
 
-                    # recheck the biochemical constraints.
-                    vertex_index, reliable = start_index, True
-                    for index, nucleotide in enumerate(repaired_dna_string):
-                        inner_used_indices = where(accessor[vertex_index] >= 0)[0]
-                        used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
-                        if nucleotide in used_nucleotides:
+                if vt_check == set_vt(dna_string=repaired_dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
+                    found_wrong, vertex_index = False, start_index
+                    for location, nucleotide in enumerate(repaired_dna_string):
+                        used_indices = where(accessor[vertex_index] >= 0)[0]
+                        if nucleotide in [nucleotides[used_index] for used_index in used_indices]:
                             vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
                         else:
-                            print("But it is not satisfying the established biochemical constraints. Ignore it!")
-                            reliable = False
+                            found_wrong = True
                             break
-                    if reliable:
-                        results.append(repaired_dna_string)
+                    if not found_wrong:
+                        repaired_results.append(repaired_dna_string)
 
         if has_insertion:
             # insertion error checking through Varshamov-Tenengolts principle.
-            # wrong vt value - right vt value = u * p + sum_{i = p + 1}^n s[i].
-            values = list(map(nucleotides.index, original_dna_string))
             for assume_location in range(len(original_dna_string)):
-                assume_difference = values[assume_location] * (assume_location + 1) + sum(values[assume_location + 1:])
-                if wrong_vt_value - right_vt_value == assume_difference:
-                    if verbose:
-                        nucleotide = original_dna_string[assume_location]
-                        print("-" * 50)
-                        print("Find the insertion error (" + str(assume_location) + ") location.")
-                        print(nucleotide + " needs to be deleted.")
+                if verbose:
+                    nucleotide = original_dna_string[assume_location]
+                    print("-" * 50)
+                    print("Find the insertion error (" + str(assume_location) + ") location.")
+                    print(nucleotide + " needs to be deleted.")
 
-                    repaired_dna_string = list(original_dna_string)
-                    del repaired_dna_string[assume_location]
-                    repaired_dna_string = "".join(repaired_dna_string)
+                repaired_dna_string = list(original_dna_string)
+                del repaired_dna_string[assume_location]
+                repaired_dna_string = "".join(repaired_dna_string)
 
-                    # recheck the biochemical constraints.
-                    vertex_index, reliable = start_index, True
-                    for index, nucleotide in enumerate(repaired_dna_string):
-                        inner_used_indices = where(accessor[vertex_index] >= 0)[0]
-                        used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
-                        if nucleotide in used_nucleotides:
+                if vt_check == set_vt(dna_string=repaired_dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
+                    found_wrong, vertex_index = False, start_index
+                    for location, nucleotide in enumerate(repaired_dna_string):
+                        used_indices = where(accessor[vertex_index] >= 0)[0]
+                        if nucleotide in [nucleotides[used_index] for used_index in used_indices]:
                             vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
                         else:
-                            print("But it is not satisfying the established biochemical constraints. Ignore it!")
-                            reliable = False
+                            found_wrong = True
                             break
-                    if reliable:
-                        results.append(repaired_dna_string)
+                    if not found_wrong:
+                        repaired_results.append(repaired_dna_string)
 
         if has_deletion:
             # deletion error checking through Varshamov-Tenengolts principle.
-            # wrong vt value - right vt value = - u * p - sum_{i = p}^n s[i].
-            values = list(map(nucleotides.index, original_dna_string))
-            for assume_location in range(len(original_dna_string)):
-                for nucleotide_value in [0, 1, 2, 3]:
-                    assume_difference = - nucleotide_value * (assume_location + 1) - sum(values[assume_location:])
-                    if right_vt_value - wrong_vt_value == assume_difference:
-                        if verbose:
-                            nucleotide = original_dna_string[assume_location]
-                            print("-" * 50)
-                            print("Find the deletion error (" + str(assume_location) + ") location.")
-                            print(nucleotide + " need to be inserted.")
+            for assume_location in range(len(original_dna_string) + 1):
+                for assume_nucleotide in nucleotides:
+                    if verbose:
+                        print("-" * 50)
+                        print("Find the deletion error (" + str(assume_location) + ") location.")
+                        print(assume_nucleotide + " need to be inserted.")
 
-                        repaired_dna_string = list(original_dna_string)
-                        repaired_dna_string.insert(assume_location, nucleotides[nucleotide_value])
-                        repaired_dna_string = "".join(repaired_dna_string)
+                    repaired_dna_string = list(original_dna_string)
+                    repaired_dna_string.insert(assume_location, assume_nucleotide)
+                    repaired_dna_string = "".join(repaired_dna_string)
 
-                        # recheck the biochemical constraints.
-                        vertex_index, reliable = start_index, True
-                        for index, nucleotide in enumerate(repaired_dna_string):
-                            inner_used_indices = where(accessor[vertex_index] >= 0)[0]
-                            used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
-                            if nucleotide in used_nucleotides:
+                    if vt_check == set_vt(dna_string=repaired_dna_string, vt_length=len(vt_check),
+                                          nucleotides=nucleotides):
+                        found_wrong, vertex_index = False, start_index
+                        for location, nucleotide in enumerate(repaired_dna_string):
+                            used_indices = where(accessor[vertex_index] >= 0)[0]
+                            if nucleotide in [nucleotides[used_index] for used_index in used_indices]:
                                 vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
                             else:
-                                print("But it is not satisfying the established biochemical constraints. Ignore it!")
-                                reliable = False
+                                found_wrong = True
                                 break
-                        if reliable:
-                            results.append(repaired_dna_string)
+                        if not found_wrong:
+                            repaired_results.append(repaired_dna_string)
 
-    return detected_flag, results
+    return repaired_results, (detected_flag_1, detected_flag_2, len(repaired_dna_strings))
 
 
 def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
