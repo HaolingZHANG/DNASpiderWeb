@@ -129,9 +129,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# original output results
+# figure folder
+figures/
+
+# process output results
 *.npy
 *.pkl
-*.pdf
-*.png
-_6_slide_info.py

@@ -91,14 +91,13 @@ def draw_total(bit_length):
 
     for index in range(12):
         if max(collected_data[index]) - min(collected_data[index]) > 0.05:
-            pyplot.hlines(max(collected_data[index]), index - 0.25, index + 0.25, linewidth=1.0)
-            pyplot.hlines(min(collected_data[index]), index - 0.25, index + 0.25, linewidth=1.0)
-            pyplot.vlines(index, min(collected_data[index]), max(collected_data[index]), linewidth=1.0)
+            pyplot.plot([index - 0.25, index + 0.25], [min(collected_data[index]), max(collected_data[index])],
+                        color=gradient_colors[index], linewidth=2)
+            pyplot.plot([index + 0.25, index - 0.25], [min(collected_data[index]), max(collected_data[index])],
+                        color=gradient_colors[index], linewidth=2)
         else:
-            pyplot.hlines(median(collected_data[index]), index - 0.25, index + 0.25, linewidth=1.5)
-
-        pyplot.scatter([index], [median(collected_data[index])],
-                       color=gradient_colors[index], edgecolor="black", linewidth=1, s=20, zorder=2)
+            pyplot.hlines(median(collected_data[index]), index - 0.25, index + 0.25,
+                          color=gradient_colors[index], linewidth=2)
 
     pyplot.xlabel("constraint set", fontsize=8)
     pyplot.xticks(range(12), filter_indices, fontsize=8)
@@ -131,11 +130,11 @@ def draw_total(bit_length):
         if index > 0:
             pyplot.scatter(reference_length, bit_length,
                            color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
-                           label=" %.2f" % reference_length)
+                           label="[" + str(filter_index) + "]   %.2f" % reference_length)
         else:
             pyplot.scatter(reference_length, bit_length,
                            color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
-                           label="%.2f" % reference_length)
+                           label="[" + str(filter_index) + "] %.2f" % reference_length)
 
     pyplot.legend(loc="upper right", ncol=2, fontsize=8)
     pyplot.xlabel("DNA string length", fontsize=8)
@@ -149,8 +148,8 @@ def draw_total(bit_length):
     figure.text(0.018, 0.98, "A", va="center", ha="center")
     figure.text(0.500, 0.98, "B", va="center", ha="center")
 
-    pyplot.savefig("./results/figures/[5-1] privacy evaluation.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[5-1] privacy evaluation.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -200,8 +199,8 @@ def draw_reason():
                   fontsize=8)
     pyplot.ylim(0, 2 * 1e8)
 
-    pyplot.savefig("./results/figures/[5-2] privacy reason.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[5-2] privacy reason.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

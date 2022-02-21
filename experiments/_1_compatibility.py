@@ -123,8 +123,8 @@ def display_performances():
     pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
                   ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=8)
     pyplot.ylim(0.95, 2.05)
-    pyplot.savefig("./results/figures/[1-1] compatibility code rates.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[1-1] compatibility code rates.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

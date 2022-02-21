@@ -200,8 +200,8 @@ def draw_main():
     figure.text(0.019, 0.50, "C", va="center", ha="center")
     figure.text(0.512, 0.50, "D", va="center", ha="center")
 
-    pyplot.savefig("./results/figures/[4-1] repairability main.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[4-1] repairability main.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -270,8 +270,8 @@ def draw_corr():
     figure.text(0.019, 0.67, "B", va="center", ha="center")
     figure.text(0.019, 0.34, "C", va="center", ha="center")
 
-    pyplot.savefig("./results/figures/[4-2] repairability correlations.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[4-2] repairability correlations.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

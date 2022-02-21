@@ -156,7 +156,8 @@ def draw():
                   ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0"], fontsize=8)
     pyplot.xlabel("constraint set", fontsize=8)
     pyplot.ylabel("code rate", fontsize=8)
-    pyplot.savefig("./results/figures/[3-1] stability evaluation.svg", format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[3-1] stability evaluation.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 

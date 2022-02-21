@@ -82,8 +82,8 @@ def display_cases():
     figure.text(0.265, 0.99, "B", va="center", ha="center")
     figure.text(0.512, 0.99, "C", va="center", ha="center")
     figure.text(0.758, 0.99, "D", va="center", ha="center")
-    pyplot.savefig("./results/figures/[2-1] reliability regular.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[2-1] reliability regular.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -260,8 +260,8 @@ def evaluate_detailed(test_times, terminal_length):
     figure.text(0.018, 0.34, "C", va="center", ha="center")
 
     figure.align_labels()
-    pyplot.savefig("./results/figures/[2-2] reliability detailed.svg",
-                   format="svg", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/[2-2] reliability detailed.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
