@@ -76,6 +76,7 @@ The structure of this library is shown below:
 │    ├── spiderweb.py                       // Generating, transcoding, repairing pipelines of DNA SPIDER-WEB
 │    │    ├── encode                        // Encode a bit array by the specific accessor
 │    │    ├── decode                        // Decode a DNA string by the specific accessor
+│    │    ├── set_vt                        // Set (or calculate) Varshamov-Tenengolts-based path check for DNA string.
 │    │    ├── repair_dna                    // Repair the DNA string containing one (or more) errors
 │    │    ├── find_vertices                 // Find valid vertices based on the given the biochemical constraints
 │    │    ├── connect_valid_graph           // Connect a valid graph by valid vertices
@@ -104,7 +105,7 @@ The installation process only includes folder 'dsw' and its internal files.
 ## Basic evaluation
 Some investigations of 
 [SPIDER-WEB](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/figures/REPORTS.md), 
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/REPORTS.pdf), 
 which are generated directly through the [process Python scripts](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
 For detailed design, evaluations and conclusions, please refer to our publication.
 

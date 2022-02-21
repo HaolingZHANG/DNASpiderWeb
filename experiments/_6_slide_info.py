@@ -1,14 +1,16 @@
 from collections import Counter
+from itertools import product
 # noinspection PyPackageRequirements
 from matplotlib import pyplot, patches
-from numpy import load, array, zeros, linspace, corrcoef, polyfit, where
-from numpy import median, mean, min, max, sum, log, log2, clip, inf, log10
+from numpy import load, array, zeros, zeros_like, linspace, percentile, corrcoef, polyfit, where
+from numpy import median, mean, std, sqrt, min, max, sum, argmax, log, log2, log10, clip, abs, inf
 from pickle import load as pload
 from scipy.optimize import curve_fit
 from warnings import filterwarnings
 
-from experiments import colors
+from dsw import dna_to_number, approximate_capacity, adjacency_matrix_to_accessor
 
+from experiments import colors
 
 filterwarnings("ignore")
 
@@ -470,7 +472,189 @@ def protect():
     pyplot.close()
 
 
+def appendix():
+    def create_matrix(dna_strings):
+        matrix = zeros(shape=(16, 16), dtype=int)
+        vertices = [dna_to_number(dna_string=vertex, is_string=False) for vertex in dna_strings]
+        for former, latter in product(range(len(dna_strings)), repeat=2):
+            if dna_strings[former][1] == dna_strings[latter][0]:
+                matrix[vertices[former], vertices[latter]] = 1
+        return matrix
+
+    cases = [create_matrix(dna_strings=["AC",
+                                        "CG",
+                                        "GT",
+                                        "TA"]),  # a cycle.
+             create_matrix(dna_strings=["AC", "AG",
+                                        "CA", "CG",
+                                        "GA", "GT",
+                                        "TC", "TG"]),  # GC content is 50%.
+             create_matrix(dna_strings=["AC", "AG", "AT",
+                                        "CA", "CG", "CT",
+                                        "GA", "GC", "GT",
+                                        "TA", "TC", "TG"]),  # no homopolymer.
+             create_matrix(dna_strings=["AA", "AC", "AG", "AT",
+                                        "CA", "CC", "CG", "CT",
+                                        "GA", "GC", "GG", "GT",
+                                        "TA", "TC", "TG", "TT"])]  # complete graph.
+    figure = pyplot.figure(figsize=(10, 4.5), tight_layout=True)
+    for index, case in enumerate(cases):
+        pyplot.subplot(2, len(cases), index + 1)
+        for x in range(16):
+            for y in range(16):
+                if case[x, y] == 1:
+                    pyplot.fill_between(x=[x, x + 1], y1=[y, y], y2=[y + 1, y + 1], color=colors["trad1"])
+        for value in range(16):
+            pyplot.vlines(value, 0, 16, color="black", linewidth=0.5)
+            pyplot.hlines(value, 0, 16, color="black", linewidth=0.5)
+        pyplot.xticks(array(list(range(16))) + 0.5,
+                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=12)
+        pyplot.yticks(array(list(range(16))) + 0.5,
+                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=12)
+        pyplot.ylabel("latter index", fontsize=12)
+        pyplot.xlabel("former index", fontsize=12)
+        pyplot.xlim(0, 16)
+        pyplot.ylim(0, 16)
+        axes = pyplot.subplot(2, len(cases), index + len(cases) + 1)
+        _, process = approximate_capacity(accessor=adjacency_matrix_to_accessor(case), repeats=1, need_process=True)
+        if len(process) == 1:
+            pyplot.scatter([0], process, color=colors["trad1"])
+        pyplot.plot(range(len(process)), process, color=colors["trad1"], marker="o", linewidth=2)
+        pyplot.text(len(process) - 0.8, process[-1], "%.3f" % process[-1], va="center", ha="left", fontsize=12)
+        pyplot.xlim(-0.1, 2.1)
+        pyplot.ylim(-0.1, 2.1)
+        pyplot.yticks([0, 1, 2], ["0", "1", "2"], fontsize=12)
+        pyplot.ylabel("capacity", fontsize=12)
+        pyplot.xticks([0, 1, 2], [1, 2, 3], fontsize=12)
+        pyplot.xlabel("iteration", fontsize=12)
+        # noinspection PyUnresolvedReferences
+        axes.spines["right"].set_visible(False)
+        # noinspection PyUnresolvedReferences
+        axes.spines["top"].set_visible(False)
+    figure.align_labels()
+    pyplot.savefig("./results/figures/4.1.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    with open("./results/data/step_2_reliability_detail.pkl", "rb") as file:
+        data, errors = pload(file)
+    errors = log10(array(errors))
+    violin = pyplot.violinplot(dataset=errors, positions=[0], showextrema=False, vert=False, widths=1)
+    paint_data = violin["bodies"][0].get_paths()[0].vertices
+    paint_data = paint_data[len(paint_data) // 2 + 1: -1]
+    pyplot.close()
+    x, y = paint_data[:, 0], paint_data[:, 1]
+    y = y / sum(y) * 100.0
+    [v_25, v_50, v_75] = percentile(a=errors, q=[25, 50, 75])
+    lower, upper = v_25 - 1.5 * (v_75 - v_25), 1.5 * (v_75 - v_25) + v_75
+    pyplot.figure(figsize=(10, 5))
+    pyplot.plot(x, y, color=colors["trad1"], linewidth=1.5, zorder=4)
+    pyplot.fill_between(x, y, zeros_like(y), color=colors["trad2"], alpha=0.75, zorder=3)
+    pyplot.vlines(x=v_50, ymin=0, ymax=6.5, color="black", linewidth=1, zorder=2)
+    pyplot.vlines(x=v_50, ymin=6.9, ymax=8.5, color="black", linewidth=1, zorder=2)
+    pyplot.hlines(y=8.5, xmin=v_50 - 0.3, xmax=v_50 + 0.3, color="black", linewidth=1, zorder=2)
+    pyplot.text(x=v_50, y=8.6, s="median", va="bottom", ha="center", fontsize=12, zorder=2)
+    pyplot.vlines(x=v_25, ymin=0, ymax=7, color="black", linewidth=1, zorder=2)
+    pyplot.vlines(x=v_75, ymin=0, ymax=7, color="black", linewidth=1, zorder=2)
+    pyplot.hlines(y=6.7, xmin=v_25, xmax=v_75, color="black", linewidth=1, zorder=2)
+    pyplot.text(x=v_75 + 0.1, y=6.7, s="interquartile range", va="center", ha="left", fontsize=12, zorder=2)
+    pyplot.vlines(x=lower, ymin=0, ymax=4, color="black", linewidth=1, zorder=2)
+    pyplot.hlines(y=3.7, xmin=lower, xmax=min(errors) + 2, color="black", linewidth=1, zorder=2)
+    pyplot.text(x=min(errors) + 1.9, y=3.7, s="outlier range", va="center", ha="right", fontsize=12, zorder=2)
+    pyplot.vlines(x=upper, ymin=0, ymax=4, color="black", linewidth=1, zorder=2)
+    pyplot.hlines(y=3.7, xmin=upper, xmax=max(errors) - 2, color="black", linewidth=1, zorder=2)
+    pyplot.text(x=max(errors) - 1.9, y=3.7, s="outlier range", va="center", ha="left", fontsize=12, zorder=2)
+    pyplot.xlim(-14.1, -3.9)
+    pyplot.ylim(-0.3, 10.3)
+    pyplot.ylabel("frequency", fontsize=12)
+    pyplot.xticks([-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4],
+                  ["$10^{-14}$", "$10^{-13}$", "$10^{-12}$", "$10^{-11}$", "$10^{-10}$",
+                   "$10^{-09}$", "$10^{-08}$", "$10^{-07}$", "$10^{-06}$", "$10^{-05}$", "$10^{-04}$"],
+                  fontsize=12)
+    pyplot.xlabel("relative error", fontsize=12)
+    pyplot.yticks([0, 2, 4, 6, 8, 10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=12)
+    pyplot.savefig("./results/figures/4.2.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    pyplot.figure(figsize=(10, 5))
+    with open("./results/data/step_2_reliability_detail.pkl", "rb") as file:
+        data, errors = pload(file)
+    errors = log10(array(errors))
+    pyplot.scatter(errors, data, color=colors["trad1"], edgecolor="black", zorder=3)
+    temp_errors, temp_data = [], []
+    for value_1, value_2 in sorted(zip(errors, data), key=lambda v: v[0]):
+        temp_errors.append(value_1)
+        temp_data.append(value_2)
+    errors, data = array(temp_errors), array(temp_data)
+    a, b = polyfit(errors, data, deg=1)
+    estimated = a * errors + b
+    bounds = abs(std(errors) * sqrt(1.0 / len(errors)
+                                    + (errors - mean(errors)) ** 2 / sum((errors - mean(errors)) ** 2)))
+    pyplot.fill_between(errors, estimated - bounds, estimated + bounds, color=colors["trad2"], alpha=0.75, zorder=1)
+    x = linspace(min(errors), max(errors), 100)
+    y = a * x + b
+    pyplot.plot(x, y, color="black", linestyle="--", linewidth=1, zorder=2)
+
+    pyplot.xlim(-14.1, -3.9)
+    pyplot.ylim(-0.1, 2.1)
+    pyplot.xticks([-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4],
+                  ["$10^{-14}$", "$10^{-13}$", "$10^{-12}$", "$10^{-11}$", "$10^{-10}$",
+                   "$10^{-09}$", "$10^{-08}$", "$10^{-07}$", "$10^{-06}$", "$10^{-05}$", "$10^{-04}$"],
+                  fontsize=12)
+    pyplot.yticks([0, 0.5, 1.0, 1.5, 2.0], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=12)
+    pyplot.xlabel("relative error", fontsize=12)
+    pyplot.ylabel("capacity from SPIDER-WEB", fontsize=12)
+    pyplot.savefig("./results/figures/4.3.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    pyplot.figure(figsize=(10, 5))
+    with open("./results/data/step_2_reliability_extend.pkl", "rb") as file:
+        whole_data = pload(file)
+    pyplot.fill_between([1.5, 2.5], [-15, -15], [-3, -3], color=colors["diffs"], zorder=0)
+    pyplot.fill_between([3.5, 4.5], [-15, -15], [-3, -3], color=colors["diffs"], zorder=0)
+    used = []
+    for length, data in whole_data.items():
+        used.append(log10(data[1]))
+
+    violin = pyplot.violinplot(dataset=used, positions=[0.9, 1.9, 2.9, 3.9, 4.9], showextrema=False, widths=0.35)
+    for patch in violin["bodies"]:
+        patch.set_edgecolor(colors["trad1"])
+        patch.set_facecolor(colors["trad2"])
+        patch.set_linewidth(1)
+        patch.set_alpha(1)
+
+    for index, data in enumerate(used):
+        [v_25, v_50, v_75] = percentile(a=data, q=[25, 50, 75])
+        pyplot.scatter(x=[index + 0.9], y=[v_50],
+                       color="white", edgecolor=colors["trad1"], linewidth=1, s=25, zorder=4)
+        lower, upper = v_25 - 1.5 * (v_75 - v_25), 1.5 * (v_75 - v_25) + v_75
+        pyplot.vlines(x=index + 1.2, ymin=lower, ymax=upper,
+                      color=colors["trad1"], linewidth=1, zorder=2)
+        pyplot.hlines(y=lower, xmin=index + 1.2 - 0.04, xmax=index + 1.2 + 0.04,
+                      color=colors["trad1"], linewidth=1, zorder=2)
+        pyplot.hlines(y=upper, xmin=index + 1.2 - 0.04, xmax=index + 1.2 + 0.04,
+                      color=colors["trad1"], linewidth=1, zorder=2)
+        pyplot.fill_between(x=[index + 1.2 - 0.04, index + 1.2 + 0.04], y1=[v_25, v_25], y2=[v_75, v_75],
+                            color=colors["trad1"], zorder=3)
+        for value in data:
+            if value < lower or value > upper:
+                pyplot.scatter(x=[index + 1.2], y=[value],
+                               color="white", edgecolor=colors["trad1"], linewidth=1, s=20, zorder=4)
+    pyplot.xlim(0.5, 5.5)
+    pyplot.ylim(-15, -3)
+    pyplot.xticks([1, 2, 3, 4, 5],
+                  [r"$4^2 \times 4^2$", r"$4^3 \times 4^3$", r"$4^4 \times 4^4$",
+                   r"$4^5 \times 4^5$", r"$4^6 \times 4^6$"], fontsize=12)
+    pyplot.yticks([-15, -13, -11, -9, -7, -5, -3],
+                  ["$10^{-15}$", "$10^{-13}$", "$10^{-11}$", "$10^{-09}$", "$10^{-07}$",
+                   "$10^{-05}$", "$10^{-03}$"], fontsize=12)
+    pyplot.xlabel("size of adjacency matrix", fontsize=12)
+    pyplot.ylabel("relative error", fontsize=12)
+    pyplot.savefig("./results/figures/4.4.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
 if __name__ == "__main__":
     stable()
     repair()
     protect()
+    appendix()
