@@ -7,7 +7,6 @@
 [![PythonVersion](https://img.shields.io/badge/python-3.7-blue)](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
 [![License](https://img.shields.io/badge/License-GPL-blue.svg?maxAge=259200)](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/LICENSE)
 
-
 As a genetic material, DNA has become an attractive medium for storing digital information gradually.
 In recent years, a growing number of functional biochemical operations and storage environments were introduced, 
 biochemical constraints are not confined to long single-nucleotide repeats and abnormal GC content.
@@ -42,16 +41,14 @@ It may take about several months to complete all experiments on a conventional l
 In order to further understand the experimental situation, 
 like getting raw data, please do not hesitate to contact us.
 
-Some slides of 
-[SPIDER-WEB](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/slides.pdf), 
-which are generated directly through the [process Python scripts](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
-For detailed design, evaluations and conclusions, please refer to our publication.
+Some well-designed slides of this work are recorded 
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/slides.pdf).
+If you are interested in detailed design, evaluations, conclusions, mathematical proofs, and implementations, please refer to our publication.
 
 ## Library structure
 The structure of this library is shown below:
 ```html
-├── dsw                                     // Source codes of DNA SPIDER-WEB
+├── dsw                                     // Source codes of SPIDER-WEB
 │    ├── __init__.py                        // Exhibition of class and method calls
 │    ├── biofilter.py                       // Biochemical constraint filter to judge whether the candidate DNA string is valid or invalid
 │    │    ├── DefaultBioFilter              // Default biochemical constraint filter inherited by all related filters
@@ -78,7 +75,7 @@ The structure of this library is shown below:
 │    │    ├── number_to_bit                 // Convert a decimal number to its equivalent bit array with specific length
 │    │    ├── dna_to_number                 // Convert a DNA string to its equivalent decimal number
 │    │    ├── number_to_dna                 // Convert a decimal number to its equivalent DNA string with specific length
-│    ├── spiderweb.py                       // Generating, transcoding, repairing pipelines of DNA SPIDER-WEB
+│    ├── spiderweb.py                       // Generating, transcoding, repairing pipelines of SPIDER-WEB
 │    │    ├── encode                        // Encode a bit array by the specific accessor
 │    │    ├── decode                        // Decode a DNA string by the specific accessor
 │    │    ├── set_vt                        // Set (or calculate) Varshamov-Tenengolts-based path check for DNA string.
@@ -87,13 +84,17 @@ The structure of this library is shown below:
 │    │    ├── connect_valid_graph           // Connect a valid graph by valid vertices
 │    │    ├── connect_coding_graph          // Connect a coding algorithm by valid vertices and the threshold for minimum out-degree
 │    │    ├── create_random_shuffles        // Create the shuffles for accessor through the random mechanism
-├── experiments                             // Experiment module of DNA SPIDER-WEB
+├── experiments                             // Experiment module of SPIDER-WEB
 │    ├── __init__.py                        // Local biochemical constraint set in this work
-│    ├── step_1_compatibility.py            // Experiments for the gap between code rates obtained from generated algorithms and the corresponding capacities
-│    ├── step_2_reliability.py              // Experiments for the relative errors of capacity approximation
-│    ├── step_3_stability.py                // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
-│    ├── step_4_repairability.py            // Experiments for the probabilistic correction of encoded DNA strings with multiple errors
-│    ├── step_5_privacy.py                  // Experiments for the hidden danger of graph (algorithm) reconstruction and two additional privacy algorithms
+│    ├── _1_compatibility.py                // Experiments for the gap between code rates obtained from generated algorithms and the corresponding capacities
+│    ├── _2_reliability.py                  // Experiments for the relative errors of capacity approximation
+│    ├── _3_stability.py                    // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
+│    ├── _4_repairability.py                // Experiments for the probabilistic correction of encoded DNA strings with multiple errors
+│    ├── _5_privacy.py                      // Experiments for the hidden danger of graph (algorithm) reconstruction and additional privacy algorithms
+│    ├── _6_slide_info.py                   // Drawing scheme for result part in the slides
+│    ├── __init__                           // Preset parameters in the simulation experiment
+│    ├── code_encode.py                     // Script in the encoding simulation experiment
+│    ├── code_repair.py                     // Script in the correcting simulation experiment
 ├── test                                    // Test module of source codes
 │    ├── test_accessor_vs_latter_map.py     // Unit test for the conversion between the accessor and the latter map
 │    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix
@@ -146,7 +147,8 @@ class RegionalizedGCFilter(DefaultBioFilter):
         return True
 ```
 
-Here is an investigated example in this work named [LocalBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30).
+Here is an investigated example in this work named 
+[LocalBioFilter](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30).
 
 ### capacity approximation
 Through our customized approximater, 
@@ -162,8 +164,8 @@ capacity = approximate_capacity(accessor=accessor)
 print(capacity)
 ```
 
-The capacity approximater is based on the Perron–Frobenius theorem (Appendix A in our publication),
-we have proved its applicability for variable-length coding algorithms in the publication.
+The capacity approximater is based on the Perron–Frobenius theorem,
+we have proved its applicability for variable-length coding algorithms in the publication (Appendix A).
 
 Unfortunately, when the observed length (or window length) reaches 8, 
 the data capacity will achieve 32.0GB with the data type (double-precision floating-point format), 
@@ -210,15 +212,8 @@ you can easily find 12 examples in our experiments under the observed length 10,
 Here the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, and TCTAGA.
 Meanwhile, the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
 
-The corresponding transcoding performances of generated coding algorithms are shown as below:
-
-<p align="center">
-<img src="./experiments/results/figures/[1-1] compatibility code rates.svg" title="compatibility" width="100%"/>
-</p>
-
-where the blue line is the approximated capacity and 
-red violin plot (with median point) is tens of thousands of groups of (bit/nucleotide) results.
-
+The corresponding transcoding performances of generated coding algorithms are shown in 
+the result part of [slides](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/slides.pdf).
 
 ## Citation
 If you think this repo helps or being used in your research, please consider refer this paper.
