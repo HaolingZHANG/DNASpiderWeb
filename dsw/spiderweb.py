@@ -35,7 +35,7 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
     :return: DNA string encoded by this graph.
     :rtype: str
 
-    ..example::
+    Example
         >>> from numpy import array
         >>> from dsw import encode
         >>> # accessor with GC-balanced
@@ -122,7 +122,7 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
     :return: binary message decoded by this graph.
     :rtype: numpy.ndarray
 
-    ..example::
+    Example
         >>> from numpy import array
         >>> from dsw import decode
         >>> # accessor with GC-balanced
@@ -199,17 +199,17 @@ def set_vt(dna_string, vt_length, nucleotides=None):
 
     :return: path check DNA string with required length.
 
-    ..note::
-        Reference [1] Rom R. Varshamov and Grigory M. Tenengolts (1965) Avtomat. i Telemekh.
-        Reference [2] Grigory Tenengolts (1984) IEEE Transactions on Information Theory.
-
-    ..example::
+    Example
         >>> from numpy import array
         >>> from dsw import decode
         >>> dna_string = "TCTCTCT"
         >>> vt_length = 5
         >>> set_vt(dna_string=dna_string, vt_length=vt_length)
         'TAATA'
+
+    .. note::
+        Reference [1] Rom R. Varshamov and Grigory M. Tenengolts (1965) Avtomat. i Telemekh
+        Reference [2] Grigory Tenengolts (1984) IEEE Transactions on Information Theory
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -270,7 +270,7 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
     :return: repaired DNA string set and additional information (includes detect flags and initial repaired strings).
     :rtype: (list, (bool, bool, int))
 
-    ..example::
+    Example
         >>> from numpy import array
         >>> from dsw import repair_dna
         >>> # accessor with GC-balanced
@@ -466,15 +466,15 @@ def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
     :return: available vertices.
     :rtype: numpy.ndarray
 
-    ..note::
-        Reference [1] Florent Capelli and Yann Strozecki (2019) Discrete Applied Mathematics.
-
-    ..example::
+    Example
         >>> from dsw import LocalBioFilter, find_vertices
         >>> bio_filter = LocalBioFilter(observed_length=2, max_homopolymer_runs=2, gc_range=[0.5, 0.5])
         >>> # "1" refers to the available index of vertex, otherwise "0" refers to unavailable index of vertex.
         >>> find_vertices(observed_length=2, bio_filter=bio_filter).astype(int)
         array([0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0])
+
+    .. note::
+        Reference [1] Florent Capelli and Yann Strozecki (2019) Discrete Applied Mathematics
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -521,10 +521,7 @@ def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=Fal
     :return: accessor of the valid graph.
     :rtype: numpy.ndarray
 
-    ..note::
-        Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae.
-
-    ..example::
+    Example
         >>> from numpy import array
         >>> from dsw import connect_valid_graph
         >>> vertices = array([0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0])
@@ -545,6 +542,9 @@ def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=Fal
                [ 4, -1, -1,  7],
                [ 8, -1, -1, 11],
                [-1, -1, -1, -1]])
+
+    .. note::
+        Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -600,10 +600,7 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
     :return: coding vertices and coding accessor.
     :rtype: (numpy.ndarray, numpy.ndarray)
 
-    ..note::
-        Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae.
-
-    ..example::
+    Example
         >>> from numpy import array
         >>> from dsw import connect_coding_graph
         >>> vertices = array([False,  True,  True, False,  True, False, False,  True,  True, \
@@ -628,6 +625,9 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
                [-1, -1, -1, -1]])
         >>> vertices.astype(int)
         array([0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0])
+
+    .. note::
+        Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -702,17 +702,7 @@ def create_random_shuffles(observed_length, nucleotides=None, random_seed=None, 
     :return: shuffles for accessor.
     :rtype: numpy.ndarray
 
-    ..note::
-        The shuffle strategy disrupts the bit-to-nucleotide mapping order, so it can be used as an encryption policy.
-
-        Value 0 ~ 3 in each line shuffle only describes the relationship between progressive order and position.
-        The original position is [0, 1, 2, 3].
-        If the follow-up nucleotides in a vertex are ["A", "G"] when the line shuffle is [3, 2, 1, 0],
-        This line shuffle can be regarded as [1, -, 0, -] for ["A", -, "G", -].
-
-        Ths shuffle will not disclose the topology information of accessor.
-
-    ..example::
+    Example
         >>> from dsw import create_random_shuffles
         >>> create_random_shuffles(observed_length=2, random_seed=2021)
         array([[3, 2, 1, 0],
@@ -731,6 +721,16 @@ def create_random_shuffles(observed_length, nucleotides=None, random_seed=None, 
                [2, 0, 3, 1],
                [0, 1, 3, 2],
                [0, 3, 2, 1]])
+
+    .. note::
+        The shuffle strategy disrupts the bit-to-nucleotide mapping order, so it can be used as an encryption policy.
+
+        Value 0 ~ 3 in each line shuffle only describes the relationship between progressive order and position.
+        The original position is [0, 1, 2, 3].
+        If the follow-up nucleotides in a vertex are ["A", "G"] when the line shuffle is [3, 2, 1, 0],
+        This line shuffle can be regarded as [1, -, 0, -] for ["A", -, "G", -].
+
+        Ths shuffle will not disclose the topology information of accessor.
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]

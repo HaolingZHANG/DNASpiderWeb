@@ -42,7 +42,18 @@ class LocalBioFilter(DefaultBioFilter):
         :param undesired_motifs: undesired DNA motifs.
         :type undesired_motifs: list
 
-        ..notes:
+        Example
+            >>> from dsw import LocalBioFilter
+            >>> bio_filter = LocalBioFilter(observed_length=8, \
+                                            max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["GC"])
+            >>> bio_filter.valid(dna_string="ACGTACGT")
+            True
+            >>> bio_filter.valid(dna_string="GCATGCAT")
+            False
+            >>> bio_filter.valid(dna_string="AAACCGGA")
+            False
+
+        .. notes::
             Reference [1] Nick Goldman et al. (2013) Nature
 
             Reference [2] Yaniv Erlich and Dina Zielinski (2017) Science
@@ -59,17 +70,6 @@ class LocalBioFilter(DefaultBioFilter):
 
             If "GC" in the undesired DNA motifs (undesired_motifs), "GC" cannot be included in tue valid DNA strings.
             This parameter could contain the restriction enzyme sites or some low compatibility DNA patterns.
-
-        ..example::
-            >>> from dsw import LocalBioFilter
-            >>> bio_filter = LocalBioFilter(observed_length=8, \
-                                            max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["GC"])
-            >>> bio_filter.valid(dna_string="ACGTACGT")
-            True
-            >>> bio_filter.valid(dna_string="GCATGCAT")
-            False
-            >>> bio_filter.valid(dna_string="AAACCGGA")
-            False
         """
         super().__init__(screen_name="Local")
         if max_homopolymer_runs is not None:
@@ -100,7 +100,7 @@ class LocalBioFilter(DefaultBioFilter):
         :return: judgement.
         :rtype: bool
 
-        ..note::
+        .. note::
             "only_last" parameter is interesting, which is used to save time.
             For most tree-based coding algorithms,
             it is not necessary to detect the sub DNA strings observed in each window from scratch every time.

@@ -16,7 +16,7 @@ def get_complete_accessor(observed_length, verbose=False):
     :return: complete accessor.
     :rtype: numpy.ndarray
 
-    ..example::
+    Example:
         >>> from dsw import get_complete_accessor
         >>> get_complete_accessor(observed_length=2)
         array([[ 0,  1,  2,  3],
@@ -35,7 +35,7 @@ def get_complete_accessor(observed_length, verbose=False):
                [ 4,  5,  6,  7],
                [ 8,  9, 10, 11],
                [12, 13, 14, 15]])
-        """
+    """
     accessor, monitor = -ones(shape=(int(4 ** observed_length), 4), dtype=int), Monitor()
 
     for vertex_index in range(int(4 ** observed_length)):
@@ -71,7 +71,7 @@ def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, v
     :return: adjacency matrix of the uncompressed graph.
     :rtype: numpy.ndarray
 
-    ..example::
+    Example:
         >>> from dsw import accessor_to_adjacency_matrix, adjacency_matrix_to_accessor, get_complete_accessor
         >>> accessor = array([[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], \
                               [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], \
@@ -131,7 +131,7 @@ def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
     :return: equivalent compressed matrix (accessor), compress rate = len(n_system) / len(matrix).
     :rtype: numpy.ndarray
 
-    ..example::
+    Example:
         >>> from dsw import adjacency_matrix_to_accessor
         >>> adjacency_matrix = array([[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
                                       [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], \
@@ -201,7 +201,7 @@ def accessor_to_latter_map(accessor, verbose=False):
     :return: latter vertices map of graph.
     :rtype: dict
 
-    ..example::
+    Example:
         >>> from numpy import array
         >>> from dsw import get_complete_accessor, accessor_to_latter_map
         >>> # accessor with GC-balanced
@@ -247,7 +247,7 @@ def latter_map_to_accessor(latter_map, observed_length, threshold=None, nucleoti
     :return: equivalent accessor.
     :rtype: numpy.ndarray
 
-    ..example::
+    Example:
         >>> from dsw import latter_map_to_accessor
         >>> latter_map = {1: [4, 7], 2: [8, 11], 4: [1, 2], 7: [13, 14], \
                           8: [1, 2], 11: [13, 14], 13: [4, 7], 14: [8, 11]}
@@ -309,7 +309,7 @@ def remove_useless(latter_map, threshold, verbose=False):
     :return: useful latter map.
     :rtype: dict
 
-    ..example::
+    Example:
         >>> from dsw import remove_useless
         >>> latter_map_1 = {0: [1, 2], 1: [], 2: [3, 4], 3: [0]}
         >>> remove_useless(latter_map=latter_map_1, threshold=1)
@@ -382,7 +382,7 @@ def obtain_formers(current, observed_length, nucleotides=None):
     :return: former vertex indices.
     :rtype: list
 
-    ..example::
+    Example:
         >>> from dsw import obtain_formers
         >>> current = 0
         >>> obtain_formers(current=current, observed_length=2)
@@ -429,7 +429,7 @@ def obtain_latters(current, observed_length, nucleotides=None):
     :return: latter vertex indices.
     :rtype: list
 
-    ..example::
+    Example:
         >>> from dsw import obtain_latters
         >>> current = 0
         >>> obtain_latters(current=current, observed_length=2)
@@ -479,10 +479,7 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
     :return: indices of required leaf vertex.
     :rtype: numpy.ndarray
 
-    ..note::
-        Either the parameter "accessor" or the parameter "latter_map" must occur, but not both.
-
-    ..example::
+    Example:
         >>> from numpy import array
         >>> from dsw import obtain_leaf_vertices
         >>> # accessor with GC-balanced
@@ -500,6 +497,9 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
         array([4, 7])
         >>> obtain_leaf_vertices(vertex_index=1, depth=2, latter_map=latter_map)
         array([ 1,  2, 13, 14])
+
+    .. note::
+        Either the parameter "accessor" or the parameter "latter_map" must occur, but not both.
     """
     if (accessor is not None) and (latter_map is not None):
         raise ValueError("Too many variables (accessor and latter map) are assigned, "
@@ -557,14 +557,7 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
     :return: capacity of this graph (accessor) and process values if required.
     :rtype: float or (float, list)
 
-    ..note::
-        Reference [1] Oskar Perron (1907) Mathematische Annalen.
-        Reference [2] Georg Frobenius (1912) Sitzungsberichte der Königlich Preussischen Akademie der Wissenschaften.
-        Reference [3] Brian H. Marcus et al. (2001) Lecture notes.
-        Reference [4] Nabil Kahale (1995) Journal of the ACM.
-        Reference [5] William Ford (2014) Academic Press.
-
-    ..example::
+    Example:
         >>> from numpy import array, random
         >>> from dsw import approximate_capacity
         >>> # accessor with GC-balanced
@@ -581,6 +574,17 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
         1.0
         >>> processes
         [[0.5777866858675372, 0.9117487898585336, 1.0, 1.0], [0.814876469343339, 0.6818879690650359, 1.0, 1.0]]
+
+    .. note::
+        Reference [1] Oskar Perron (1907) Mathematische Annalen
+
+        Reference [2] Georg Frobenius (1912) Sitzungsberichte der Königlich Preussischen Akademie der Wissenschaften
+
+        Reference [3] Brian H. Marcus et al. (2001) Lecture notes
+
+        Reference [4] Nabil Kahale (1995) Journal of the ACM
+
+        Reference [5] William Ford (2014) Academic Press
     """
     if all(accessor == -1):
         if need_process:
@@ -682,7 +686,7 @@ def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides
     :return: repaired DNA strings (may contain multiple repair results).
     :rtype: list
 
-    ..example::
+    Example:
         >>> from numpy import array
         >>> from dsw import path_matching
         >>> # accessor with GC-balanced

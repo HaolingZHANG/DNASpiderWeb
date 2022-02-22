@@ -7,7 +7,7 @@ class Monitor(object):
         """
         Initialize the monitor to identify the task progress.
 
-        ..example::
+        Example:
             >>> from dsw import Monitor
             >>> monitor = Monitor()
             >>> monitor.output(current_state=1, total_state=10)
@@ -91,10 +91,10 @@ def calculus_addition(number, base):
     :return: number + base.
     :rtype: str
 
-    ..note::
+    .. note::
         The integer of parameter "base" must less be than 10 in decimal system.
 
-    ..example::
+    Example:
         >>> from dsw import calculus_addition
         >>> calculus_addition(number="99999999999999999999999999999999999999999999999999", base="2")
         '100000000000000000000000000000000000000000000000001'
@@ -131,10 +131,10 @@ def calculus_subtraction(number, base):
     :return: number - base.
     :rtype: str
 
-    ..note::
+    .. note::
         The integer of parameter "base" must less be than 10 in decimal system.
 
-    ..example::
+    Example:
         >>> from dsw import calculus_subtraction
         >>> calculus_subtraction(number="10000000000000000000000000000000000000000000000001", base="2")
         '9999999999999999999999999999999999999999999999999'
@@ -176,10 +176,10 @@ def calculus_multiplication(number, base):
     :return: number * base.
     :rtype: str
 
-    ..note::
+    .. note::
         The integer of parameter "base" must less be than 10 in decimal system.
 
-    ..example::
+    Example:
         >>> from dsw import calculus_multiplication
         >>> calculus_multiplication(number="9999999999999999999999999999999999999999999999999", base="2")
         '19999999999999999999999999999999999999999999999998'
@@ -224,15 +224,15 @@ def calculus_division(number, base):
     :return: number // base and number % base.
     :rtype: (str, str)
 
-    ..note::
-        The integer of parameter "base" must less be than 10 in decimal system.
-
-        When the divisor (base) is "0", the program will return "0", "0".
-
-    ..example::
+    Example:
         >>> from dsw import calculus_division
         >>> calculus_division(number="9999999999999999999999999999999999999999999999999", base="2")
         ('4999999999999999999999999999999999999999999999999', '1')
+
+    .. note::
+        The integer of parameter "base" must less be than 10 in decimal system.
+
+        When the divisor (base) is "0", the program will return "0", "0".
     """
     if base == "0":
         return "0", "0"
@@ -273,9 +273,9 @@ def bit_to_number(bit_array, is_string=True):
     :type: is_string: bool
 
     :return: equivalent decimal number (may huge) of the inputted bit array.
-    :rtype: str
+    :rtype: str or int
 
-    ..example::
+    Example
         >>> from dsw import bit_to_number
         >>> bit_to_number(bit_array=[1, 1, 1, 1, 1, 0, 0, 1, 1, 1], is_string=True)
         '999'
@@ -312,7 +312,7 @@ def number_to_bit(decimal_number, bit_length):
     :return: bit array.
     :rtype: list
 
-    ..example::
+    Example
         >>> from dsw import number_to_bit
         >>> number_to_bit(decimal_number="999", bit_length=10)
         [1, 1, 1, 1, 1, 0, 0, 1, 1, 1]
@@ -348,9 +348,9 @@ def dna_to_number(dna_string, nucleotides=None, is_string=True):
     :type: is_string: bool
 
     :return: equivalent decimal number (may huge) of the inputted DNA string.
-    :rtype: str
+    :rtype: str or int
 
-    ..example::
+    Example
         >>> from dsw import dna_to_number
         >>> dna_to_number(dna_string="ACGTACGT", is_string=True)
         '6939'
@@ -393,7 +393,7 @@ def number_to_dna(decimal_number, dna_length, nucleotides=None):
     :return: equivalent DNA string of the decimal number.
     :rtype: str
 
-    ..example::
+    Example
         >>> from dsw import number_to_dna
         >>> number_to_dna(decimal_number=6939, dna_length=8)
         'ACGTACGT'
