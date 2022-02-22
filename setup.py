@@ -1,31 +1,34 @@
 from setuptools import setup
 
 setup(
-    name="DNASpiderWeb",
+    name="SpiderWeb",
     version="1.0",
-    description="package for DNA Spider-Web",
-    long_description="As a genetic material, DNA has become an attractive medium for storing digital information "
-                     "gradually. In recent years, a growing number of functional biochemical operations and storage "
-                     "environments were introduced, biochemical constraints are not confined to long single-nucleotide "
-                     "repeats and abnormal GC content. However, trade-offs between information density and "
-                     "compatibility to biochemical operations and algorithms require in-depth investigation, to create "
-                     "transcoding algorithms considering novel biochemical constraints and their combinations. "
-                     "Here, we design an automatic generator, named SPIDER-WEB, to create graph-based algorithms which "
-                     "could be used directly or served as a benchmark for artificial algorithm design. "
-                     "The generated coding algorithms provide high code rate, low parameter sensitivity, "
-                     "certain self-repair ability, and valuable privacy protection potentiality. Through this work, "
-                     "applicable algorithms with appropriate density-compatibility trade-off under arbitrary "
-                     "local biochemical constraints could be generated in an automated way. "
-                     "It is also suggested that more kinds of biochemical constraints can be further investigated "
-                     "as more complex operations would be needed in future DNA storage systems.",
+    description="package for Spider-Web",
+    long_description="As a genetic material, DNA has become an attractive medium "
+                     "for storing digital information gradually. "
+                     "Besides the biochemical progress on DNA synthesis and sequencing, "
+                     "novel coding algorithms need to be constructed catering to "
+                     "the specific constraints in DNA storage. "
+                     "In recent years, a growing number of functional biochemical operations "
+                     "and storage environments were introduced, bringing in various biochemical constraints "
+                     "including but not confined to long single-nucleotide repeats and abnormal GC content. "
+                     "Given several local biochemical constraints and their combinations, "
+                     "the code rate capacity and capacity-achieving coding algorithms require in-depth investigation. "
+                     "In this work, we design an automatic generator, named SPIDER-WEB, "
+                     "to create corresponding graph-based algorithms which could be used directly "
+                     "or served as a benchmark for the construction of coding algorithms. "
+                     "The main advantage of SPIDER-WEB is that "
+                     "it provides an efficient way to applicable coding algorithms "
+                     "for arbitrary local biochemical constraints in an automatic way "
+                     "and support for probabilistic error correction and one-time pad encryption.",
     author="Haoling ZHANG",
     author_email="zhanghaoling@genomics.cn",
     url="https://github.com/HaolingZHANG/DNASpiderWeb",
     packages=["dsw"],
     install_requires=["numpy", "scipy"],
-    license="MIT",
-    classifiers=["License :: OSI Approved :: MIT License",
+    license="GPL",
+    classifiers=["License :: OSI Approved :: GPL License",
                  "Programming Language :: Python :: 3",
                  "Operating System :: OS Independent"],
-    keywords="DNA Storage, Coding Algorithm, Automatic Algorithm Generator",
+    keywords="DNA-based Storage, Coding Algorithm, Automatic Algorithm Generator, Probabilistic Error-Correction",
 )

@@ -130,4 +130,4 @@ dmypy.json
 .pyre/
 
 # results folder
-results/
+experiments/results/
