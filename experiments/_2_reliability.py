@@ -53,11 +53,11 @@ def display_cases():
             pyplot.vlines(value, 0, 16, color="black", linewidth=0.5)
             pyplot.hlines(value, 0, 16, color="black", linewidth=0.5)
         pyplot.xticks(array(list(range(16))) + 0.5,
-                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=8)
+                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=10)
         pyplot.yticks(array(list(range(16))) + 0.5,
-                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=8)
-        pyplot.ylabel("index of latter DNA string", fontsize=8)
-        pyplot.xlabel("index of former DNA string", fontsize=8)
+                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=10)
+        pyplot.ylabel("index of latter DNA string", fontsize=10)
+        pyplot.xlabel("index of former DNA string", fontsize=10)
         pyplot.xlim(0, 16)
         pyplot.ylim(0, 16)
         axes = pyplot.subplot(2, len(cases), index + len(cases) + 1)
@@ -68,10 +68,10 @@ def display_cases():
         pyplot.text(len(process) - 0.8, process[-1], "%.3f" % process[-1], va="center", ha="left")
         pyplot.xlim(-0.1, 2.1)
         pyplot.ylim(-0.1, 2.1)
-        pyplot.yticks([0, 0.5, 1, 1.5, 2], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=8)
-        pyplot.ylabel("capacity", fontsize=8)
-        pyplot.xticks([0, 1, 2], [1, 2, 3], fontsize=8)
-        pyplot.xlabel("iteration", fontsize=8)
+        pyplot.yticks([0, 0.5, 1, 1.5, 2], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=10)
+        pyplot.ylabel("capacity", fontsize=10)
+        pyplot.xticks([0, 1, 2], [1, 2, 3], fontsize=10)
+        pyplot.xlabel("iteration", fontsize=10)
         # noinspection PyUnresolvedReferences
         axes.spines["right"].set_visible(False)
         # noinspection PyUnresolvedReferences
@@ -132,28 +132,28 @@ def evaluate_detailed(test_times, terminal_length):
     pyplot.vlines(x=v_50, ymin=0, ymax=6.5, color="black", linewidth=1, zorder=2)
     pyplot.vlines(x=v_50, ymin=6.9, ymax=8.5, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=8.5, xmin=v_50 - 0.3, xmax=v_50 + 0.3, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=v_50, y=8.6, s="median", va="bottom", ha="center", fontsize=8, zorder=2)
+    pyplot.text(x=v_50, y=8.6, s="median", va="bottom", ha="center", fontsize=10, zorder=2)
 
     pyplot.vlines(x=v_25, ymin=0, ymax=7, color="black", linewidth=1, zorder=2)
     pyplot.vlines(x=v_75, ymin=0, ymax=7, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=6.7, xmin=v_25, xmax=v_75, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=v_75 + 0.1, y=6.7, s="interquartile range", va="center", ha="left", fontsize=8, zorder=2)
+    pyplot.text(x=v_75 + 0.1, y=6.7, s="interquartile range", va="center", ha="left", fontsize=10, zorder=2)
     pyplot.vlines(x=lower, ymin=0, ymax=4, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=3.7, xmin=lower, xmax=min(errors) + 2, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=min(errors) + 1.9, y=3.7, s="outlier range", va="center", ha="right", fontsize=8, zorder=2)
+    pyplot.text(x=min(errors) + 1.9, y=3.7, s="outlier range", va="center", ha="right", fontsize=10, zorder=2)
     pyplot.vlines(x=upper, ymin=0, ymax=4, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=3.7, xmin=upper, xmax=max(errors) - 2, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=max(errors) - 1.9, y=3.7, s="outlier range", va="center", ha="left", fontsize=8, zorder=2)
+    pyplot.text(x=max(errors) - 1.9, y=3.7, s="outlier range", va="center", ha="left", fontsize=10, zorder=2)
 
     pyplot.xlim(-14.1, -3.9)
     pyplot.ylim(-0.5, 10.5)
-    pyplot.ylabel("frequency", fontsize=8)
+    pyplot.ylabel("frequency", fontsize=10)
     pyplot.xticks([-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4],
                   ["$10^{-14}$", "$10^{-13}$", "$10^{-12}$", "$10^{-11}$", "$10^{-10}$",
                    "$10^{-09}$", "$10^{-08}$", "$10^{-07}$", "$10^{-06}$", "$10^{-05}$", "$10^{-04}$"],
-                  fontsize=8)
-    pyplot.xlabel("relative error", fontsize=8)
-    pyplot.yticks([0, 2, 4, 6, 8, 10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=8)
+                  fontsize=10)
+    pyplot.xlabel("relative error", fontsize=10)
+    pyplot.yticks([0, 2, 4, 6, 8, 10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=10)
 
     pyplot.subplot(3, 1, 2)
     pyplot.scatter(errors, data, color=colors["trad1"], edgecolor="black", zorder=3)
@@ -178,10 +178,10 @@ def evaluate_detailed(test_times, terminal_length):
     pyplot.xticks([-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4],
                   ["$10^{-14}$", "$10^{-13}$", "$10^{-12}$", "$10^{-11}$", "$10^{-10}$",
                    "$10^{-09}$", "$10^{-08}$", "$10^{-07}$", "$10^{-06}$", "$10^{-05}$", "$10^{-04}$"],
-                  fontsize=8)
-    pyplot.yticks([0, 0.5, 1.0, 1.5, 2.0], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=8)
-    pyplot.xlabel("relative error", fontsize=8)
-    pyplot.ylabel("capacity from SPIDER-WEB", fontsize=8)
+                  fontsize=10)
+    pyplot.yticks([0, 0.5, 1.0, 1.5, 2.0], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=10)
+    pyplot.xlabel("relative error", fontsize=10)
+    pyplot.ylabel("capacity from SPIDER-WEB", fontsize=10)
 
     if not path.exists("./results/data/step_2_reliability_extend.pkl"):
         random.seed(2021)
@@ -248,12 +248,12 @@ def evaluate_detailed(test_times, terminal_length):
     pyplot.xticks([1, 2, 3, 4, 5],
                   [r"$4^2 \times 4^2$", r"$4^3 \times 4^3$", r"$4^4 \times 4^4$",
                    r"$4^5 \times 4^5$", r"$4^6 \times 4^6$"],
-                  fontsize=8)
+                  fontsize=10)
     pyplot.yticks([-15, -13, -11, -9, -7, -5, -3],
                   ["$10^{-15}$", "$10^{-13}$", "$10^{-11}$", "$10^{-09}$", "$10^{-07}$", "$10^{-05}$", "$10^{-03}$"],
-                  fontsize=8)
-    pyplot.xlabel("size of adjacency matrix", fontsize=8)
-    pyplot.ylabel("relative error", fontsize=8)
+                  fontsize=10)
+    pyplot.xlabel("size of adjacency matrix", fontsize=10)
+    pyplot.ylabel("relative error", fontsize=10)
 
     figure.text(0.018, 0.99, "A", va="center", ha="center")
     figure.text(0.018, 0.66, "B", va="center", ha="center")

@@ -42,6 +42,12 @@ It may take about several months to complete all experiments on a conventional l
 In order to further understand the experimental situation, 
 like getting raw data, please do not hesitate to contact us.
 
+Some slides of 
+[SPIDER-WEB](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/slides.pdf), 
+which are generated directly through the [process Python scripts](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
+For detailed design, evaluations and conclusions, please refer to our publication.
+
 ## Library structure
 The structure of this library is shown below:
 ```html
@@ -103,13 +109,6 @@ The structure of this library is shown below:
 ```
 The installation process only includes folder 'dsw' and its internal files.
 
-## Basic evaluation
-Some investigations of 
-[SPIDER-WEB](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/REPORTS.pdf), 
-which are generated directly through the [process Python scripts](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
-For detailed design, evaluations and conclusions, please refer to our publication.
-
 ## Customization
 ### biochemical constraints set
 You can create your customized biochemical constraint filter (as the biochemical constraints set) 
@@ -151,7 +150,7 @@ Here is an investigated example in this work named [LocalBioFilter](https://gith
 
 ### capacity approximation
 Through our customized approximater, 
-see [here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/graphized.py#L537), 
+see [here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/graphized.py#L534), 
 you can easily obtain the capacity under the specific biochemical constraint set.
 ```python
 from dsw import LocalBioFilter, find_vertices, connect_valid_graph, approximate_capacity
@@ -163,7 +162,7 @@ capacity = approximate_capacity(accessor=accessor)
 print(capacity)
 ```
 
-The capacity approximater is based on the Perron–Frobenius theorem,
+The capacity approximater is based on the Perron–Frobenius theorem (Appendix A in our publication),
 we have proved its applicability for variable-length coding algorithms in the publication.
 
 Unfortunately, when the observed length (or window length) reaches 8, 
@@ -176,11 +175,9 @@ to complete the representation of graphs and the solution of largest eigenvalues
 To verify its [reliability](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/step_2_reliability.py), 
 we compared our proposed method with Numpy ``linalg.eig'' function in some small-scale matrices.
 As part of the experimental results, the median value of relative error analysis is 2.97E-11, 
-which represents our proposed method is high reliability and negligible error. 
-
-<p align="center">
-<img src="./experiments/results/figures/[2-2] reliability detailed.svg" title="reliability" width="100%"/>
-</p>
+which represents the relative error of capacity approximation is on the order of minus ten of ten.
+Because it is equivalent to error tolerance in the preset values, 
+we believe our proposed method is high reliability and negligible error. 
 
 ### coding algorithm generation
 According to SPIDER-WEB, you can obtain the corresponding variable-length algorithms:

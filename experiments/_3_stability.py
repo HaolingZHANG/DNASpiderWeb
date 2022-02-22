@@ -115,7 +115,7 @@ def draw():
         else:
             display_data[int(sample[0])][int(sample[1]) - 1].append(-1)
 
-    pyplot.figure(figsize=(10, 4), tight_layout=True)
+    pyplot.figure(figsize=(10, 5), tight_layout=True)
     bias = [-0.375, -0.125, 0.125, 0.375]
     used_colors = [[colors["foun1"], colors["foun2"]], [colors["yyco1"], colors["yyco2"]],
                    [colors["hedc1"], colors["hedc2"]], [colors["algo1"], colors["algo2"]]]
@@ -148,14 +148,14 @@ def draw():
 
     legends = [patches.Patch(facecolor=used_colors[index][1], edgecolor=used_colors[index][0],
                              linewidth=1, label=labels[index]) for index in list(range(4))[::-1]]
-    pyplot.legend(handles=legends, loc="upper left", fontsize=8)
+    pyplot.legend(handles=legends, loc="upper left", fontsize=10)
     pyplot.xlim(-0.5, 11.5)
     pyplot.ylim(-0.08, 2.08)
-    pyplot.xticks(range(12), filter_indices, fontsize=8)
+    pyplot.xticks(range(12), filter_indices, fontsize=10)
     pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
-                  ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0"], fontsize=8)
-    pyplot.xlabel("constraint set", fontsize=8)
-    pyplot.ylabel("code rate", fontsize=8)
+                  ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0"], fontsize=10)
+    pyplot.xlabel("constraint set", fontsize=10)
+    pyplot.ylabel("code rate", fontsize=10)
     pyplot.savefig("./results/figures/[3-1] stability evaluation.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
@@ -163,6 +163,8 @@ def draw():
 
 if __name__ == "__main__":
     create_folders()
+
     whole_data = generate(random_seed=2021, total_length=8 * 1024 * 64, times=100)
     evaluate(dataset=whole_data)
+
     draw()

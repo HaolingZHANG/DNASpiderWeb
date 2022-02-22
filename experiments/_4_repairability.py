@@ -1,6 +1,6 @@
 # noinspection PyPackageRequirements
 from matplotlib import pyplot
-from numpy import load, save, zeros, array, linspace, sum, max, mean, clip, inf, log, log10, corrcoef, where
+from numpy import load, save, zeros, array, linspace, sum, max, mean, clip, inf, log, log10, polyfit, corrcoef, where
 from os import path
 from pickle import load as pload
 from pickle import dump as psave
@@ -13,48 +13,49 @@ from experiments.code_repair import evaluate_repair_multiple_errors
 def multiple_evaluation(task_seed, repeats):
     filter_indices, task_1, task_2 = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"], {}, {}
 
-    for filter_index in filter_indices:
-        accessor = load("./results/data/a" + filter_index + "[g].npy")
-        vertices = where(load("./results/data/a" + filter_index + "[v].npy") == 1)[0]
-        for error_time in [1, 2, 3, 4]:
-            save_path = "./results/temp/multiple." + filter_index + ".100." + str(error_time).zfill(2) + ".npy"
-            if not path.exists(save_path):
-                records = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
-                                                          accessor=accessor, vertices=vertices,
-                                                          observed_length=10, repeats=repeats,
-                                                          dna_length=100, check_iterations=error_time + 1)
-                save(file=save_path, arr=records)
-            else:
-                records = load(file=save_path)
+    if not path.exists("./results/data/step_4_repairability_multiple_errors.pkl"):
+        for filter_index in filter_indices:
+            accessor = load("./results/data/a" + filter_index + "[g].npy")
+            vertices = where(load("./results/data/a" + filter_index + "[v].npy") == 1)[0]
+            for error_time in [1, 2, 3, 4]:
+                save_path = "./results/temp/multiple." + filter_index + ".100." + str(error_time).zfill(2) + ".npy"
+                if not path.exists(save_path):
+                    records = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
+                                                              accessor=accessor, vertices=vertices,
+                                                              observed_length=10, repeats=repeats,
+                                                              dna_length=100, check_iterations=error_time + 1)
+                    save(file=save_path, arr=records)
+                else:
+                    records = load(file=save_path)
 
-            task_1[(int(filter_index), error_time)] = records
+                task_1[(int(filter_index), error_time)] = records
 
-    accessor = load("./results/data/a01[g].npy")
-    vertices = where(load("./results/data/a01[v].npy") == 1)[0]
-    for dna_length in linspace(start=100, stop=400, num=4, dtype=int):
-        for error_time in (linspace(1, 4, 4) * dna_length / 100).astype(int):
-            save_path = "./results/temp/multiple.01." \
-                        + str(dna_length).zfill(3) + "." + str(error_time).zfill(2) + ".npy"
-            if not path.exists(save_path):
-                records = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
-                                                          accessor=accessor, vertices=vertices,
-                                                          observed_length=10, repeats=repeats,
-                                                          dna_length=dna_length, check_iterations=error_time + 1)
-                save(file=save_path, arr=records)
-            else:
-                records = load(file=save_path)
+        accessor = load("./results/data/a01[g].npy")
+        vertices = where(load("./results/data/a01[v].npy") == 1)[0]
+        for dna_length in linspace(start=100, stop=400, num=4, dtype=int):
+            for error_time in (linspace(1, 4, 4) * dna_length / 100).astype(int):
+                save_path = "./results/temp/multiple.01." \
+                            + str(dna_length).zfill(3) + "." + str(error_time).zfill(2) + ".npy"
+                if not path.exists(save_path):
+                    records = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
+                                                              accessor=accessor, vertices=vertices,
+                                                              observed_length=10, repeats=repeats,
+                                                              dna_length=dna_length, check_iterations=error_time + 1)
+                    save(file=save_path, arr=records)
+                else:
+                    records = load(file=save_path)
 
-            task_2[(dna_length, error_time)] = records
+                task_2[(dna_length, error_time)] = records
 
-    with open("./results/data/step_4_repairability_multiple_errors.pkl", "wb") as file:
-        psave((task_1, task_2), file)
+        with open("./results/data/step_4_repairability_multiple_errors.pkl", "wb") as file:
+            psave((task_1, task_2), file)
 
 
 def draw_main():
     with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
         task_1, task_2 = pload(file)
 
-    figure = pyplot.figure(figsize=(10, 6), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 7.5), tight_layout=True)
 
     pyplot.subplot(2, 2, 1)
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
@@ -66,13 +67,13 @@ def draw_main():
         pyplot.plot(range(4), rates, color=gradient_colors[filter_index - 1],
                     linewidth=2, marker="o", label=str(filter_index).zfill(2))
 
-    pyplot.legend(loc="upper right", ncol=3, fontsize=8)
-    pyplot.xlabel("introduced error rate", fontsize=8)
+    pyplot.legend(loc="upper right", ncol=3, fontsize=10)
+    pyplot.xlabel("introduced error rate", fontsize=10)
     pyplot.xlim(-0.075, 3.075)
-    pyplot.xticks([0, 1, 2, 3], ["1%", "2%", "3%", "4%"], fontsize=8)
-    pyplot.ylabel("correction rate", fontsize=8)
+    pyplot.xticks([0, 1, 2, 3], ["1%", "2%", "3%", "4%"], fontsize=10)
+    pyplot.ylabel("correction rate", fontsize=10)
     pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=8)
+    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=10)
 
     print("A", corrcoef(valid_numbers, observed_rates)[0, 1])
 
@@ -95,17 +96,17 @@ def draw_main():
         for j in range(4):
             if rate_matrix[i, j] >= 0:
                 pyplot.text(x=i + 0.5, y=j + 0.5, s="%.1f" % (rate_matrix[i, j] * 100) + "%",
-                            va="center", ha="center", fontsize=8)
+                            va="center", ha="center", fontsize=10)
             else:
                 pyplot.text(x=i + 0.5, y=j + 0.5, s="x",
-                            va="center", ha="center", fontsize=8)
+                            va="center", ha="center", fontsize=10)
 
-    pyplot.xlabel("length of DNA string", fontsize=8)
+    pyplot.xlabel("DNA string length", fontsize=10)
     pyplot.xlim(0, 4)
-    pyplot.xticks([0.5, 1.5, 2.5, 3.5], ["100nt", "200nt", "300nt", "400nt"], fontsize=8)
-    pyplot.ylabel("introduced error rate", fontsize=8)
+    pyplot.xticks([0.5, 1.5, 2.5, 3.5], ["100nt", "200nt", "300nt", "400nt"], fontsize=10)
+    pyplot.ylabel("introduced error rate", fontsize=10)
     pyplot.ylim(0, 4)
-    pyplot.yticks([0.5, 1.5, 2.5, 3.5], ["1%", "2%", "3%", "4%"], fontsize=8)
+    pyplot.yticks([0.5, 1.5, 2.5, 3.5], ["1%", "2%", "3%", "4%"], fontsize=10)
 
     print("B", corrcoef(x, y)[0, 1])
 
@@ -131,15 +132,15 @@ def draw_main():
     shown_data = shown_data[0] / shown_data[1]
     pyplot.bar(range(11), shown_data, color="silver", edgecolor="black")
     for index, value in enumerate(shown_data):
-        pyplot.text(x=index, y=value + 0.02, s=str(int(value * 100 + 0.5)) + "%", ha="center", va="bottom", fontsize=8)
+        pyplot.text(x=index, y=value + 0.02, s=str(int(value * 100 + 0.5)) + "%", ha="center", va="bottom", fontsize=10)
 
-    pyplot.xlabel("normalized coefficient of variation", fontsize=8)
+    pyplot.xlabel("normalized coefficient of variation", fontsize=10)
     pyplot.xlim(-0.6, 10.6)
     pyplot.xticks(range(11),
-                  ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"], fontsize=8)
-    pyplot.ylabel("correction rate", fontsize=8)
+                  ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"], fontsize=10)
+    pyplot.ylabel("correction rate", fontsize=10)
     pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=8)
+    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=10)
 
     print("C", corrcoef(linspace(0, 1, 11), shown_data)[0, 1])
 
@@ -176,29 +177,25 @@ def draw_main():
         values[1].append(mean(latters))
 
         pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0], points],
-                      ["search-only", "combined", "mean value"], fontsize=8)
-    pyplot.xlabel("constraint set", fontsize=8)
-    pyplot.xticks(range(1, 13), filter_indices, fontsize=8)
+                      ["search-only", "combined", "mean value"], fontsize=10)
+    pyplot.xlabel("constraint set", fontsize=10)
+    pyplot.xticks(range(1, 13), filter_indices, fontsize=10)
     pyplot.xlim(0.5, 12.5)
-    pyplot.ylabel("number of correction candidates", fontsize=8)
-    pyplot.yticks([0, 1, 2, 3], [1, 10, 100, 1000], fontsize=8)
+    pyplot.ylabel("number of correction candidate", fontsize=10)
+    pyplot.yticks([0, 1, 2, 3], [1, 10, 100, 1000], fontsize=10)
     pyplot.ylim(-0.2, 3.2)
 
     values = 10 ** array(values)
     rates = array(rates)
 
-    print("D", values[0])
-    print("D", values[1])
-    print("D", values[0] - values[1])
-    print("D", rates[0])
-    print("D", rates[1])
-    print("D", rates[0] / rates[1])
+    print("D", ["%.1f" % value for value in values[0] - values[1]])
+    print("D", ["%.1f" % (rate * 100) + "%" for rate in rates[0] / rates[1]])
 
     figure.align_labels()
-    figure.text(0.019, 0.99, "A", va="center", ha="center")
-    figure.text(0.512, 0.99, "B", va="center", ha="center")
-    figure.text(0.019, 0.50, "C", va="center", ha="center")
-    figure.text(0.512, 0.50, "D", va="center", ha="center")
+    figure.text(0.021, 0.99, "A", va="center", ha="center", fontsize=12)
+    figure.text(0.517, 0.99, "B", va="center", ha="center", fontsize=12)
+    figure.text(0.021, 0.50, "C", va="center", ha="center", fontsize=12)
+    figure.text(0.517, 0.50, "D", va="center", ha="center", fontsize=12)
 
     pyplot.savefig("./results/figures/[4-1] repairability main.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
@@ -213,20 +210,30 @@ def draw_corr():
 
     pyplot.subplot(3, 1, 1)
     numbers, rates = [], []
+    gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
+    x, y = [], []
     for filter_index in range(1, 13):
-        numbers.append(sum(load("./results/data/a" + str(filter_index).zfill(2) + "[v].npy")))
-        rates.append(sum(task_1[filter_index, 2][:, -1]) / 2000.0)
+        x.append(sum(load("./results/data/a" + str(filter_index).zfill(2) + "[v].npy")))
+        y.append(sum(task_1[filter_index, 2][:, -1]) / 2000.0)
+        pyplot.scatter([log(float(x[-1])) / log(4)], [y[-1]],
+                       color=gradient_colors[filter_index - 1], edgecolor="black", label=str(filter_index).zfill(2),
+                       s=40, zorder=2)
     numbers = array(numbers)
     rates = array(rates)
     pyplot.scatter(log(numbers) / log(4), rates, color="silver", edgecolor="black")
-
-    pyplot.xlabel("valid number", fontsize=8)
+    x, y = array(x), array(y)
+    a, b = polyfit(log(x) / log(4), y, deg=1)
+    shown_x = linspace(5, 10, 51)
+    shown_y = a * shown_x + b
+    pyplot.plot(shown_x, shown_y, color="black", linewidth=2, linestyle="--", zorder=1)
+    pyplot.legend(loc="upper right", ncol=3, fontsize=10)
+    pyplot.xlabel("valid number", fontsize=10)
     pyplot.xticks([5, 6, 7, 8, 9, 10],
-                  ["$4^5$", "$4^6$", "$4^7$", "$4^8$", "$4^9$", "$4^{10}$"], fontsize=8)
+                  ["$4^5$", "$4^6$", "$4^7$", "$4^8$", "$4^9$", "$4^{10}$"], fontsize=10)
     pyplot.xlim(4.95, 10.05)
-    pyplot.ylabel("correction rate", fontsize=8)
+    pyplot.ylabel("correction rate", fontsize=10)
     pyplot.ylim(-0.06, 1.06)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=8)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
 
     pyplot.subplot(3, 1, 2)
     statistics = [[] for _ in range(16)]
@@ -243,32 +250,38 @@ def draw_corr():
     pyplot.scatter(x, y, color="silver", edgecolor="black", zorder=2)
     pyplot.plot(x, y, color="black", linewidth=1, zorder=1)
 
-    pyplot.xlabel("introduced error number", fontsize=8)
-    pyplot.xticks(range(1, 17), range(1, 17), fontsize=8)
+    pyplot.xlabel("introduced error number", fontsize=10)
+    pyplot.xticks(range(1, 17), range(1, 17), fontsize=10)
     pyplot.xlim(0.85, 16.15)
-    pyplot.ylabel("correction rate", fontsize=8)
+    pyplot.ylabel("correction rate", fontsize=10)
     pyplot.ylim(-0.06, 1.06)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=8)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
 
     pyplot.subplot(3, 1, 3)
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    rates = []
     for filter_index in range(1, 13):
-        rates.append(sum(task_1[filter_index, 1][:, 2]) / 2000.0)
-    pyplot.bar(linspace(1, 12, 12), log10(array(rates) * 10000),
-               width=0.4, color="silver", edgecolor="black")
+        rate = sum(task_1[filter_index, 1][:, 2]) / 2000.0
+        value = log10(rate * 10000)
+        if filter_index < 9:
+            pyplot.fill_between([filter_index - 0.2, filter_index + 0.2], [0, 0], [value, value],
+                                color="silver")
+        else:
+            pyplot.fill_between([filter_index - 0.2, filter_index + 0.2], [0, 0], [value, value],
+                                color=colors["algo1"])
+            pyplot.text(filter_index, log10(rate * 10000) + 0.03, "%.1f" % (rate * 100) + "%",
+                        va="bottom", ha="center", color=colors["algo1"], fontsize=10)
 
-    pyplot.xlabel("constraint set", fontsize=8)
-    pyplot.xticks(range(1, 13), filter_indices, fontsize=8)
+    pyplot.xlabel("constraint set", fontsize=10)
+    pyplot.xticks(range(1, 13), filter_indices, fontsize=10)
     pyplot.xlim(0.7, 12.3)
-    pyplot.ylabel("detection rate", fontsize=8)
+    pyplot.ylabel("detection rate", fontsize=10)
     pyplot.ylim(-0.25, 4.25)
-    pyplot.yticks([0, 1, 2, 3, 4], ["0.01%", "0.1%", "1%", "10%", "100%"], fontsize=8)
+    pyplot.yticks([0, 1, 2, 3, 4], ["0.01%", "0.1%", "1%", "10%", "100%"], fontsize=10)
 
     figure.align_labels()
-    figure.text(0.019, 0.99, "A", va="center", ha="center")
-    figure.text(0.019, 0.67, "B", va="center", ha="center")
-    figure.text(0.019, 0.34, "C", va="center", ha="center")
+    figure.text(0.021, 0.99, "A", va="center", ha="center", fontsize=12)
+    figure.text(0.021, 0.67, "B", va="center", ha="center", fontsize=12)
+    figure.text(0.021, 0.34, "C", va="center", ha="center", fontsize=12)
 
     pyplot.savefig("./results/figures/[4-2] repairability correlations.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)

@@ -99,11 +99,11 @@ def draw_total(bit_length):
             pyplot.hlines(median(collected_data[index]), index - 0.25, index + 0.25,
                           color=gradient_colors[index], linewidth=2)
 
-    pyplot.xlabel("constraint set", fontsize=8)
-    pyplot.xticks(range(12), filter_indices, fontsize=8)
+    pyplot.xlabel("constraint set", fontsize=10)
+    pyplot.xticks(range(12), filter_indices, fontsize=10)
     pyplot.xlim(-0.5, 11.5)
-    pyplot.ylabel("transmitted data capacity", fontsize=8)
-    pyplot.yticks([0, 1, 2, 3], ["B", "KB", "MB", "GB"], fontsize=8)
+    pyplot.ylabel("transmitted data capacity", fontsize=10)
+    pyplot.yticks([0, 1, 2, 3], ["B", "KB", "MB", "GB"], fontsize=10)
     pyplot.ylim(0, 3)
 
     pyplot.subplot(1, 2, 2)
@@ -117,7 +117,7 @@ def draw_total(bit_length):
         follow_ups[index] = counts
 
     pyplot.hlines(bit_length, 0, 320, color="silver", linewidth=0.75, linestyle="--", zorder=1)
-    pyplot.text(4, 256 + 4, "reference", va="bottom", ha="left", fontsize=8)
+    pyplot.text(4, 256 + 4, "reference", va="bottom", ha="left", fontsize=10)
     for index, filter_index in enumerate(filter_indices):
         lengths = linspace(0, 320, 321)
         rate = follow_ups[index][0] * 2.0 + follow_ups[index][1] * 6.0 + follow_ups[index][2] * 24.0
@@ -136,17 +136,17 @@ def draw_total(bit_length):
                            color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
                            label="[" + str(filter_index) + "] %.2f" % reference_length)
 
-    pyplot.legend(loc="upper right", ncol=2, fontsize=8)
-    pyplot.xlabel("DNA string length", fontsize=8)
+    pyplot.legend(loc="upper right", ncol=2, fontsize=10)
+    pyplot.xlabel("DNA string length", fontsize=10)
     pyplot.xlim(0, 320)
-    pyplot.xticks([0, 64, 128, 192, 256, 320], ["0nt", "64nt", "128nt", "192nt", "256nt", "320nt"], fontsize=8)
-    pyplot.ylabel("equivalent key strength", fontsize=8)
+    pyplot.xticks([0, 64, 128, 192, 256, 320], ["0nt", "64nt", "128nt", "192nt", "256nt", "320nt"], fontsize=10)
+    pyplot.ylabel("equivalent key strength", fontsize=10)
     pyplot.ylim(0, 384)
-    pyplot.yticks([0, 128, 256, 384], [0, 128, 256, 384], fontsize=8)
+    pyplot.yticks([0, 128, 256, 384], [0, 128, 256, 384], fontsize=10)
 
     figure.align_labels()
-    figure.text(0.018, 0.98, "A", va="center", ha="center")
-    figure.text(0.500, 0.98, "B", va="center", ha="center")
+    figure.text(0.019, 0.98, "A", va="center", ha="center", fontsize=12)
+    figure.text(0.500, 0.98, "B", va="center", ha="center", fontsize=12)
 
     pyplot.savefig("./results/figures/[5-1] privacy evaluation.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
@@ -186,17 +186,17 @@ def draw_reason():
         pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2,
                     label="constraint set " + str(index + 1).zfill(2))
 
-    pyplot.legend(loc="upper left", fontsize=8)
-    pyplot.xlabel("graph reconstruction percentage", fontsize=8)
+    pyplot.legend(loc="upper left", fontsize=10)
+    pyplot.xlabel("graph reconstruction percentage", fontsize=10)
     pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=8)
+                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=10)
     pyplot.xlim(0, 1)
-    pyplot.ylabel("transmitted data capacity", fontsize=8)
+    pyplot.ylabel("transmitted data capacity", fontsize=10)
     pyplot.yticks([0.0 * 1e8, 0.2 * 1e8, 0.4 * 1e8, 0.6 * 1e8, 0.8 * 1e8, 1.0 * 1e8,
                    1.2 * 1e8, 1.4 * 1e8, 1.6 * 1e8, 1.8 * 1e8, 2.0 * 1e8],
                   ["0.0E+8 bytes", "0.2E+8 bytes", "0.4E+8 bytes", "0.6E+8 bytes", "0.8E+8 bytes", "1.0E+8 bytes",
                    "1.2E+8 bytes", "1.4E+8 bytes", "1.6E+8 bytes", "1.8E+8 bytes", "2.0E+8 bytes"],
-                  fontsize=8)
+                  fontsize=10)
     pyplot.ylim(0, 2 * 1e8)
 
     pyplot.savefig("./results/figures/[5-2] privacy reason.pdf",
