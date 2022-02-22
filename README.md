@@ -4,8 +4,8 @@
 
 [![CircleCI](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb/tree/main.svg?style=shield&circle-token=6aeac22720c5828585591fa5e2f4917bcaae9a72)](https://circleci.com/gh/HaolingZHANG/DNASpiderWeb/tree/main)
 [![Coverage Status](https://coveralls.io/repos/HaolingZHANG/DNASpiderWeb/badge.svg?branch=master&service=github)](https://coveralls.io/github/HaolingZhang/DNASpiderWeb?branch=master)
-[![PythonVersion](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?maxAge=259200)](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/LICENSE)
+[![PythonVersion](https://img.shields.io/badge/python-3.7-blue)](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
+[![License](https://img.shields.io/badge/License-GPL-blue.svg?maxAge=259200)](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/LICENSE)
 
 
 As a genetic material, DNA has become an attractive medium for storing digital information gradually.
@@ -40,8 +40,7 @@ and [biopython 1.78](https://pypi.org/project/biopython/).
 These experimental Python scripts [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments) are single threaded. 
 It may take about several months to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
 In order to further understand the experimental situation, 
-like getting [raw data](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/results/data/NOTES.md), 
-please do not hesitate to contact us.
+like getting raw data, please do not hesitate to contact us.
 
 ## Library structure
 The structure of this library is shown below:
@@ -107,7 +106,7 @@ The installation process only includes folder 'dsw' and its internal files.
 ## Basic evaluation
 Some investigations of 
 [SPIDER-WEB](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py) are recorded 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/REPORTS.pdf), 
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/REPORTS.pdf), 
 which are generated directly through the [process Python scripts](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments/).
 For detailed design, evaluations and conclusions, please refer to our publication.
 
