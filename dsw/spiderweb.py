@@ -211,8 +211,11 @@ def set_vt(dna_string, vt_length, nucleotides=None):
 
     .. note::
         Reference [1] Rom R. Varshamov and Grigory M. Tenengolts (1965) Avtomat. i Telemekh
+
         Reference [2] Grigory Tenengolts (1984) IEEE Transactions on Information Theory
+
         Reference [3] William H. Press et al. (2020) Proceedings of the National Academy of Sciences
+
         Reference [4] A. Xavier Kohll et al. (2020) Chemical Communications
     """
     if nucleotides is None:
