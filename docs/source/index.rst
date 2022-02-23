@@ -17,7 +17,7 @@ for obtained DNA strings with one or more edit errors (including substitution, i
 
 .. image:: _static/strategy_2.svg
 
-Last but not least, as a data confounder, ****SPIDER-WEB**** offers **mapping shuffling**,
+Last but not least, as a data confounder, **SPIDER-WEB** offers **mapping shuffling**,
 to strengthen the capability of privacy protection.
 
 .. image:: _static/strategy_3.svg
