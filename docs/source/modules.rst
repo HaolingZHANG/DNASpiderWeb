@@ -6,13 +6,17 @@ Modules
   :alt: title
 
 SPIDER-WEB package consists of four modules:
-(1) biochemical constraint module,
-(2) transcoding process module,
-(3) graph-based operation module, and
-(4) fundamental operation module.
+
+- biochemical constraint module (`biofilter.py <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py>`_): implementation of 'biochemical constraint filter'.
+
+- transcoding process module (`spiderweb.py <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/spiderweb.py>`_): implementation of 'coding algorithm generation', 'encoding process', 'decoding process', 'shuffled matrix creation for mapping shuffling', 'Varshamov-Tenengolts-based path check set', and 'obtained DNA string correction'.
+
+- graph-based operation module (`graphized.py <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/graphized.py>`_): implementation of 'data structure transformation between different graph representations', 'vertex search', 'path search', and 'capacity approximation'.
+
+- fundamental operation module (`operation.py <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/operation.py>`_): implementation of 'process monitor', 'large integer basic operation', and 'conversion between binary message, decimal number, and DNA string'.
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
 Biochemical Constraint Module
 ------------------------------------------

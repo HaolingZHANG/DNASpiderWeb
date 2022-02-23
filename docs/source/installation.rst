@@ -1,7 +1,7 @@
 Installation
 ============
 
-Install it using pip: (See more details on installation below)
+Install it using pip:
 
 .. code-block:: bash
 
@@ -16,5 +16,5 @@ Or you can also install it from source.
    $ pip install -r requirements.txt  # Install the requirements
    $ python setup.py install develop --user
 
-The packages requires a python version >=3.7, as well as some libraries listed
+The packages requires a python version >=3.7, and some libraries listed
 in the `requirements file <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/requirements.txt>`_.

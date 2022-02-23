@@ -65,4 +65,4 @@ The following figure shows how the package and its algorithms are structured:
     │    ├── test_transcoding.py                // Unit test for the default transcoding correctness
     ├── README.md                               // Description document of library
 
-The installation process in the first one only includes folder 'dsw' and its internal files.
+The installation process using 'pip' only includes folder 'dsw' and its internal files.

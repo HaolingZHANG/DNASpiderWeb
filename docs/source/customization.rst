@@ -38,12 +38,13 @@ For example:
 
 Here is an investigated example in this work named `LocalBioFilter <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30>`_.
 
-Besides, according to SPIDER-WEB, you can obtain the corresponding variable-length algorithms:
+Besides, according to SPIDER-WEB, you can obtain the corresponding variable-length algorithms
+based on the customized biochemical constraints, for example:
 
 .. code-block:: python
 
     from dsw import LocalBioFilter, find_vertices, connect_coding_graph
 
-    bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["ACA", "CAC", "GTG", "TGT"])
+    bio_filter = LocalBioFilter(max_homopolymer_runs=4, gc_range=[0.1, 0.3], undesired_motifs=["GCC"])
     vertices = find_vertices(observed_length=10, bio_filter=bio_filter)
-    accessor = connect_coding_graph(observed_length=10, vertices=vertices, threshold=1)  # representation of directed graph
+    accessor = connect_coding_graph(observed_length=10, vertices=vertices, threshold=1)

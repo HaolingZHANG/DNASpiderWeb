@@ -32,8 +32,8 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
     :param verbose: need to print log.
     :type verbose: bool
 
-    :return: DNA string encoded by this graph.
-    :rtype: str
+    :return: DNA string encoded by this graph (and VT check string if required).
+    :rtype: str or (str, str)
 
     Example
         >>> from numpy import array
@@ -122,6 +122,8 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
     :return: binary message decoded by this graph.
     :rtype: numpy.ndarray
 
+    :raise ValueError: if one or more errors are found.
+
     Example
         >>> from numpy import array
         >>> from dsw import decode
@@ -186,7 +188,7 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
 
 def set_vt(dna_string, vt_length, nucleotides=None):
     """
-    Set Varshamov-Tenengolts-based path check from DNA string (payload).
+    Set Varshamov-Tenengolts-based path check string ('salt-protected') from DNA (payload) string.
 
     :param dna_string: DNA string encoded through SPIDER-WEB.
     :type dna_string: str
@@ -210,6 +212,8 @@ def set_vt(dna_string, vt_length, nucleotides=None):
     .. note::
         Reference [1] Rom R. Varshamov and Grigory M. Tenengolts (1965) Avtomat. i Telemekh
         Reference [2] Grigory Tenengolts (1984) IEEE Transactions on Information Theory
+        Reference [3] William H. Press et al. (2020) Proceedings of the National Academy of Sciences
+        Reference [4] A. Xavier Kohll et al. (2020) Chemical Communications
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -466,6 +470,8 @@ def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
     :return: available vertices.
     :rtype: numpy.ndarray
 
+    :raise ValueError: if no valid vertices are available under the required biochemical constraints.
+
     Example
         >>> from dsw import LocalBioFilter, find_vertices
         >>> bio_filter = LocalBioFilter(observed_length=2, max_homopolymer_runs=2, gc_range=[0.5, 0.5])
@@ -520,6 +526,8 @@ def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=Fal
 
     :return: accessor of the valid graph.
     :rtype: numpy.ndarray
+
+    :raise ValueError: if no valid vertices are available.
 
     Example
         >>> from numpy import array
@@ -600,11 +608,12 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
     :return: coding vertices and coding accessor.
     :rtype: (numpy.ndarray, numpy.ndarray)
 
+    :raise ValueError: if no coding graph are created because of the vertex set and/or the trimming requirement.
+
     Example
         >>> from numpy import array
         >>> from dsw import connect_coding_graph
-        >>> vertices = array([False,  True,  True, False,  True, False, False,  True,  True, \
-                              False, False,  True, False,  True,  True, False])
+        >>> vertices = array([0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0])
         >>> vertices, accessor = connect_coding_graph(observed_length=2, vertices=vertices, threshold=2)
         >>> accessor
         array([[-1, -1, -1, -1],
@@ -654,7 +663,7 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
                   + "valid vertices are saved.")
 
         if sum(new_vertices) < 1:
-            raise ValueError("No algorithmic graph is created!")
+            raise ValueError("No coding graph is created!")
 
         if not changed:
             break
@@ -723,7 +732,8 @@ def create_random_shuffles(observed_length, nucleotides=None, random_seed=None, 
                [0, 3, 2, 1]])
 
     .. note::
-        The shuffle strategy disrupts the bit-to-nucleotide mapping order, so it can be used as an encryption policy.
+        The mapping shuffle strategy disrupts the digit-to-nucleotide mapping order,
+        so it can be used as an privacy protection mechanism.
 
         Value 0 ~ 3 in each line shuffle only describes the relationship between progressive order and position.
         The original position is [0, 1, 2, 3].

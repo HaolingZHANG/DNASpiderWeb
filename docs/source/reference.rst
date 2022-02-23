@@ -1,7 +1,7 @@
 References
 ==========
 
-Here are the references of this package
+Here are the references of this package:
 
 - Oskar Perron (1907) Mathematische Annalen
 
@@ -26,5 +26,7 @@ Here are the references of this package
 - Florent Capelli and Yann Strozecki (2019) Discrete Applied Mathematics
 
 - William H. Press et al. (2020) Proceedings of the National Academy of Sciences
+
+- A. Xavier Kohll et al. (2020) Chemical Communications
 
 - Hannah F Löchel et al. (2021) Nucleic Acids Research
