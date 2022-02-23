@@ -33,4 +33,4 @@ man_pages = [(master_doc, "SPIDERWEB", "SPIDERWEB Documentation", [author], 1)]
 texinfo_documents = [(master_doc, "SPIDERWEB", "SPIDERWEB Documentation",
                       author, "SPIDERWEB", "One line description of project.", "Miscellaneous")]
 napoleon_use_ivar = True
-html_favicon = '_static/small_logo.png'
+html_favicon = "_static/favicon.svg"

@@ -1,6 +1,8 @@
 Installation
 ============
 
+.. image:: _static/logo.svg
+
 Install it using pip:
 
 .. code-block:: bash

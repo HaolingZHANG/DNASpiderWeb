@@ -1,6 +1,8 @@
 Customization
 =============
 
+.. image:: _static/logo.svg
+
 You can create your customized biochemical constraint filter (as the biochemical constraints set)
 by inheriting `DefaultBioFilter <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L4>`_.
 For example:
@@ -38,7 +40,7 @@ For example:
 
 Here is an investigated example in this work named `LocalBioFilter <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py#L30>`_.
 
-Besides, according to SPIDER-WEB, you can obtain the corresponding variable-length algorithms
+Besides, according to **SPIDER-WEB**, you can obtain the corresponding variable-length algorithms
 based on the customized biochemical constraints, for example:
 
 .. code-block:: python

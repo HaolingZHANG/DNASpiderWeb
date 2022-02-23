@@ -101,7 +101,7 @@ class LocalBioFilter(DefaultBioFilter):
         :rtype: bool
 
         .. note::
-            "only_last" parameter is interesting, which is used to save time.
+            "only_last" parameter is used to save time.
             For most tree-based coding algorithms,
             it is not necessary to detect the sub DNA strings observed in each window from scratch every time.
         """

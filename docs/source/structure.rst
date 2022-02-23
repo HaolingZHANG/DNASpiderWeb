@@ -1,6 +1,8 @@
 Package Structure
 =================
 
+.. image:: _static/logo.svg
+
 The following figure shows how the package and its algorithms are structured:
 
 .. code-block:: html

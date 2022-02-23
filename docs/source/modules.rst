@@ -1,11 +1,9 @@
 Modules
 =======
 
-.. image:: _static/logo.png
-  :width: 100%
-  :alt: title
+.. image:: _static/logo.svg
 
-SPIDER-WEB package consists of four modules:
+**SPIDER-WEB** package consists of four modules:
 
 - biochemical constraint module (`biofilter.py <https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/dsw/biofilter.py>`_): implementation of 'biochemical constraint filter'.
 
