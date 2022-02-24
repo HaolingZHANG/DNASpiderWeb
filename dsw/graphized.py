@@ -595,8 +595,10 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
                                                        need_process=True)
         >>> capacity
         1.0
-        >>> processes
-        [[0.5777866858675372, 0.9117487898585336, 1.0, 1.0], [0.814876469343339, 0.6818879690650359, 1.0, 1.0]]
+        >>> ["%.5f" % value for value in processes[0]]
+        ['0.57779', '0.91175', '1.00000', '1.00000']
+        >>> ["%.5f" % value for value in processes[1]]
+        ['0.81488', '0.68189', '1.00000', '1.00000']
 
     .. note::
         Reference [1] Oskar Perron (1907) Mathematische Annalen
