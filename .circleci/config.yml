@@ -47,6 +47,11 @@ jobs:
             . venv/bin/activate
             nosetests -v
 
+      - run:
+          name: run dsw
+          command: |
+            . venv/bin/activate
+            doctest -v
 
       - store_artifacts:
           path: test-reports
