@@ -48,10 +48,13 @@ jobs:
             nosetests -v
 
       - run:
-          name: run dsw
+          name: run doctests
           command: |
             . venv/bin/activate
-            python -m doctest -v
+            python -m doctest -f dsw/biofilter.py
+            python -m doctest -f dsw/spiderweb.py
+            python -m doctest -f dsw/graphized.py
+            python -m doctest -f dsw/operation.py
 
       - store_artifacts:
           path: test-reports
