@@ -35,6 +35,9 @@ def get_complete_accessor(observed_length, verbose=False):
                [ 4,  5,  6,  7],
                [ 8,  9, 10, 11],
                [12, 13, 14, 15]])
+
+    .. note::
+        The size of accessor is 4 ^ l * 4 and that of corresponding adjacency matrix is 4 ^ l * 4 ^ l.
     """
     accessor, monitor = -ones(shape=(int(4 ** observed_length), 4), dtype=int), Monitor()
 
@@ -56,7 +59,7 @@ def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, v
     :param accessor: accessor (compressed matrix).
     :type: numpy.ndarray
 
-    :param maximum_length: maximum vertex length (like 8 in general) of the adjacency matrix (size is (4^l)^2).
+    :param maximum_length: maximum vertex length (like 8 in general) of the adjacency matrix.
     :type maximum_length: int
 
     :param nucleotides: usage of nucleotides.
@@ -94,6 +97,9 @@ def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, v
                [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
                [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1]])
+
+    .. note::
+        The size of accessor is 4 ^ l * 4 and that of corresponding adjacency matrix is 4 ^ l * 4 ^ l.
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -166,6 +172,9 @@ def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
                [ 4,  5,  6,  7],
                [ 8,  9, 10, 11],
                [12, 13, 14, 15]])
+
+    .. note::
+        The size of accessor is 4 ^ l * 4 and that of corresponding adjacency matrix is 4 ^ l * 4 ^ l.
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -211,6 +220,13 @@ def accessor_to_latter_map(accessor, verbose=False):
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
         >>> accessor_to_latter_map(accessor=accessor)
         {1: [4, 7], 2: [8, 11], 4: [1, 2], 7: [13, 14], 8: [1, 2], 11: [13, 14], 13: [4, 7], 14: [8, 11]}
+
+    .. note::
+        The size of accessor is 4 ^ l * 4.
+
+        The size of corresponding latter map is further reduced,
+        which only retains available information of follow-up vertices.
+        However, latter map is not suitable for matrix calculation.
     """
     latter_map, monitor, total = {}, Monitor(), len(accessor)
     for current, vertex in enumerate(accessor):
@@ -268,6 +284,13 @@ def latter_map_to_accessor(latter_map, observed_length, threshold=None, nucleoti
                [ 4, -1, -1,  7],
                [ 8, -1, -1, 11],
                [-1, -1, -1, -1]])
+
+    .. note::
+        The size of accessor is 4 ^ l * 4.
+
+        The size of corresponding latter map is further reduced,
+        which only retains available information of follow-up vertices.
+        However, latter map is not suitable for matrix calculation.
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]

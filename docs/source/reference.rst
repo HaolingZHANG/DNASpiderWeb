@@ -3,32 +3,32 @@ References
 
 .. image:: _static/logo.svg
 
-Here are the references of this package:
+Here are the references of this package (sort by time):
 
-Oskar Perron (1907) Mathematische Annalen
+- Perron (1907) Mathematische Annalen
 
-Georg Frobenius (1912) Sitzungsberichte der Königlich Preussischen Akademie der Wissenschaften
+- Frobenius (1912) Sitzungsberichte der Königlich Preussischen Akademie der Wissenschaften
 
-Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae
+- Bruijn (1946) Indagationes Mathematicae
 
-Rom R. Varshamov and Grigory M. Tenengolts (1965) Avtomat. i Telemekh
+- Varshamov and Tenengolts (1965) Avtomat. i Telemekh
 
-Grigory Tenengolts (1984) IEEE Transactions on Information Theory
+- Tenengolts (1984) IEEE Transactions on Information Theory
 
-Nabil Kahale (1995) Journal of the ACM
+- Kahale (1995) Journal of the ACM
 
-Brian H. Marcus et al. (2001) Lecture notes
+- Marcus et al. (2001) Lecture notes
 
-Nick Goldman et al. (2013) Nature
+- Goldman et al. (2013) Nature
 
-William Ford (2014) Academic Press
+- Ford (2014) Academic Press
 
-Yaniv Erlich and Dina Zielinski (2017) Science
+- Erlich and Zielinski (2017) Science
 
-Florent Capelli and Yann Strozecki (2019) Discrete Applied Mathematics
+- Capelli and Strozecki (2019) Discrete Applied Mathematics
 
-William H. Press et al. (2020) Proceedings of the National Academy of Sciences
+- Kohll et al. (2020) Chemical Communications
 
-A. Xavier Kohll et al. (2020) Chemical Communications
+- Press et al. (2020) Proceedings of the National Academy of Sciences
 
-Hannah F Löchel et al. (2021) Nucleic Acids Research
+- Löchel et al. (2021) Nucleic Acids Research
