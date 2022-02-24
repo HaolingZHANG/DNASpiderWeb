@@ -51,7 +51,7 @@ jobs:
           name: run dsw
           command: |
             . venv/bin/activate
-            doctest -v
+            python -m doctest -v
 
       - store_artifacts:
           path: test-reports
