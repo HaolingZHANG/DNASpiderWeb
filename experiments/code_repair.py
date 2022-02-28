@@ -165,6 +165,31 @@ def show_multiple_examples():
     random.seed(None)
 
 
+def introduce_errors(right_dna_string, error_times, observed_length, nucleotides=None):
+    if nucleotides is None:
+        nucleotides = ["A", "C", "G", "T"]
+
+    while True:
+        wrong_dna_string = list(right_dna_string)  # introduce error under most dense.
+
+        for _ in range(error_times):
+            wrong_type = random.randint(0, 3)  # the probability of three types of errors is the same.
+            error_location = random.randint(observed_length + 1, len(wrong_dna_string) - observed_length - 1)
+            if wrong_type == 0:  # substitution
+                nucleotide = random.choice(list(filter(lambda n: n != wrong_dna_string[error_location],
+                                                       nucleotides)))
+                wrong_dna_string[error_location] = nucleotide
+            elif wrong_type == 1:  # insertion
+                nucleotide = random.choice(nucleotides)
+                wrong_dna_string.insert(error_location, nucleotide)
+            else:  # deletion
+                del wrong_dna_string[error_location]
+        wrong_dna_string = "".join(wrong_dna_string)
+
+        if wrong_dna_string != right_dna_string:
+            return wrong_dna_string
+
+
 def evaluate_repair_multiple_errors(random_seed, accessor, vertices, observed_length,
                                     repeats, dna_length, error_times, check_iterations, nucleotides=None):
     if nucleotides is None:
@@ -186,25 +211,9 @@ def evaluate_repair_multiple_errors(random_seed, accessor, vertices, observed_le
 
         vt_check = set_vt(dna_string=right_dna_string, vt_length=observed_length + 1, nucleotides=nucleotides)
 
-        while True:
-            wrong_dna_string = list(right_dna_string)  # introduce error under most dense.
-
-            for _ in range(error_times):
-                wrong_type = random.randint(0, 3)  # the probability of three types of errors is the same.
-                error_location = random.randint(observed_length + 1, len(wrong_dna_string) - observed_length - 1)
-                if wrong_type == 0:  # substitution
-                    nucleotide = random.choice(list(filter(lambda n: n != wrong_dna_string[error_location],
-                                                           nucleotides)))
-                    wrong_dna_string[error_location] = nucleotide
-                elif wrong_type == 1:  # insertion
-                    nucleotide = random.choice(nucleotides)
-                    wrong_dna_string.insert(error_location, nucleotide)
-                else:  # deletion
-                    del wrong_dna_string[error_location]
-            wrong_dna_string = "".join(wrong_dna_string)
-
-            if wrong_dna_string != right_dna_string:
-                break
+        wrong_dna_string = introduce_errors(right_dna_string=right_dna_string,
+                                            error_times=error_times, observed_length=observed_length,
+                                            nucleotides=nucleotides)
 
         max_score, shown_right, shown_wrong = 0, "", ""
         for alignment in align.localxx(right_dna_string, wrong_dna_string):

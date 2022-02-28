@@ -171,5 +171,13 @@ def fountain(binary_messages, bio_filter, header_size, c, delta):
     return nucleotide_number
 
 
+def generate(random_seed, total_length, times):
+    dataset = []
+    random.seed(random_seed)
+    for _ in range(times):
+        dataset.append(random.randint(low=0, high=2, size=(total_length,), dtype=int))
+    return dataset
+
+
 def insert_index(data, index_length):
     return connect_all(bit_segments=data, index_binary_length=index_length, need_logs=False)[0]

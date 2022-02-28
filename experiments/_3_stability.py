@@ -5,7 +5,7 @@ from numpy import random, array, load, save, sum, median, min, max, where
 from os import path
 
 from experiments import colors, create_folders, obtain_filters
-from experiments.code_encode import generated, hedges, fountain, yinyang, insert_index
+from experiments.code_encode import generated, hedges, fountain, yinyang, generate, insert_index
 
 
 def trans_fountain(dataset, shape, index_length, param_number):
@@ -85,14 +85,6 @@ def trans_generated(dataset, shape, index_length, random_seed, param_number):
     return records
 
 
-def generate(random_seed, total_length, times):
-    dataset = []
-    random.seed(random_seed)
-    for _ in range(times):
-        dataset.append(random.randint(low=0, high=2, size=(total_length,), dtype=int))
-    return dataset
-
-
 def evaluate(dataset):
     if not path.exists("./results/data/step_3_stability_evaluation.npy"):
         records = []
@@ -148,7 +140,7 @@ def draw():
 
     legends = [patches.Patch(facecolor=used_colors[index][1], edgecolor=used_colors[index][0],
                              linewidth=1, label=labels[index]) for index in list(range(4))[::-1]]
-    pyplot.legend(handles=legends, loc="upper left", fontsize=10)
+    pyplot.legend(handles=legends, loc="upper right", ncol=4, fontsize=10)
     pyplot.xlim(-0.5, 11.5)
     pyplot.ylim(-0.08, 2.08)
     pyplot.xticks(range(12), filter_indices, fontsize=10)

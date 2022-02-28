@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name="SpiderWeb",
+    name="DNASpiderWeb",
     version="1.0",
     description="package for Spider-Web",
     long_description="As a genetic material, DNA has become an attractive medium "
