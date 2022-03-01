@@ -155,7 +155,7 @@ def stable():
 
 def repair():
     with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
-        task_1, task_2 = pload(file)
+        task_1, task_2, task_3 = pload(file)
 
     pyplot.figure(figsize=(10, 5))
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
@@ -348,6 +348,56 @@ def repair():
     pyplot.ylim(-0.25, 4.25)
     pyplot.yticks([0, 1, 2, 3, 4], ["0.01%", "0.1%", "1%", "10%", "100%"], fontsize=12)
     pyplot.savefig("./results/figures/2.7.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    pyplot.figure(figsize=(10, 5))
+    lengths = linspace(100, 400, 26)
+    styles = ["-", "--", ":"]
+    observed_length = 10
+    for number in range(1, 4):
+        redundancies = 2 * number * (2 * log2(lengths) + log2(4))
+        pyplot.plot(lengths, redundancies / (lengths + redundancies),
+                    color=colors["trad1"], linewidth=2, linestyle=styles[number - 1],
+                    label=str(number) + " error(s), SIMA")
+
+    for number in range(1, 4):
+        redundancies = (observed_length + 1)
+        redundancies += (lengths + observed_length + 1) * ((1 - task_3[number - 1]) / task_3[number - 1])
+        pyplot.plot(lengths, redundancies / (lengths + redundancies),
+                    color=colors["algo1"], linewidth=2, linestyle=styles[number - 1],
+                    label=str(number) + " error(s), SPIDER-WEB")
+
+    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
+    pyplot.xlabel("DNA string length", fontsize=12)
+    pyplot.xlim(100, 400)
+    pyplot.xticks([100, 200, 300, 400], [100, 200, 300, 400], fontsize=12)
+    pyplot.ylabel("redundancy proportion", fontsize=12)
+    pyplot.ylim(0, 1)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=12)
+    pyplot.savefig("./results/figures/2.8.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    pyplot.figure(figsize=(10, 5))
+    lengths = linspace(100, 400, 26)
+    styles = ["-", "--", ":"]
+    for number in range(1, 4):
+        pyplot.plot(lengths, log10(lengths ** (2 * number) * (4 ** number)),
+                    color=colors["trad1"], linewidth=2, linestyle=styles[number - 1],
+                    label=str(number) + " error(s), SIMA")
+    for number in range(1, 4):
+        pyplot.plot(lengths, log10(lengths * observed_length ** number),
+                    color=colors["algo1"], linewidth=2, linestyle=styles[number - 1],
+                    label=str(number) + " error(s), SPIDER-WEB")
+
+    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
+    pyplot.xlabel("DNA string length", fontsize=12)
+    pyplot.xlim(100, 400)
+    pyplot.xticks([100, 200, 300, 400], [100, 200, 300, 400], fontsize=12)
+    pyplot.ylabel("time complexity (operations)", fontsize=12)
+    pyplot.ylim(0, 25)
+    pyplot.yticks([0, 5, 10, 15, 20, 25],
+                  ["$10^0$", "$10^5$", "$10^{10}$", "$10^{15}$", "$10^{20}$", "$10^{25}$"], fontsize=12)
+    pyplot.savefig("./results/figures/2.9.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
