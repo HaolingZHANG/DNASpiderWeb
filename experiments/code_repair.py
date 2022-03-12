@@ -1,5 +1,6 @@
 # noinspection PyPackageRequirements
 from Bio.pairwise2 import align
+from datetime import datetime
 from numpy import random, array, load, sum, std, mean, where
 
 from dsw import Monitor, encode, set_vt, repair_dna
@@ -197,7 +198,7 @@ def evaluate_repair_multiple_errors(random_seed, accessor, vertices, observed_le
 
     print("Check DNA string of length " + str(dna_length) + " imposing " + str(error_times) + " error(s).")
     random.seed(random_seed)
-    records, monitor = [], Monitor()
+    records, monitor, start = [], Monitor(), None
     for current_repeat in range(repeats):
         start_index = random.choice(vertices)
 
@@ -236,7 +237,9 @@ def evaluate_repair_multiple_errors(random_seed, accessor, vertices, observed_le
                         additions[0], additions[2], additions[1], additions[0] or additions[1],
                         len(repaired_dna_strings), right_dna_string in repaired_dna_strings])
         monitor.output(current_repeat + 1, repeats)
+        if start is None:
+            start = monitor.last_time
 
     random.seed(None)
 
-    return array(records)
+    return array(records), (datetime.now() - start).total_seconds()

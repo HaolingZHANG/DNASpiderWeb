@@ -1,9 +1,11 @@
 # noinspection PyPackageRequirements
-from matplotlib import pyplot
-from numpy import load, save, zeros, array, linspace, sum, max, mean, clip, inf, log, log2, log10, polyfit, corrcoef, where
+from matplotlib import pyplot, rcParams
+from numpy import load, save, zeros, array, linspace, polyfit, corrcoef, where
+from numpy import sum, max, mean, power, clip, inf, log, log2, log10
 from os import path
 from pickle import load as pload
 from pickle import dump as psave
+from scipy.special import comb
 
 from experiments import colors, create_folders
 from experiments.code_repair import show_single_examples, show_multiple_examples
@@ -13,7 +15,7 @@ from experiments.code_repair import evaluate_repair_multiple_errors
 def multiple_evaluation(task_seed, repeats):
     if not path.exists("./results/data/step_4_repairability_multiple_errors.pkl"):
         filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-        task_1, task_2, task_3, algorithms = {}, {}, {}, {}
+        task_1, task_2, task_3, algorithms = {}, {}, {}, zeros(shape=(2, 26, 4))
         for filter_index in filter_indices:
             algorithms[filter_index] = (load("./results/data/a" + filter_index + "[g].npy"),
                                         where(load("./results/data/a" + filter_index + "[v].npy") == 1)[0])
@@ -23,11 +25,11 @@ def multiple_evaluation(task_seed, repeats):
             for error_time in [1, 2, 3, 4]:
                 save_path = "./results/temp/multiple." + filter_index + ".100." + str(error_time).zfill(2) + ".npy"
                 if not path.exists(save_path):
-                    records = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
-                                                              accessor=algorithms[filter_index][0],
-                                                              vertices=algorithms[filter_index][1],
-                                                              observed_length=10, repeats=repeats,
-                                                              dna_length=100, check_iterations=error_time + 1)
+                    records, _ = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
+                                                                 accessor=algorithms[filter_index][0],
+                                                                 vertices=algorithms[filter_index][1],
+                                                                 observed_length=10, repeats=repeats,
+                                                                 dna_length=100, check_iterations=error_time + 1)
                     save(file=save_path, arr=records)
                 else:
                     records = load(file=save_path)
@@ -40,34 +42,37 @@ def multiple_evaluation(task_seed, repeats):
                 save_path = "./results/temp/multiple.01." \
                             + str(dna_length).zfill(3) + "." + str(error_time).zfill(2) + ".npy"
                 if not path.exists(save_path):
-                    records = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
-                                                              accessor=algorithms["01"][0],
-                                                              vertices=algorithms["01"][1],
-                                                              observed_length=10, repeats=repeats,
-                                                              dna_length=dna_length, check_iterations=error_time + 1)
+                    records, _ = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
+                                                                 accessor=algorithms["01"][0],
+                                                                 vertices=algorithms["01"][1],
+                                                                 observed_length=10, repeats=repeats,
+                                                                 dna_length=dna_length, check_iterations=error_time + 1)
                     save(file=save_path, arr=records)
                 else:
                     records = load(file=save_path)
 
                 task_2[(dna_length, error_time)] = records
 
-        # task III: detailed task II for theoretical comparison with 2-dimensional RS and Sima et al.
-        # Sima et al (2020) IEEE International Symposium on Information Theory
+        # task III: detailed task II for theoretical comparison about average correction rate and average runtime.
         for dna_length in linspace(100, 400, 26, dtype=int):
             for error_time in [1, 2, 3, 4]:
-                save_path = "./results/temp/multiple.01." \
+                save_path = "./results/temp/detailed.01." \
                             + str(dna_length).zfill(3) + "." + str(error_time).zfill(2) + ".npy"
                 if not path.exists(save_path):
-                    records = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
-                                                              accessor=algorithms["01"][0],
-                                                              vertices=algorithms["01"][1],
-                                                              observed_length=10, repeats=repeats,
-                                                              dna_length=dna_length, check_iterations=error_time + 1)
+                    records, times = evaluate_repair_multiple_errors(random_seed=task_seed, error_times=error_time,
+                                                                     accessor=algorithms["01"][0],
+                                                                     vertices=algorithms["01"][1],
+                                                                     observed_length=10, repeats=repeats,
+                                                                     dna_length=dna_length,
+                                                                     check_iterations=error_time + 1)
                     records = records[:, -1]
+                    rate = sum(records) / len(records)
+                    save(file=save_path, arr=array([rate, times]))
                 else:
                     records = load(file=save_path)
 
-                task_3[(dna_length, error_time)] = records
+                task_3[0, dna_length, error_time] = records[0]
+                task_3[1, dna_length, error_time] = records[1]
 
         with open("./results/data/step_4_repairability_multiple_errors.pkl", "wb") as file:
             psave((task_1, task_2, task_3), file)
@@ -77,7 +82,8 @@ def draw_main():
     with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
         task_1, task_2, task_3 = pload(file)
 
-    figure = pyplot.figure(figsize=(10, 9), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 9.5), tight_layout=True)
+    rcParams["font.family"] = "Linux Libertine"
 
     pyplot.subplot(3, 2, 1)
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
@@ -89,13 +95,13 @@ def draw_main():
         pyplot.plot(range(4), rates, color=gradient_colors[filter_index - 1],
                     linewidth=2, marker="o", label=str(filter_index).zfill(2))
 
-    pyplot.legend(loc="upper right", ncol=3, fontsize=10)
-    pyplot.xlabel("introduced error rate", fontsize=10)
+    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
+    pyplot.xlabel("introduced error rate", fontsize=14)
     pyplot.xlim(-0.075, 3.075)
-    pyplot.xticks([0, 1, 2, 3], ["1%", "2%", "3%", "4%"], fontsize=10)
-    pyplot.ylabel("correction rate", fontsize=10)
+    pyplot.xticks([0, 1, 2, 3], ["1%", "2%", "3%", "4%"], fontsize=14)
+    pyplot.ylabel("correction rate", fontsize=14)
     pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=10)
+    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=14)
 
     print("A", corrcoef(valid_numbers, observed_rates)[0, 1])
 
@@ -118,17 +124,17 @@ def draw_main():
         for j in range(4):
             if rate_matrix[i, j] >= 0:
                 pyplot.text(x=i + 0.5, y=j + 0.5, s="%.1f" % (rate_matrix[i, j] * 100) + "%",
-                            va="center", ha="center", fontsize=10)
+                            va="center", ha="center", fontsize=12)
             else:
                 pyplot.text(x=i + 0.5, y=j + 0.5, s="x",
-                            va="center", ha="center", fontsize=10)
+                            va="center", ha="center", fontsize=12)
 
-    pyplot.xlabel("DNA string length", fontsize=10)
+    pyplot.xlabel("DNA string length", fontsize=14)
     pyplot.xlim(0, 4)
-    pyplot.xticks([0.5, 1.5, 2.5, 3.5], ["100nt", "200nt", "300nt", "400nt"], fontsize=10)
-    pyplot.ylabel("introduced error rate", fontsize=10)
+    pyplot.xticks([0.5, 1.5, 2.5, 3.5], ["100nt", "200nt", "300nt", "400nt"], fontsize=14)
+    pyplot.ylabel("introduced error rate", fontsize=14)
     pyplot.ylim(0, 4)
-    pyplot.yticks([0.5, 1.5, 2.5, 3.5], ["1%", "2%", "3%", "4%"], fontsize=10)
+    pyplot.yticks([0.5, 1.5, 2.5, 3.5], ["1%", "2%", "3%", "4%"], fontsize=14)
 
     print("B", corrcoef(x, y)[0, 1])
 
@@ -154,15 +160,15 @@ def draw_main():
     shown_data = shown_data[0] / shown_data[1]
     pyplot.bar(range(11), shown_data, color="silver", edgecolor="black")
     for index, value in enumerate(shown_data):
-        pyplot.text(x=index, y=value + 0.02, s=str(int(value * 100 + 0.5)) + "%", ha="center", va="bottom", fontsize=10)
+        pyplot.text(x=index, y=value + 0.02, s=str(int(value * 100 + 0.5)) + "%", ha="center", va="bottom", fontsize=12)
 
-    pyplot.xlabel("normalized coefficient of variation", fontsize=10)
+    pyplot.xlabel("normalized coefficient of variation", fontsize=14)
     pyplot.xlim(-0.6, 10.6)
     pyplot.xticks(range(11),
-                  ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"], fontsize=10)
-    pyplot.ylabel("correction rate", fontsize=10)
+                  ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"], fontsize=14)
+    pyplot.ylabel("correction rate", fontsize=14)
     pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=10)
+    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=14)
 
     print("C", corrcoef(linspace(0, 1, 11), shown_data)[0, 1])
 
@@ -170,10 +176,9 @@ def draw_main():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     values, rates = [[], []], [[], []]
     for filter_index in range(1, 13):
+        indices = where(task_1[filter_index, 1][:, 2] == 1)[0]
         formers, latters = task_1[filter_index, 1][:, 3], task_1[filter_index, 1][:, 6]
-        formers, latters = log10(formers[formers > 0]), log10(latters[latters > 0])
-        rates[0].append(sum(task_1[filter_index, 1][:, 2]) / 2000.0)
-        rates[1].append(sum(task_1[filter_index, 1][:, 4]) / 2000.0)
+        formers, latters = log10(formers[indices]), log10(latters[indices])
 
         violin_1 = pyplot.violinplot(formers, positions=[filter_index], widths=0.8, bw_method=0.5,
                                      showmeans=False, showextrema=False, showmedians=False)
@@ -195,91 +200,70 @@ def draw_main():
             body.set_edgecolor("black")
             body.set_alpha(1)
 
-        points = pyplot.scatter([filter_index + 0.15], [mean(latters)], color="white", edgecolor="black", s=10)
+        pyplot.scatter([filter_index + 0.15], [mean(latters)], color="white", edgecolor="black", s=14)
         values[1].append(mean(latters))
 
-        pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0], points],
-                      ["search-only", "combined", "mean value"], fontsize=10)
-    pyplot.xlabel("constraint set", fontsize=10)
-    pyplot.xticks(range(1, 13), filter_indices, fontsize=10)
-    pyplot.xlim(0.5, 12.5)
-    pyplot.ylabel("candidate number", fontsize=10)
-    pyplot.yticks([0, 1, 2, 3], [1, 10, 100, 1000], fontsize=10)
-    pyplot.ylim(-0.2, 3.2)
+        if filter_index == 1:
+            pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0]], ["search-only", "combined"], fontsize=12)
 
+    pyplot.xlabel("constraint set", fontsize=14)
+    pyplot.xticks(range(1, 13), filter_indices, fontsize=14)
+    pyplot.xlim(0.5, 12.5)
+    pyplot.ylabel("candidate number", fontsize=14)
+    pyplot.yticks([0, 1, 2, 3], ["1", "10", "100", "1000"], fontsize=14)
+    pyplot.ylim(-0.2, 3.2)
     values = 10 ** array(values)
-    rates = array(rates)
 
     print("D", ["%.1f" % value for value in values[0] - values[1]])
-    print("D", ["%.1f" % (rate * 100) + "%" for rate in rates[0] / rates[1]])
 
     pyplot.subplot(3, 2, 5)
     lengths = linspace(100, 400, 26)
-    v1, v2 = [], []
     styles = ["-", "--", ":"]
-    observed_length = 10
+    maximum_molecules = []
     for number in range(1, 4):
-        redundancies = 2 * number * (2 * log2(lengths) + log2(4))
-        v1.append(redundancies / (lengths + redundancies))
-        pyplot.plot(lengths, redundancies / (lengths + redundancies),
-                    color=colors["trad1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + ", SIMA")
+        molecules = 1 / task_3[0, number - 1]
+        pyplot.plot(lengths, molecules,
+                    color="black", linewidth=1.5, linestyle=styles[number - 1], label=str(number) + " error(s)")
+        maximum_molecules.append(max(molecules))
 
-    for number in range(1, 4):
-        redundancies = (observed_length + 1)
-        redundancies += (lengths + observed_length + 1) * ((1 - task_3[number - 1]) / task_3[number - 1])
-        v2.append(redundancies / (lengths + redundancies))
-        pyplot.plot(lengths, redundancies / (lengths + redundancies),
-                    color=colors["algo1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + ", SPIDER-WEB")
-
-    pyplot.legend(loc="upper right", ncol=2, fontsize=10)
-    pyplot.xlabel("DNA string length", fontsize=10)
+    pyplot.legend(loc="upper right", fontsize=12)
+    pyplot.xlabel("DNA string length", fontsize=14)
     pyplot.xlim(100, 400)
-    pyplot.xticks([100, 200, 300, 400], [100, 200, 300, 400], fontsize=10)
-    pyplot.ylabel("redundancy proportion", fontsize=10)
-    pyplot.ylim(0, 1)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
+    pyplot.xticks([100, 200, 300, 400], ["100nt", "200nt", "300nt", "400nt"], fontsize=14)
+    pyplot.ylabel("minimum correction read(s)", fontsize=14)
+    pyplot.ylim(0, 4)
+    pyplot.yticks([0, 1, 2, 3, 4], ["0", "1", "2", "3", "4"], fontsize=14)
 
-    print("E", mean(v2[0] - v1[0]))
-    print("E", mean(v2[1] - v1[1]))
-    print("E", mean(v2[2] - v1[2]))
+    print("E", ["%.2f" % maximum_molecule for maximum_molecule in maximum_molecules])
 
     pyplot.subplot(3, 2, 6)
     styles = ["-", "--", ":"]
-    v1, v2 = [], []
+    maximum_seconds = []
     for number in range(1, 4):
-        v1.append(lengths ** (2 * number) * (4 ** number))
-        pyplot.plot(lengths, log10(lengths ** (2 * number) * (4 ** number)),
-                    color=colors["trad1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + ", SIMA")
-    for number in range(1, 4):
-        v2.append(lengths * (4 ** (10 + number)))
-        pyplot.plot(lengths, log10(lengths * observed_length ** number),
-                    color=colors["algo1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + ", SPIDER-WEB")
+        maximum_seconds.append(max(task_3[1, number - 1]))
+        pyplot.plot(lengths, task_3[1, number - 1],
+                    color="black", linewidth=1.5, linestyle=styles[number - 1], label=str(number) + " error(s)")
 
-    print("F", v1[-1][-1] / v1[0][0])
-    print("F", v2[-1][-1] / v2[0][0])
-    pyplot.legend(loc="upper right", ncol=2, fontsize=10)
-    pyplot.xlabel("DNA string length", fontsize=10)
+    pyplot.legend(loc="upper right", fontsize=12)
+    pyplot.xlabel("DNA string length", fontsize=14)
     pyplot.xlim(100, 400)
-    pyplot.xticks([100, 200, 300, 400], [100, 200, 300, 400], fontsize=10)
-    pyplot.ylabel("time complexity", fontsize=10)
-    pyplot.ylim(0, 25)
-    pyplot.yticks([0, 5, 10, 15, 20, 25],
-                  ["$10^0$", "$10^5$", "$10^{10}$", "$10^{15}$", "$10^{20}$", "$10^{25}$"], fontsize=10)
+    pyplot.xticks([100, 200, 300, 400], ["100nt", "200nt", "300nt", "400nt"], fontsize=14)
+    pyplot.ylabel("average runtime (second)", fontsize=14)
+    pyplot.ylim(0, 1)
+    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0.00", "0.25", "0.50", "0.75", "1.00"], fontsize=14)
+
+    print("F", maximum_seconds)
 
     figure.align_labels()
 
-    figure.text(0.021, 0.99, "A", va="center", ha="center", fontsize=12)
-    figure.text(0.516, 0.99, "B", va="center", ha="center", fontsize=12)
-    figure.text(0.021, 0.67, "C", va="center", ha="center", fontsize=12)
-    figure.text(0.516, 0.67, "D", va="center", ha="center", fontsize=12)
-    figure.text(0.021, 0.34, "E", va="center", ha="center", fontsize=12)
-    figure.text(0.516, 0.34, "F", va="center", ha="center", fontsize=12)
+    figure.text(0.024, 0.99, "A", va="center", ha="center", fontsize=14)
+    figure.text(0.518, 0.99, "B", va="center", ha="center", fontsize=14)
+    figure.text(0.024, 0.67, "C", va="center", ha="center", fontsize=14)
+    figure.text(0.518, 0.67, "D", va="center", ha="center", fontsize=14)
+    figure.text(0.024, 0.34, "E", va="center", ha="center", fontsize=14)
+    figure.text(0.518, 0.34, "F", va="center", ha="center", fontsize=14)
 
-    pyplot.savefig("./results/figures/[4-1] repairability main.pdf",
+    pyplot.savefig("./results/figures/Figure M5.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
@@ -289,8 +273,9 @@ def draw_corr():
         task_1, task_2, task_3 = pload(file)
 
     figure = pyplot.figure(figsize=(10, 10), tight_layout=True)
+    rcParams["font.family"] = "Linux Libertine"
 
-    pyplot.subplot(3, 1, 1)
+    pyplot.subplot(2, 1, 1)
     numbers, rates = [], []
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
     x, y = [], []
@@ -308,16 +293,16 @@ def draw_corr():
     shown_x = linspace(5, 10, 51)
     shown_y = a * shown_x + b
     pyplot.plot(shown_x, shown_y, color="black", linewidth=2, linestyle="--", zorder=1)
-    pyplot.legend(loc="upper right", ncol=3, fontsize=10)
-    pyplot.xlabel("valid number", fontsize=10)
+    pyplot.legend(loc="upper right", ncol=3, fontsize=14)
+    pyplot.xlabel("valid number", fontsize=14)
     pyplot.xticks([5, 6, 7, 8, 9, 10],
-                  ["$4^5$", "$4^6$", "$4^7$", "$4^8$", "$4^9$", "$4^{10}$"], fontsize=10)
+                  ["4^5", "4^6", "4^7", "4^8", "4^9", "4^10"], fontsize=14)
     pyplot.xlim(4.95, 10.05)
-    pyplot.ylabel("correction rate", fontsize=10)
+    pyplot.ylabel("correction rate", fontsize=14)
     pyplot.ylim(-0.06, 1.06)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=14)
 
-    pyplot.subplot(3, 1, 2)
+    pyplot.subplot(2, 1, 2)
     statistics = [[] for _ in range(16)]
     for position_1, dna_length in enumerate(linspace(start=100, stop=400, num=4, dtype=int)):
         for position_2, error_time in enumerate((linspace(1, 4, 4) * dna_length / 100).astype(int)):
@@ -332,51 +317,29 @@ def draw_corr():
     pyplot.scatter(x, y, color="silver", edgecolor="black", zorder=2)
     pyplot.plot(x, y, color="black", linewidth=1, zorder=1)
 
-    pyplot.xlabel("introduced error number", fontsize=10)
-    pyplot.xticks(range(1, 17), range(1, 17), fontsize=10)
+    pyplot.xlabel("introduced error number", fontsize=14)
+    pyplot.xticks(range(1, 17), range(1, 17), fontsize=14)
     pyplot.xlim(0.85, 16.15)
-    pyplot.ylabel("correction rate", fontsize=10)
+    pyplot.ylabel("correction rate", fontsize=14)
     pyplot.ylim(-0.06, 1.06)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
-
-    pyplot.subplot(3, 1, 3)
-    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    for filter_index in range(1, 13):
-        rate = sum(task_1[filter_index, 1][:, 2]) / 2000.0
-        value = log10(rate * 10000)
-        if filter_index < 9:
-            pyplot.fill_between([filter_index - 0.2, filter_index + 0.2], [0, 0], [value, value],
-                                color="silver")
-        else:
-            pyplot.fill_between([filter_index - 0.2, filter_index + 0.2], [0, 0], [value, value],
-                                color=colors["algo1"])
-            pyplot.text(filter_index, log10(rate * 10000) + 0.03, "%.1f" % (rate * 100) + "%",
-                        va="bottom", ha="center", color=colors["algo1"], fontsize=10)
-
-    pyplot.xlabel("constraint set", fontsize=10)
-    pyplot.xticks(range(1, 13), filter_indices, fontsize=10)
-    pyplot.xlim(0.7, 12.3)
-    pyplot.ylabel("detection rate", fontsize=10)
-    pyplot.ylim(-0.25, 4.25)
-    pyplot.yticks([0, 1, 2, 3, 4], ["0.01%", "0.1%", "1%", "10%", "100%"], fontsize=10)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=14)
 
     figure.align_labels()
-    figure.text(0.021, 0.99, "A", va="center", ha="center", fontsize=12)
-    figure.text(0.021, 0.67, "B", va="center", ha="center", fontsize=12)
-    figure.text(0.021, 0.34, "C", va="center", ha="center", fontsize=12)
+    figure.text(0.024, 0.99, "A", va="center", ha="center", fontsize=14)
+    figure.text(0.024, 0.51, "B", va="center", ha="center", fontsize=14)
 
-    pyplot.savefig("./results/figures/[4-2] repairability correlations.pdf",
+    pyplot.savefig("./results/figures/Figure S2.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
-    create_folders()
-
-    show_single_examples()
-    show_multiple_examples()
-
-    multiple_evaluation(task_seed=2021, repeats=2000)
+    # create_folders()
+    #
+    # show_single_examples()
+    # show_multiple_examples()
+    #
+    # multiple_evaluation(task_seed=2021, repeats=2000)
 
     draw_main()
-    draw_corr()
+    # draw_corr()

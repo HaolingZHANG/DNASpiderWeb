@@ -7,7 +7,7 @@ Install it using pip:
 
 .. code-block:: bash
 
-   pip install dsw
+   pip install DNASpiderWeb
 
 Or you can also install it from source.
 

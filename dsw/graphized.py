@@ -580,7 +580,7 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
     :return: capacity of this graph (accessor) and process values if required.
     :rtype: float or (float, list)
 
-    Example:
+    Example
         >>> from numpy import array, random
         >>> from dsw import approximate_capacity
         >>> # accessor with GC-balanced
@@ -711,7 +711,7 @@ def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides
     :return: repaired DNA strings (may contain multiple repair results).
     :rtype: list
 
-    Example:
+    Example
         >>> from numpy import array
         >>> from dsw import path_matching
         >>> # accessor with GC-balanced

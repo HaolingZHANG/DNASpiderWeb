@@ -19,14 +19,14 @@ The generated coding algorithms provide
 [high code rate](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/step_1_compatibility.py),
 [low parameter sensitivity](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/step_3_stability.py),
 [certain self-repair ability](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/step_4_repairability.py), and
-[valuable privacy protection potentiality](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/step_5_privacy.py).
+[valuable encryption potentiality](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/_5_encrypability.py).
 Through this work, applicable algorithms with appropriate density-compatibility trade-off under arbitrary local biochemical constraints could be generated in an automated way. 
 It is also suggested that more kinds of biochemical constraints can be further investigated as more complex operations would be needed in future DNA storage systems.
 
 ## Installation
 You can install this package using pip:
 ```sh
-pip install dsw
+pip install DNASpiderWeb
 ```
 
 The packages requires a python version >=3.7, 
@@ -38,11 +38,12 @@ Some additional libraries need to be installed, that is,
 and [biopython 1.78](https://pypi.org/project/biopython/).
 These experimental Python scripts [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments) are single threaded. 
 It may take about several months to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
-In order to further understand the experimental situation, 
+In order to further understand the experimental situation, the main raw data are saved
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/results/raw_data.xlsx).
 like getting raw data, please do not hesitate to contact us.
 
 Some well-designed slides of this work are recorded 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/slides.pdf).
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/results/slides.pdf).
 If you are interested in detailed design, evaluations, conclusions, mathematical proofs, and implementations, please refer to our publication.
 
 ## Library structure
@@ -90,12 +91,13 @@ The structure of this library is shown below:
 │    ├── _2_reliability.py                  // Experiments for the relative errors of capacity approximation
 │    ├── _3_stability.py                    // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
 │    ├── _4_repairability.py                // Experiments for the probabilistic correction of encoded DNA strings with multiple errors
-│    ├── _5_privacy.py                      // Experiments for the hidden danger of graph (algorithm) reconstruction and additional privacy algorithms
+│    ├── _5_encrypability.py                // Experiments for the hidden danger of graph (algorithm) reconstruction and additional encryption algorithms
 │    ├── _6_slide_info.py                   // Drawing scheme for result part in the slides
+│    ├── _7_raw_data.py                     // Conversing main raw data to a excel file
 │    ├── __init__                           // Preset parameters in the simulation experiment
 │    ├── code_encode.py                     // Script in the encoding simulation experiment
 │    ├── code_repair.py                     // Script in the correcting simulation experiment
-├── test                                    // Test module of source codes
+├── tests                                   // Test module of source codes
 │    ├── test_accessor_vs_latter_map.py     // Unit test for the conversion between the accessor and the latter map
 │    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix
 │    ├── test_bio_filters.py                // Unit test for the correctness of the biochemical constraint filter
@@ -108,7 +110,7 @@ The structure of this library is shown below:
 │    ├── test_transcoding.py                // Unit test for the default transcoding correctness
 ├── README.md                               // Description document of library
 ```
-The installation process only includes folder 'dsw' and its internal files.
+The installation process only includes folder 'dsw' and  'tests'.
 
 ## Customization
 ### biochemical constraints set
@@ -213,7 +215,7 @@ Here the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG
 Meanwhile, the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
 
 The corresponding transcoding performances of generated coding algorithms are shown in 
-the result part of [slides](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/slides.pdf).
+the result part of [slides](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/results/slides.pdf).
 
 ## Citation
 If you think this repo helps or being used in your research, please consider refer this paper.

@@ -353,27 +353,18 @@ def repair():
     pyplot.figure(figsize=(10, 5))
     lengths = linspace(100, 400, 26)
     styles = ["-", "--", ":"]
-    observed_length = 10
     for number in range(1, 4):
-        redundancies = 2 * number * (2 * log2(lengths) + log2(4))
-        pyplot.plot(lengths, redundancies / (lengths + redundancies),
-                    color=colors["trad1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + " error(s), SIMA")
+        molecules = 1 / task_3[0, number - 1]
+        pyplot.plot(lengths, molecules,
+                    color="black", linewidth=2, linestyle=styles[number - 1], label=str(number) + " error(s)")
 
-    for number in range(1, 4):
-        redundancies = (observed_length + 1)
-        redundancies += (lengths + observed_length + 1) * ((1 - task_3[number - 1]) / task_3[number - 1])
-        pyplot.plot(lengths, redundancies / (lengths + redundancies),
-                    color=colors["algo1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + " error(s), SPIDER-WEB")
-
-    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
+    pyplot.legend(loc="upper right", fontsize=12)
     pyplot.xlabel("DNA string length", fontsize=12)
     pyplot.xlim(100, 400)
     pyplot.xticks([100, 200, 300, 400], [100, 200, 300, 400], fontsize=12)
-    pyplot.ylabel("redundancy proportion", fontsize=12)
-    pyplot.ylim(0, 1)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=12)
+    pyplot.ylabel("minimum correction read(s)", fontsize=12)
+    pyplot.ylim(0, 4)
+    pyplot.yticks([0, 1, 2, 3, 4], ["0", "1", "2", "3", "4"], fontsize=12)
     pyplot.savefig("./results/figures/2.8.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
@@ -381,22 +372,16 @@ def repair():
     lengths = linspace(100, 400, 26)
     styles = ["-", "--", ":"]
     for number in range(1, 4):
-        pyplot.plot(lengths, log10(lengths ** (2 * number) * (4 ** number)),
-                    color=colors["trad1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + " error(s), SIMA")
-    for number in range(1, 4):
-        pyplot.plot(lengths, log10(lengths * observed_length ** number),
-                    color=colors["algo1"], linewidth=2, linestyle=styles[number - 1],
-                    label=str(number) + " error(s), SPIDER-WEB")
+        pyplot.plot(lengths, task_3[1, number - 1],
+                    color="black", linewidth=2, linestyle=styles[number - 1], label=str(number) + " error(s)")
 
-    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
+    pyplot.legend(loc="upper right", fontsize=12)
     pyplot.xlabel("DNA string length", fontsize=12)
     pyplot.xlim(100, 400)
     pyplot.xticks([100, 200, 300, 400], [100, 200, 300, 400], fontsize=12)
-    pyplot.ylabel("time complexity (operations)", fontsize=12)
-    pyplot.ylim(0, 25)
-    pyplot.yticks([0, 5, 10, 15, 20, 25],
-                  ["$10^0$", "$10^5$", "$10^{10}$", "$10^{15}$", "$10^{20}$", "$10^{25}$"], fontsize=12)
+    pyplot.ylabel("average runtime (second)", fontsize=12)
+    pyplot.ylim(0, 1)
+    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0.00", "0.25", "0.50", "0.75", "1.00"], fontsize=12)
     pyplot.savefig("./results/figures/2.9.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
@@ -407,7 +392,7 @@ def protect():
 
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
-    reconstructions = load(file="./results/data/step_5_privacy_reconstruction.npy")
+    reconstructions = load(file="./results/data/step_5_encrypability_reconstruction.npy")
     with open("./results/data/step_1_compatibility_capacities.pkl", "rb") as file:
         capacities, _ = pload(file)
 

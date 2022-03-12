@@ -1,6 +1,6 @@
 from itertools import permutations
 # noinspection PyPackageRequirements
-from matplotlib import pyplot, patches
+from matplotlib import pyplot, patches, rcParams
 from numpy import random, array, load, save, sum, median, min, max, where
 from os import path
 
@@ -108,6 +108,7 @@ def draw():
             display_data[int(sample[0])][int(sample[1]) - 1].append(-1)
 
     pyplot.figure(figsize=(10, 5), tight_layout=True)
+    rcParams["font.family"] = "Linux Libertine"
     bias = [-0.375, -0.125, 0.125, 0.375]
     used_colors = [[colors["foun1"], colors["foun2"]], [colors["yyco1"], colors["yyco2"]],
                    [colors["hedc1"], colors["hedc2"]], [colors["algo1"], colors["algo2"]]]
@@ -139,16 +140,16 @@ def draw():
                                     color=colors["diffs"], zorder=0)
 
     legends = [patches.Patch(facecolor=used_colors[index][1], edgecolor=used_colors[index][0],
-                             linewidth=1, label=labels[index]) for index in list(range(4))[::-1]]
-    pyplot.legend(handles=legends, loc="upper right", ncol=4, fontsize=10)
+                             linewidth=1, label=labels[index]) for index in list(range(4))]
+    pyplot.legend(handles=legends, loc="upper right", ncol=4, fontsize=12)
     pyplot.xlim(-0.5, 11.5)
     pyplot.ylim(-0.08, 2.08)
-    pyplot.xticks(range(12), filter_indices, fontsize=10)
+    pyplot.xticks(range(12), filter_indices, fontsize=14)
     pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0],
-                  ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0"], fontsize=10)
-    pyplot.xlabel("constraint set", fontsize=10)
-    pyplot.ylabel("code rate", fontsize=10)
-    pyplot.savefig("./results/figures/[3-1] stability evaluation.pdf",
+                  ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0", "1.2", "1.4", "1.6", "1.8", "2.0"], fontsize=14)
+    pyplot.xlabel("constraint set", fontsize=14)
+    pyplot.ylabel("code rate", fontsize=14)
+    pyplot.savefig("./results/figures/Figure M4.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 

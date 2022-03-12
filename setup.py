@@ -24,7 +24,7 @@ setup(
     author="Haoling ZHANG",
     author_email="zhanghaoling@genomics.cn",
     url="https://github.com/HaolingZHANG/DNASpiderWeb",
-    packages=["dsw"],
+    packages=["dsw", "tests"],
     install_requires=["numpy", "scipy"],
     license="GPL",
     classifiers=["License :: OSI Approved :: GPL License",

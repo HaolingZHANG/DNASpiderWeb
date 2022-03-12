@@ -1,5 +1,5 @@
 # noinspection PyPackageRequirements
-from matplotlib import pyplot
+from matplotlib import pyplot, rcParams
 from numpy import array, random, load, save, max, min, median, any, where
 from os import path
 from pickle import load as pload
@@ -93,9 +93,10 @@ def display_performances():
         transcode_results = pload(file)
 
     pyplot.figure(figsize=(10, 8))
+    rcParams["font.family"] = "Linux Libertine"
     for index, filter_index in enumerate(filter_indices):
         capacity, code_rates = capacities[index], transcode_results[index]
-        pyplot.text(x=index, y=capacity + 0.01, s="%.4f" % capacity, ha="center", va="bottom", fontsize=10)
+        pyplot.text(x=index, y=capacity + 0.01, s="%.4f" % capacity, ha="center", va="bottom", fontsize=12)
         pyplot.hlines(capacity, index - 0.4, index + 0.4, color=colors["trad1"], linewidth=1)
         if max(code_rates) - min(code_rates) < 0.01 or max(code_rates) > capacity:
             code_rate = median(code_rates)
@@ -116,14 +117,14 @@ def display_performances():
             pyplot.fill_between([index - 0.5, index + 0.5], [0.92, 0.92], [2.08, 2.08],
                                 color=colors["diffs"], zorder=0)
 
-    pyplot.xlabel("constraint set", fontsize=10)
-    pyplot.xticks(range(12), filter_indices, fontsize=10)
+    pyplot.xlabel("constraint set", fontsize=14)
+    pyplot.xticks(range(12), filter_indices, fontsize=14)
     pyplot.xlim(-0.5, 11.5)
-    pyplot.ylabel("code rate", fontsize=10)
+    pyplot.ylabel("code rate", fontsize=14)
     pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
-                  ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=10)
+                  ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=14)
     pyplot.ylim(0.95, 2.05)
-    pyplot.savefig("./results/figures/[1-1] compatibility code rates.pdf",
+    pyplot.savefig("./results/figures/Figure S1.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 

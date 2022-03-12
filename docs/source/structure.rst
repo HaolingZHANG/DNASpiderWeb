@@ -49,12 +49,13 @@ The following figure shows how the package and its algorithms are structured:
     │    ├── _2_reliability.py                  // Experiments for the relative errors of capacity approximation
     │    ├── _3_stability.py                    // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
     │    ├── _4_repairability.py                // Experiments for the probabilistic correction of encoded DNA strings with multiple errors
-    │    ├── _5_privacy.py                      // Experiments for the hidden danger of graph (algorithm) reconstruction and additional privacy algorithms
+    │    ├── _5_encrypability.py                // Experiments for the hidden danger of graph (algorithm) reconstruction and additional privacy algorithms
     │    ├── _6_slide_info.py                   // Drawing scheme for result part in the slides
+    │    ├── _7_raw_data.py                     // Conversing main raw data to a excel file
     │    ├── __init__                           // Preset parameters in the simulation experiment
     │    ├── code_encode.py                     // Script in the encoding simulation experiment
     │    ├── code_repair.py                     // Script in the correcting simulation experiment
-    ├── test                                    // Test module of source codes
+    ├── tests                                   // Test module of source codes
     │    ├── test_accessor_vs_latter_map.py     // Unit test for the conversion between the accessor and the latter map
     │    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix
     │    ├── test_bio_filters.py                // Unit test for the correctness of the biochemical constraint filter
@@ -67,4 +68,4 @@ The following figure shows how the package and its algorithms are structured:
     │    ├── test_transcoding.py                // Unit test for the default transcoding correctness
     ├── README.md                               // Description document of library
 
-The installation process using 'pip' only includes folder 'dsw' and its internal files.
+The installation process using 'pip' only includes folder 'dsw' and 'tests'.
