@@ -1,11 +1,10 @@
 # noinspection PyPackageRequirements
 from matplotlib import pyplot, rcParams
 from numpy import load, save, zeros, array, linspace, polyfit, corrcoef, where
-from numpy import sum, max, mean, power, clip, inf, log, log2, log10
+from numpy import sum, max, mean, median, clip, inf, log, log10
 from os import path
 from pickle import load as pload
 from pickle import dump as psave
-from scipy.special import comb
 
 from experiments import colors, create_folders
 from experiments.code_repair import show_single_examples, show_multiple_examples
@@ -82,10 +81,10 @@ def draw_main():
     with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
         task_1, task_2, task_3 = pload(file)
 
-    figure = pyplot.figure(figsize=(10, 9.5), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 7), tight_layout=True)
     rcParams["font.family"] = "Linux Libertine"
 
-    pyplot.subplot(3, 2, 1)
+    pyplot.subplot(2, 2, 1)
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
     valid_numbers, observed_rates = [], []
     for filter_index in range(1, 13):
@@ -105,7 +104,7 @@ def draw_main():
 
     print("A", corrcoef(valid_numbers, observed_rates)[0, 1])
 
-    pyplot.subplot(3, 2, 2)
+    pyplot.subplot(2, 2, 2)
     rate_matrix = zeros(shape=(4, 4))
     statistics = [[] for _ in range(16)]
     for position_1, dna_length in enumerate(linspace(start=100, stop=400, num=4, dtype=int)):
@@ -138,85 +137,7 @@ def draw_main():
 
     print("B", corrcoef(x, y)[0, 1])
 
-    pyplot.subplot(3, 2, 3)
-    info = []
-    for dna_length in linspace(start=100, stop=400, num=4, dtype=int):
-        for error_time in (linspace(1, 4, 4) * dna_length / 100).astype(int):
-            if (dna_length == 300 and error_time == 12) \
-                    or (dna_length == 400 and error_time == 12) \
-                    or (dna_length == 400 and error_time == 16):
-                continue
-            for data in task_2[dna_length, error_time]:
-                info.append([data[1], data[-1]])
-    info = array(info).T
-    info[0] = info[0] / max(info[0])
-    info[0] = (info[0] * 10 + 0.5).astype(int)
-    shown_data = zeros(shape=(2, 11))
-    for sample in info.T:
-        shown_data[0, int(sample[0])] += sample[1]
-        shown_data[1, int(sample[0])] += 1
-
-    shown_data[1][shown_data[1] == 0] = 1
-    shown_data = shown_data[0] / shown_data[1]
-    pyplot.bar(range(11), shown_data, color="silver", edgecolor="black")
-    for index, value in enumerate(shown_data):
-        pyplot.text(x=index, y=value + 0.02, s=str(int(value * 100 + 0.5)) + "%", ha="center", va="bottom", fontsize=12)
-
-    pyplot.xlabel("normalized coefficient of variation", fontsize=14)
-    pyplot.xlim(-0.6, 10.6)
-    pyplot.xticks(range(11),
-                  ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"], fontsize=14)
-    pyplot.ylabel("correction rate", fontsize=14)
-    pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=14)
-
-    print("C", corrcoef(linspace(0, 1, 11), shown_data)[0, 1])
-
-    pyplot.subplot(3, 2, 4)
-    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    values, rates = [[], []], [[], []]
-    for filter_index in range(1, 13):
-        indices = where(task_1[filter_index, 1][:, 2] == 1)[0]
-        formers, latters = task_1[filter_index, 1][:, 3], task_1[filter_index, 1][:, 6]
-        formers, latters = log10(formers[indices]), log10(latters[indices])
-
-        violin_1 = pyplot.violinplot(formers, positions=[filter_index], widths=0.8, bw_method=0.5,
-                                     showmeans=False, showextrema=False, showmedians=False)
-        for body in violin_1["bodies"]:
-            center = mean(body.get_paths()[0].vertices[:, 0])
-            body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], -inf, center)
-            body.set_color(colors["algo1"])
-            body.set_edgecolor("black")
-            body.set_alpha(1)
-        pyplot.scatter([filter_index - 0.15], [mean(formers)], color="white", edgecolor="black", s=10)
-        values[0].append(mean(formers))
-
-        violin_2 = pyplot.violinplot(latters, positions=[filter_index], widths=0.8, bw_method=0.5,
-                                     showmeans=False, showextrema=False, showmedians=False)
-        for body in violin_2["bodies"]:
-            center = mean(body.get_paths()[0].vertices[:, 0])
-            body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], center, inf)
-            body.set_color(colors["yyco1"])
-            body.set_edgecolor("black")
-            body.set_alpha(1)
-
-        pyplot.scatter([filter_index + 0.15], [mean(latters)], color="white", edgecolor="black", s=14)
-        values[1].append(mean(latters))
-
-        if filter_index == 1:
-            pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0]], ["search-only", "combined"], fontsize=12)
-
-    pyplot.xlabel("constraint set", fontsize=14)
-    pyplot.xticks(range(1, 13), filter_indices, fontsize=14)
-    pyplot.xlim(0.5, 12.5)
-    pyplot.ylabel("candidate number", fontsize=14)
-    pyplot.yticks([0, 1, 2, 3], ["1", "10", "100", "1000"], fontsize=14)
-    pyplot.ylim(-0.2, 3.2)
-    values = 10 ** array(values)
-
-    print("D", ["%.1f" % value for value in values[0] - values[1]])
-
-    pyplot.subplot(3, 2, 5)
+    pyplot.subplot(2, 2, 3)
     lengths = linspace(100, 400, 26)
     styles = ["-", "--", ":"]
     maximum_molecules = []
@@ -230,13 +151,13 @@ def draw_main():
     pyplot.xlabel("DNA string length", fontsize=14)
     pyplot.xlim(100, 400)
     pyplot.xticks([100, 200, 300, 400], ["100nt", "200nt", "300nt", "400nt"], fontsize=14)
-    pyplot.ylabel("minimum correction read(s)", fontsize=14)
+    pyplot.ylabel("minimum read(s) for correction", fontsize=14)
     pyplot.ylim(0, 4)
     pyplot.yticks([0, 1, 2, 3, 4], ["0", "1", "2", "3", "4"], fontsize=14)
 
-    print("E", ["%.2f" % maximum_molecule for maximum_molecule in maximum_molecules])
+    print("C", ["%.2f" % maximum_molecule for maximum_molecule in maximum_molecules])
 
-    pyplot.subplot(3, 2, 6)
+    pyplot.subplot(2, 2, 4)
     styles = ["-", "--", ":"]
     maximum_seconds = []
     for number in range(1, 4):
@@ -252,16 +173,14 @@ def draw_main():
     pyplot.ylim(0, 1)
     pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0.00", "0.25", "0.50", "0.75", "1.00"], fontsize=14)
 
-    print("F", maximum_seconds)
+    print("D", maximum_seconds)
 
     figure.align_labels()
 
     figure.text(0.024, 0.99, "A", va="center", ha="center", fontsize=14)
-    figure.text(0.518, 0.99, "B", va="center", ha="center", fontsize=14)
-    figure.text(0.024, 0.67, "C", va="center", ha="center", fontsize=14)
-    figure.text(0.518, 0.67, "D", va="center", ha="center", fontsize=14)
-    figure.text(0.024, 0.34, "E", va="center", ha="center", fontsize=14)
-    figure.text(0.518, 0.34, "F", va="center", ha="center", fontsize=14)
+    figure.text(0.520, 0.99, "B", va="center", ha="center", fontsize=14)
+    figure.text(0.024, 0.51, "C", va="center", ha="center", fontsize=14)
+    figure.text(0.520, 0.51, "D", va="center", ha="center", fontsize=14)
 
     pyplot.savefig("./results/figures/Figure M5.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
@@ -328,18 +247,65 @@ def draw_corr():
     figure.text(0.024, 0.99, "A", va="center", ha="center", fontsize=14)
     figure.text(0.024, 0.51, "B", va="center", ha="center", fontsize=14)
 
-    pyplot.savefig("./results/figures/Figure S2.pdf",
+    pyplot.savefig("./results/figures/Figure S3.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
+    rcParams["font.family"] = "Linux Libertine"
+    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    values, rates = [[], []], [[], []]
+    for filter_index in range(1, 13):
+        indices = where(task_1[filter_index, 1][:, 2] == 1)[0]
+        formers, latters = task_1[filter_index, 1][:, 3], task_1[filter_index, 1][:, 6]
+        formers, latters = log10(formers[indices]), log10(latters[indices])
+
+        violin_1 = pyplot.violinplot(formers, positions=[filter_index], widths=0.8, bw_method=0.5,
+                                     showmeans=False, showextrema=False, showmedians=False)
+        for body in violin_1["bodies"]:
+            center = mean(body.get_paths()[0].vertices[:, 0])
+            body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], -inf, center)
+            body.set_color(colors["algo1"])
+            body.set_edgecolor("black")
+            body.set_linewidth(1.5)
+            body.set_alpha(1)
+        pyplot.scatter([filter_index], [median(formers)], color=colors["algo1"], edgecolor="black", linewidth=1.5, s=40)
+        values[0].append(mean(formers))
+
+        violin_2 = pyplot.violinplot(latters, positions=[filter_index], widths=0.8, bw_method=0.5,
+                                     showmeans=False, showextrema=False, showmedians=False)
+        for body in violin_2["bodies"]:
+            center = mean(body.get_paths()[0].vertices[:, 0])
+            body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], center, inf)
+            body.set_color(colors["yyco1"])
+            body.set_edgecolor("black")
+            body.set_linewidth(1.5)
+            body.set_alpha(1)
+
+        pyplot.scatter([filter_index], [median(latters)], color=colors["yyco1"], edgecolor="black", linewidth=1.5, s=40)
+        values[1].append(mean(latters))
+
+        if filter_index == 1:
+            pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0]], ["search-only", "combined"], fontsize=12)
+
+    pyplot.xlabel("constraint set", fontsize=14)
+    pyplot.xticks(range(1, 13), filter_indices, fontsize=14)
+    pyplot.xlim(0.5, 12.5)
+    pyplot.ylabel("candidate number", fontsize=14)
+    pyplot.yticks([0, 1, 2, 3], ["1", "10", "100", "1000"], fontsize=14)
+    pyplot.ylim(-0.2, 3.2)
+    pyplot.savefig("./results/figures/Figure S4.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
-    # create_folders()
-    #
-    # show_single_examples()
-    # show_multiple_examples()
-    #
-    # multiple_evaluation(task_seed=2021, repeats=2000)
+    create_folders()
+
+    show_single_examples()
+    show_multiple_examples()
+
+    multiple_evaluation(task_seed=2021, repeats=2000)
 
     draw_main()
-    # draw_corr()
+    draw_corr()

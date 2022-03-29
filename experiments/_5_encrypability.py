@@ -118,30 +118,29 @@ def draw_total(bit_length):
         follow_ups[index] = counts
 
     pyplot.hlines(bit_length, 0, 320, color="silver", linewidth=0.75, linestyle="--", zorder=1)
-    pyplot.text(4, 256 + 4, "reference", va="bottom", ha="left", fontsize=12)
+    pyplot.text(4, 256 + 4, "AES-256", va="bottom", ha="left", fontsize=12)
     for index, filter_index in enumerate(filter_indices):
         lengths = linspace(0, 320, 321)
-        rate = follow_ups[index][0] * 2.0 + follow_ups[index][1] * 6.0 + follow_ups[index][2] * 24.0
-        values = lengths * log2(rate)
-        pyplot.plot(lengths, values, color=gradient_colors[index], alpha=0.5, linewidth=2, zorder=2)
+        rate = follow_ups[index][0] * log2(2.0) + follow_ups[index][1] * log2(6.0) + follow_ups[index][2] * log2(24.0)
+        pyplot.plot(lengths, lengths * rate, color=gradient_colors[index], alpha=0.5, linewidth=2, zorder=2)
 
-        reference_length = bit_length / log2(rate)
+        reference_length = bit_length / rate
         pyplot.vlines(reference_length, 0, bit_length,
                       color="silver", linewidth=0.75, linestyle="--", zorder=1)
         if index > 0:
             pyplot.scatter(reference_length, bit_length,
                            color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
-                           label="[" + str(filter_index) + "]   %.2f" % reference_length)
+                           label="[" + str(filter_index) + "]   %.1f" % reference_length)
         else:
             pyplot.scatter(reference_length, bit_length,
                            color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
-                           label="[" + str(filter_index) + "] %.2f" % reference_length)
+                           label="[" + str(filter_index) + "] %.1f" % reference_length)
 
     pyplot.legend(loc="upper right", ncol=2, fontsize=12)
     pyplot.xlabel("DNA string length", fontsize=14)
     pyplot.xlim(0, 320)
     pyplot.xticks([0, 64, 128, 192, 256, 320], ["0nt", "64nt", "128nt", "192nt", "256nt", "320nt"], fontsize=14)
-    pyplot.ylabel("equivalent key strength", fontsize=14)
+    pyplot.ylabel("bits of security", fontsize=14)
     pyplot.ylim(0, 512)
     pyplot.yticks([0, 128, 256, 384, 512], [0, 128, 256, 384, 512], fontsize=14)
 
@@ -201,7 +200,7 @@ def draw_reason():
                   fontsize=14)
     pyplot.ylim(0, 2 * 1e8)
 
-    pyplot.savefig("./results/figures/Figure S3.pdf",
+    pyplot.savefig("./results/figures/Figure S5.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 

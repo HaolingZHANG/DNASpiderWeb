@@ -1,11 +1,12 @@
+from itertools import permutations
 # noinspection PyPackageRequirements
 from matplotlib import pyplot, rcParams
-from numpy import array, random, load, save, max, min, median, any, where
+from numpy import array, random, load, save, max, min, sum, std, median, any, where
 from os import path
 from pickle import load as pload
 from pickle import dump as psave
 
-from dsw import Monitor, encode, decode
+from dsw import Monitor, encode, decode, bit_to_number, calculus_division
 from dsw import find_vertices, connect_valid_graph, connect_coding_graph, approximate_capacity
 
 from experiments import colors, obtain_filters, create_folders
@@ -85,6 +86,124 @@ def evaluate_performances(task_seed, bit_length, repeats):
             psave(transcode_results, file)
 
 
+def evaluate_additional_performance(task_seed, bit_length, repeats):
+    bio_filters = obtain_filters()
+    if not path.exists("./results/data/step_1_compatibility_out_degree_1.pkl"):
+        transcode_results, monitor = {}, Monitor()
+        for filter_index, bio_filter in bio_filters.items():
+            accessor = load(file="./results/data/v" + filter_index + "[g].npy")
+            out_degrees = sum(where(accessor >= 0, 1, 0), axis=1)
+            if len(out_degrees[out_degrees == 1]) == 0:
+                continue
+
+            print("Evaluate coding algorithm " + filter_index + " [out-degree 1].")
+
+            random.seed(task_seed)
+
+            encoded_matrix, nucleotide_numbers = random.randint(0, 2, size=(repeats, bit_length)), []
+            current = 0
+            for mapping in permutations(["A", "C", "G", "T"]):
+                for binary_message in encoded_matrix:
+                    available, nucleotide_number = mapping, 0
+                    quotient, dna_string, monitor = bit_to_number(binary_message), "", Monitor()
+                    while quotient != "0":
+                        if len(available) > 1:  # current vertex contains information.
+                            quotient, remainder = calculus_division(number=quotient, base=str(len(available)))
+                            dna_string += available[int(remainder)]
+
+                        elif len(available) == 1:  # current vertex does not contain information.
+                            dna_string += available[0]
+
+                        available = []
+                        for potential_nucleotide in mapping:
+                            if bio_filter.valid(dna_string + potential_nucleotide, only_last=True):
+                                available.append(potential_nucleotide)
+
+                        if len(available) == 0:
+                            dna_string = ""
+                            break
+
+                    if len(dna_string) > 0:
+                        nucleotide_numbers.append(len(dna_string))
+                    else:
+                        nucleotide_numbers.append(-1)
+
+                    monitor.output(current + 1, len(encoded_matrix) * 24)
+                    current += 1
+
+            transcode_results[filter_index] = bit_length / array(nucleotide_numbers)
+
+        with open("./results/data/step_1_compatibility_out_degree_1.pkl", "wb") as file:
+            psave(transcode_results, file)
+
+
+def display_difference():
+    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    rates = []
+    for filter_index in filter_indices:
+        accessor = load(file="./results/data/v" + filter_index + "[g].npy")
+        out_degrees = sum(where(accessor >= 0, 1, 0), axis=1)
+        rates.append(len(out_degrees[out_degrees == 1]) / len(out_degrees[out_degrees >= 1]))
+
+    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
+    rcParams["font.family"] = "Linux Libertine"
+    pyplot.subplot(2, 1, 1)
+    visited_indices = []
+    for index in range(12):
+        if rates[index] > 0:
+            pyplot.bar([len(visited_indices)], [rates[index]], color="silver", edgecolor="black", width=0.6)
+            pyplot.text(len(visited_indices), rates[index] + 0.001, "%.1f" % (rates[index] * 100) + "%", fontsize=12,
+                        va="bottom", ha="center")
+            visited_indices.append(filter_indices[index])
+
+    pyplot.xlabel("selected constraint set", fontsize=14)
+    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=14)
+    pyplot.xlim(-0.35, 3.35)
+    pyplot.ylabel("probability of out-degree 1", fontsize=14)
+    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=14)
+    pyplot.ylim(-0.005, 0.105)
+
+    with open("./results/data/step_1_compatibility_code_rates.pkl", "rb") as file:
+        proposed_results = pload(file)
+
+    with open("./results/data/step_1_compatibility_out_degree_1.pkl", "rb") as file:
+        out_1_results = pload(file)
+
+    pyplot.subplot(2, 1, 2)
+    visited_indices = []
+    for index, (filter_index, out_values) in enumerate(out_1_results.items()):
+        visited_indices.append(filter_index)
+        value_1, value_2 = std(out_values), std(proposed_results[int(filter_index) - 1])
+        if index > 0:
+            pyplot.bar([index - 0.15], [value_1], color=colors["trad1"], edgecolor="black", width=0.3)
+            pyplot.bar([index + 0.15], [value_2], color=colors["algo1"], edgecolor="black", width=0.3)
+        else:
+            pyplot.bar([index - 0.15], [value_1],
+                       color=colors["trad1"], edgecolor="black", width=0.3, label="retain vertex of out-degree 1")
+            pyplot.bar([index + 0.15], [value_2],
+                       color=colors["algo1"], edgecolor="black", width=0.3, label="remove vertex of out-degree 1")
+        pyplot.text(index - 0.15, value_1 + 0.001, "%.3f" % value_1, fontsize=12, va="bottom", ha="center")
+        pyplot.text(index + 0.15, value_2 + 0.001, "%.3f" % value_2, fontsize=12, va="bottom", ha="center")
+
+    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
+    pyplot.xlabel("selected constraint set", fontsize=14)
+    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=14)
+    pyplot.xlim(-0.35, 3.35)
+    pyplot.ylabel("standard deviation of code rate", fontsize=14)
+    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0.00", "0.02", "0.04", "0.06", "0.08", "0.10"], fontsize=14)
+    pyplot.ylim(-0.005, 0.105)
+
+    figure.align_labels()
+    figure.text(0.024, 1.00, "A", va="center", ha="center", fontsize=14)
+    figure.text(0.024, 0.51, "B", va="center", ha="center", fontsize=14)
+
+    pyplot.savefig("./results/figures/Figure S1.pdf",
+                   format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    pyplot.show()
+
+
 def display_performances():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     with open("./results/data/step_1_compatibility_capacities.pkl", "rb") as file:
@@ -124,7 +243,7 @@ def display_performances():
     pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
                   ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=14)
     pyplot.ylim(0.95, 2.05)
-    pyplot.savefig("./results/figures/Figure S1.pdf",
+    pyplot.savefig("./results/figures/Figure S2.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
@@ -135,5 +254,7 @@ if __name__ == "__main__":
     generate_by_filters()
     # evaluate the performances of the generated algorithm.
     evaluate_performances(task_seed=2021, bit_length=100, repeats=100)
+    evaluate_additional_performance(task_seed=2021, bit_length=100, repeats=100)
     # display the result of performances.
+    display_difference()
     display_performances()

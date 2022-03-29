@@ -7,7 +7,7 @@ class Monitor(object):
         """
         Initialize the monitor to identify the task progress.
 
-        Example:
+        Example
             >>> from dsw import Monitor
             >>> monitor = Monitor()
             >>> monitor.output(current_state=1, total_state=10)
@@ -94,7 +94,7 @@ def calculus_addition(number, base):
     .. note::
         The integer of parameter "base" must less be than 10 in decimal system.
 
-    Example:
+    Example
         >>> from dsw import calculus_addition
         >>> calculus_addition(number="99999999999999999999999999999999999999999999999999", base="2")
         '100000000000000000000000000000000000000000000000001'
@@ -134,7 +134,7 @@ def calculus_subtraction(number, base):
     .. note::
         The integer of parameter "base" must less be than 10 in decimal system.
 
-    Example:
+    Example
         >>> from dsw import calculus_subtraction
         >>> calculus_subtraction(number="10000000000000000000000000000000000000000000000001", base="2")
         '9999999999999999999999999999999999999999999999999'
@@ -179,7 +179,7 @@ def calculus_multiplication(number, base):
     .. note::
         The integer of parameter "base" must less be than 10 in decimal system.
 
-    Example:
+    Example
         >>> from dsw import calculus_multiplication
         >>> calculus_multiplication(number="9999999999999999999999999999999999999999999999999", base="2")
         '19999999999999999999999999999999999999999999999998'
@@ -224,7 +224,7 @@ def calculus_division(number, base):
     :return: number // base and number % base.
     :rtype: (str, str)
 
-    Example:
+    Example
         >>> from dsw import calculus_division
         >>> calculus_division(number="9999999999999999999999999999999999999999999999999", base="2")
         ('4999999999999999999999999999999999999999999999999', '1')

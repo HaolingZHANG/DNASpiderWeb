@@ -83,7 +83,7 @@ def display_cases():
     figure.text(0.269, 0.99, "B", va="center", ha="center", fontsize=14)
     figure.text(0.516, 0.99, "C", va="center", ha="center", fontsize=14)
     figure.text(0.760, 0.99, "D", va="center", ha="center", fontsize=14)
-    pyplot.savefig("./results/figures/Figure S4.pdf",
+    pyplot.savefig("./results/figures/Figure S6.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
@@ -123,7 +123,7 @@ def evaluate_detailed(test_times, terminal_length):
     [v_25, v_50, v_75] = percentile(a=errors, q=[25, 50, 75])
     lower, upper = v_25 - 1.5 * (v_75 - v_25), 1.5 * (v_75 - v_25) + v_75
 
-    figure = pyplot.figure(figsize=(10, 10), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 11), tight_layout=True)
     rcParams["font.family"] = "Linux Libertine"
     pyplot.subplots_adjust(wspace=0.2, hspace=0.2)
     pyplot.subplot(3, 1, 1)
@@ -259,7 +259,7 @@ def evaluate_detailed(test_times, terminal_length):
     figure.text(0.024, 0.34, "C", va="center", ha="center", fontsize=14)
 
     figure.align_labels()
-    pyplot.savefig("./results/figures/Figure S5.pdf",
+    pyplot.savefig("./results/figures/Figure S7.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 

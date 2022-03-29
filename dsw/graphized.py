@@ -16,7 +16,7 @@ def get_complete_accessor(observed_length, verbose=False):
     :return: complete accessor.
     :rtype: numpy.ndarray
 
-    Example:
+    Example
         >>> from dsw import get_complete_accessor
         >>> get_complete_accessor(observed_length=2)
         array([[ 0,  1,  2,  3],
@@ -74,7 +74,7 @@ def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, v
     :return: adjacency matrix of the uncompressed graph.
     :rtype: numpy.ndarray
 
-    Example:
+    Example
         >>> from dsw import accessor_to_adjacency_matrix, adjacency_matrix_to_accessor, get_complete_accessor
         >>> accessor = array([[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], \
                               [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15], \
@@ -137,7 +137,7 @@ def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
     :return: equivalent compressed matrix (accessor), compress rate = len(n_system) / len(matrix).
     :rtype: numpy.ndarray
 
-    Example:
+    Example
         >>> from dsw import adjacency_matrix_to_accessor
         >>> adjacency_matrix = array([[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], \
                                       [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], \
@@ -210,7 +210,7 @@ def accessor_to_latter_map(accessor, verbose=False):
     :return: latter vertices map of graph.
     :rtype: dict
 
-    Example:
+    Example
         >>> from numpy import array
         >>> from dsw import get_complete_accessor, accessor_to_latter_map
         >>> # accessor with GC-balanced
@@ -263,7 +263,7 @@ def latter_map_to_accessor(latter_map, observed_length, threshold=None, nucleoti
     :return: equivalent accessor.
     :rtype: numpy.ndarray
 
-    Example:
+    Example
         >>> from dsw import latter_map_to_accessor
         >>> latter_map = {1: [4, 7], 2: [8, 11], 4: [1, 2], 7: [13, 14], \
                           8: [1, 2], 11: [13, 14], 13: [4, 7], 14: [8, 11]}
@@ -332,7 +332,7 @@ def remove_useless(latter_map, threshold, verbose=False):
     :return: useful latter map.
     :rtype: dict
 
-    Example:
+    Example
         >>> from dsw import remove_useless
         >>> latter_map_1 = {0: [1, 2], 1: [], 2: [3, 4], 3: [0]}
         >>> remove_useless(latter_map=latter_map_1, threshold=1)
@@ -405,7 +405,7 @@ def obtain_formers(current, observed_length, nucleotides=None):
     :return: former vertex indices.
     :rtype: list
 
-    Example:
+    Example
         >>> from dsw import obtain_formers
         >>> current = 0
         >>> obtain_formers(current=current, observed_length=2)
@@ -452,7 +452,7 @@ def obtain_latters(current, observed_length, nucleotides=None):
     :return: latter vertex indices.
     :rtype: list
 
-    Example:
+    Example
         >>> from dsw import obtain_latters
         >>> current = 0
         >>> obtain_latters(current=current, observed_length=2)
@@ -502,7 +502,7 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
     :return: indices of required leaf vertex.
     :rtype: numpy.ndarray
 
-    Example:
+    Example
         >>> from numpy import array
         >>> from dsw import obtain_leaf_vertices
         >>> # accessor with GC-balanced
@@ -595,9 +595,9 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
                                                        need_process=True)
         >>> capacity
         1.0
-        >>> ["%.5f" % value for value in processes[0]]
+        >>> ["%.5f" % _ for _ in processes[0]]
         ['0.57779', '0.91175', '1.00000', '1.00000']
-        >>> ["%.5f" % value for value in processes[1]]
+        >>> ["%.5f" % _ for _ in processes[1]]
         ['0.81488', '0.68189', '1.00000', '1.00000']
 
     .. note::

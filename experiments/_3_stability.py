@@ -126,7 +126,7 @@ def draw():
                                    color="white", edgecolor=used_colors[bias_index][0], linewidth=1, s=5, zorder=4)
                 else:
                     violin = pyplot.violinplot(dataset=data, positions=[location + bias[bias_index]],
-                                               bw_method=0.5, showextrema=False, widths=0.16)
+                                               bw_method=0.5, showextrema=False)
                     for patch in violin["bodies"]:
                         patch.set_edgecolor(used_colors[bias_index][0])
                         patch.set_facecolor(used_colors[bias_index][1])
