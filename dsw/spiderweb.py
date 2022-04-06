@@ -48,6 +48,12 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
         'TCTCTCT'
         >>> encode(accessor=accessor, binary_message=binary_message, start_index=1, vt_length=5)
         ('TCTCTCT', 'TAATA')
+        >>> shuffles = array([[3, 2, 1, 0], [2, 3, 1, 0], [3, 1, 0, 2], [0, 3, 1, 2], \
+                              [3, 2, 0, 1], [1, 0, 3, 2], [0, 3, 1, 2], [2, 0, 1, 3], \
+                              [2, 3, 0, 1], [1, 0, 3, 2], [2, 0, 1, 3], [0, 1, 3, 2], \
+                              [2, 3, 1, 0], [2, 0, 3, 1], [0, 1, 3, 2], [0, 3, 2, 1]])
+        >>> encode(accessor=accessor, binary_message=binary_message, shuffles=shuffles, start_index=1)
+        'AGAGAGA'
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -138,6 +144,12 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
         >>> vt_check = "TAATA"
         >>> decode(accessor=accessor, dna_string=dna_string, start_index=1, vt_check=vt_check, bit_length=8)
         array([0, 1, 0, 1, 0, 1, 0, 1])
+        >>> shuffles = array([[3, 2, 1, 0], [2, 3, 1, 0], [3, 1, 0, 2], [0, 3, 1, 2], \
+                              [3, 2, 0, 1], [1, 0, 3, 2], [0, 3, 1, 2], [2, 0, 1, 3], \
+                              [2, 3, 0, 1], [1, 0, 3, 2], [2, 0, 1, 3], [0, 1, 3, 2], \
+                              [2, 3, 1, 0], [2, 0, 3, 1], [0, 1, 3, 2], [0, 3, 2, 1]])
+        >>> decode(accessor=accessor, dna_string="TCTCTCT", start_index=1, shuffles=shuffles, bit_length=8)
+        array([0, 0, 0, 0, 0, 0, 0, 0])
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
@@ -193,7 +205,7 @@ def set_vt(dna_string, vt_length, nucleotides=None):
     :param dna_string: DNA string encoded through SPIDER-WEB.
     :type dna_string: str
 
-     :param vt_length: length of DNA string (path check).
+    :param vt_length: length of DNA string (path check).
     :type vt_length: int or None
 
     :param nucleotides: usage of nucleotides.
@@ -202,8 +214,7 @@ def set_vt(dna_string, vt_length, nucleotides=None):
     :return: path check DNA string with required length.
 
     Example
-        >>> from numpy import array
-        >>> from dsw import decode
+        >>> from dsw import set_vt
         >>> dna_string = "TCTCTCT"
         >>> vt_length = 5
         >>> set_vt(dna_string=dna_string, vt_length=vt_length)
