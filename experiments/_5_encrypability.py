@@ -103,7 +103,7 @@ def draw_total(bit_length):
     pyplot.xlabel("constraint set", fontsize=14)
     pyplot.xticks(range(12), filter_indices, fontsize=14)
     pyplot.xlim(-0.5, 11.5)
-    pyplot.ylabel("transmitted data capacity", fontsize=14)
+    pyplot.ylabel("transmitted file size", fontsize=14)
     pyplot.yticks([0, 1, 2, 3, 4], ["B", "KB", "MB", "GB", "TB"], fontsize=14)
     pyplot.ylim(0, 4)
 
@@ -192,7 +192,7 @@ def draw_reason():
     pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
                   ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=14)
     pyplot.xlim(0, 1)
-    pyplot.ylabel("transmitted data capacity", fontsize=14)
+    pyplot.ylabel("transmitted file size", fontsize=14)
     pyplot.yticks([0.0 * 1e8, 0.2 * 1e8, 0.4 * 1e8, 0.6 * 1e8, 0.8 * 1e8, 1.0 * 1e8,
                    1.2 * 1e8, 1.4 * 1e8, 1.6 * 1e8, 1.8 * 1e8, 2.0 * 1e8],
                   ["0.0E+8 bytes", "0.2E+8 bytes", "0.4E+8 bytes", "0.6E+8 bytes", "0.8E+8 bytes", "1.0E+8 bytes",

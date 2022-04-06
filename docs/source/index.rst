@@ -3,25 +3,24 @@ Documentation of SPIDER-WEB
 
 .. image:: _static/logo.svg
 
-**SPIDER-WEB** is a graph-based architecture in DNA-based storage,
+**SPIDER-WEB** is a graph-based architecture,
 which provides tools for creating stable, repairable, and encryptible algorithms
 under arbitrary local biochemical constraints.
 
-First of all, as an algorithm generator, **SPIDER-WEB** provides **graph-based encoding**
+First of all, as a generator, **SPIDER-WEB** provides graph-based coding algorithms
 under arbitrary local biochemical constraint combinations.
 
 .. image:: _static/strategy_1.svg
 
-Afterwards, as a decoding repairer, **SPIDER-WEB** supplies **path-based correcting**
-for obtained DNA strings with one or more edit errors (including substitution, insertion, and deletion) probabilistically.
+Afterwards, as a corrector,
+when one or more edit (including insertion, deletion, or substitution) errors occur during the DNA sequencing process,
+**SPIDER-WEB** supplies a probabilistic repair strategy.
 
 .. image:: _static/strategy_2.svg
 
-Last but not least, as a data confounder, **SPIDER-WEB** offers **mapping shuffling**,
-to strengthen the capability of privacy protection.
+Finally, as a confounder, **SPIDER-WEB** offers certain encryption capabilities to against eavesdropping.
 
 .. image:: _static/strategy_3.svg
-
 
 .. toctree::
    :maxdepth: 1

@@ -13,79 +13,79 @@ from dsw import accessor_to_adjacency_matrix, adjacency_matrix_to_accessor, get_
 from experiments import colors, create_folders
 
 
-def display_cases():
-
-    def create_matrix(dna_strings):
-        matrix = zeros(shape=(16, 16), dtype=int)
-        vertices = [dna_to_number(dna_string=vertex, is_string=False) for vertex in dna_strings]
-        for former, latter in product(range(len(dna_strings)), repeat=2):
-            if dna_strings[former][1] == dna_strings[latter][0]:
-                matrix[vertices[former], vertices[latter]] = 1
-        return matrix
-
-    cases = [create_matrix(dna_strings=["AC",
-                                        "CG",
-                                        "GT",
-                                        "TA"]),  # a cycle.
-             create_matrix(dna_strings=["AC", "AG",
-                                        "CA", "CG",
-                                        "GA", "GT",
-                                        "TC", "TG"]),  # GC content is 50%.
-             create_matrix(dna_strings=["AC", "AG", "AT",
-                                        "CA", "CG", "CT",
-                                        "GA", "GC", "GT",
-                                        "TA", "TC", "TG"]),  # no homopolymer.
-             create_matrix(dna_strings=["AA", "AC", "AG", "AT",
-                                        "CA", "CC", "CG", "CT",
-                                        "GA", "GC", "GG", "GT",
-                                        "TA", "TC", "TG", "TT"])]  # complete graph.
-
-    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
-    rcParams["font.family"] = "Linux Libertine"
-    pyplot.subplots_adjust(wspace=0.15, hspace=0.3)
-    for index, case in enumerate(cases):
-        pyplot.subplot(2, len(cases), index + 1)
-        for x in range(16):
-            for y in range(16):
-                if case[x, y] == 1:
-                    pyplot.fill_between(x=[x, x + 1], y1=[y, y], y2=[y + 1, y + 1], color=colors["trad1"])
-
-        for value in range(16):
-            pyplot.vlines(value, 0, 16, color="black", linewidth=0.5)
-            pyplot.hlines(value, 0, 16, color="black", linewidth=0.5)
-        pyplot.xticks(array(list(range(16))) + 0.5,
-                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=14)
-        pyplot.yticks(array(list(range(16))) + 0.5,
-                      ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=14)
-        pyplot.ylabel("latter index", fontsize=14)
-        pyplot.xlabel("former index", fontsize=14)
-        pyplot.xlim(0, 16)
-        pyplot.ylim(0, 16)
-        axes = pyplot.subplot(2, len(cases), index + len(cases) + 1)
-        _, process = approximate_capacity(accessor=adjacency_matrix_to_accessor(case), repeats=1, need_process=True)
-        if len(process) == 1:
-            pyplot.scatter([0], process, color=colors["trad1"])
-        pyplot.plot(range(len(process)), process, color=colors["trad1"], marker="o", linewidth=2)
-        pyplot.text(len(process) - 0.8, process[-1], "%.3f" % process[-1], va="center", ha="left", fontsize=14)
-        pyplot.xlim(-0.1, 2.1)
-        pyplot.ylim(-0.1, 2.1)
-        pyplot.yticks([0, 0.5, 1, 1.5, 2], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=14)
-        pyplot.ylabel("capacity", fontsize=14)
-        pyplot.xticks([0, 1, 2], [1, 2, 3], fontsize=14)
-        pyplot.xlabel("iteration", fontsize=14)
-        # noinspection PyUnresolvedReferences
-        axes.spines["right"].set_visible(False)
-        # noinspection PyUnresolvedReferences
-        axes.spines["top"].set_visible(False)
-
-    figure.align_labels()
-    figure.text(0.024, 0.99, "A", va="center", ha="center", fontsize=14)
-    figure.text(0.269, 0.99, "B", va="center", ha="center", fontsize=14)
-    figure.text(0.516, 0.99, "C", va="center", ha="center", fontsize=14)
-    figure.text(0.760, 0.99, "D", va="center", ha="center", fontsize=14)
-    pyplot.savefig("./results/figures/Figure S6.pdf",
-                   format="pdf", bbox_inches="tight", dpi=600)
-    pyplot.close()
+# def display_cases():
+#
+#     def create_matrix(dna_strings):
+#         matrix = zeros(shape=(16, 16), dtype=int)
+#         vertices = [dna_to_number(dna_string=vertex, is_string=False) for vertex in dna_strings]
+#         for former, latter in product(range(len(dna_strings)), repeat=2):
+#             if dna_strings[former][1] == dna_strings[latter][0]:
+#                 matrix[vertices[former], vertices[latter]] = 1
+#         return matrix
+#
+#     cases = [create_matrix(dna_strings=["AC",
+#                                         "CG",
+#                                         "GT",
+#                                         "TA"]),  # a cycle.
+#              create_matrix(dna_strings=["AC", "AG",
+#                                         "CA", "CG",
+#                                         "GA", "GT",
+#                                         "TC", "TG"]),  # GC content is 50%.
+#              create_matrix(dna_strings=["AC", "AG", "AT",
+#                                         "CA", "CG", "CT",
+#                                         "GA", "GC", "GT",
+#                                         "TA", "TC", "TG"]),  # no homopolymer.
+#              create_matrix(dna_strings=["AA", "AC", "AG", "AT",
+#                                         "CA", "CC", "CG", "CT",
+#                                         "GA", "GC", "GG", "GT",
+#                                         "TA", "TC", "TG", "TT"])]  # complete graph.
+#
+#     figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
+#     rcParams["font.family"] = "Linux Libertine"
+#     pyplot.subplots_adjust(wspace=0.15, hspace=0.3)
+#     for index, case in enumerate(cases):
+#         pyplot.subplot(2, len(cases), index + 1)
+#         for x in range(16):
+#             for y in range(16):
+#                 if case[x, y] == 1:
+#                     pyplot.fill_between(x=[x, x + 1], y1=[y, y], y2=[y + 1, y + 1], color=colors["trad1"])
+#
+#         for value in range(16):
+#             pyplot.vlines(value, 0, 16, color="black", linewidth=0.5)
+#             pyplot.hlines(value, 0, 16, color="black", linewidth=0.5)
+#         pyplot.xticks(array(list(range(16))) + 0.5,
+#                       ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=14)
+#         pyplot.yticks(array(list(range(16))) + 0.5,
+#                       ["0", "", "", "3", "", "", "6", "", "", "9", "", "", "12", "", "", "15"], fontsize=14)
+#         pyplot.ylabel("latter index", fontsize=14)
+#         pyplot.xlabel("former index", fontsize=14)
+#         pyplot.xlim(0, 16)
+#         pyplot.ylim(0, 16)
+#         axes = pyplot.subplot(2, len(cases), index + len(cases) + 1)
+#         _, process = approximate_capacity(accessor=adjacency_matrix_to_accessor(case), repeats=1, need_process=True)
+#         if len(process) == 1:
+#             pyplot.scatter([0], process, color=colors["trad1"])
+#         pyplot.plot(range(len(process)), process, color=colors["trad1"], marker="o", linewidth=2)
+#         pyplot.text(len(process) - 0.8, process[-1], "%.3f" % process[-1], va="center", ha="left", fontsize=14)
+#         pyplot.xlim(-0.1, 2.1)
+#         pyplot.ylim(-0.1, 2.1)
+#         pyplot.yticks([0, 0.5, 1, 1.5, 2], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=14)
+#         pyplot.ylabel("capacity", fontsize=14)
+#         pyplot.xticks([0, 1, 2], [1, 2, 3], fontsize=14)
+#         pyplot.xlabel("iteration", fontsize=14)
+#         # noinspection PyUnresolvedReferences
+#         axes.spines["right"].set_visible(False)
+#         # noinspection PyUnresolvedReferences
+#         axes.spines["top"].set_visible(False)
+#
+#     figure.align_labels()
+#     figure.text(0.024, 0.99, "A", va="center", ha="center", fontsize=14)
+#     figure.text(0.269, 0.99, "B", va="center", ha="center", fontsize=14)
+#     figure.text(0.516, 0.99, "C", va="center", ha="center", fontsize=14)
+#     figure.text(0.760, 0.99, "D", va="center", ha="center", fontsize=14)
+#     pyplot.savefig("./results/figures/Figure S6.pdf",
+#                    format="pdf", bbox_inches="tight", dpi=600)
+#     pyplot.close()
 
 
 def evaluate_detailed(test_times, terminal_length):
@@ -259,12 +259,12 @@ def evaluate_detailed(test_times, terminal_length):
     figure.text(0.024, 0.34, "C", va="center", ha="center", fontsize=14)
 
     figure.align_labels()
-    pyplot.savefig("./results/figures/Figure S7.pdf",
+    pyplot.savefig("./results/figures/Figure S6.pdf",
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
     create_folders()
-    display_cases()
+    # display_cases()
     evaluate_detailed(test_times=100, terminal_length=6)

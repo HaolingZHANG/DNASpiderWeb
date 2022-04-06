@@ -152,6 +152,59 @@ def stable():
     pyplot.savefig("./results/figures/1.3.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
+    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
+    rates = []
+    for filter_index in filter_indices:
+        accessor = load(file="./results/data/v" + filter_index + "[g].npy")
+        out_degrees = sum(where(accessor >= 0, 1, 0), axis=1)
+        rates.append(len(out_degrees[out_degrees == 1]) / len(out_degrees[out_degrees >= 1]))
+    visited_indices = []
+    for index in range(12):
+        if rates[index] > 0:
+            pyplot.bar([len(visited_indices)], [rates[index]], color="silver", edgecolor="black", width=0.6)
+            pyplot.text(len(visited_indices), rates[index] + 0.001, "%.1f" % (rates[index] * 100) + "%", fontsize=10,
+                        va="bottom", ha="center")
+            visited_indices.append(filter_indices[index])
+
+    pyplot.xlabel("selected constraint set", fontsize=12)
+    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=12)
+    pyplot.xlim(-0.35, 3.35)
+    pyplot.ylabel("probability of out-degree 1", fontsize=12)
+    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=12)
+    pyplot.ylim(-0.005, 0.105)
+    pyplot.savefig("./results/figures/1.4.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
+    with open("./results/data/step_1_compatibility_code_rates.pkl", "rb") as file:
+        proposed_results = pload(file)
+    with open("./results/data/step_1_compatibility_out_degree_1.pkl", "rb") as file:
+        out_1_results = pload(file)
+    visited_indices = []
+    for index, (filter_index, out_values) in enumerate(out_1_results.items()):
+        visited_indices.append(filter_index)
+        value_1, value_2 = std(out_values), std(proposed_results[int(filter_index) - 1])
+        if index > 0:
+            pyplot.bar([index - 0.15], [value_1], color=colors["trad1"], edgecolor="black", width=0.3)
+            pyplot.bar([index + 0.15], [value_2], color=colors["algo1"], edgecolor="black", width=0.3)
+        else:
+            pyplot.bar([index - 0.15], [value_1],
+                       color=colors["trad1"], edgecolor="black", width=0.3, label="retain vertex of out-degree 1")
+            pyplot.bar([index + 0.15], [value_2],
+                       color=colors["algo1"], edgecolor="black", width=0.3, label="remove vertex of out-degree 1")
+        pyplot.text(index - 0.15, value_1 + 0.001, "%.3f" % value_1, fontsize=10, va="bottom", ha="center")
+        pyplot.text(index + 0.15, value_2 + 0.001, "%.3f" % value_2, fontsize=10, va="bottom", ha="center")
+
+    pyplot.legend(loc="upper right", ncol=2, fontsize=10)
+    pyplot.xlabel("selected constraint set", fontsize=12)
+    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=12)
+    pyplot.xlim(-0.35, 3.35)
+    pyplot.ylabel("standard deviation of code rate", fontsize=12)
+    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0.00", "0.02", "0.04", "0.06", "0.08", "0.10"], fontsize=12)
+    pyplot.ylim(-0.005, 0.105)
+    pyplot.savefig("./results/figures/1.5.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
 
 def repair():
     with open("./results/data/step_4_repairability_multiple_errors.pkl", "rb") as file:
@@ -261,45 +314,13 @@ def repair():
     pyplot.close()
 
     pyplot.figure(figsize=(10, 5))
-    info = []
-    for dna_length in linspace(start=100, stop=400, num=4, dtype=int):
-        for error_time in (linspace(1, 4, 4) * dna_length / 100).astype(int):
-            if (dna_length == 300 and error_time == 12) \
-                    or (dna_length == 400 and error_time == 12) \
-                    or (dna_length == 400 and error_time == 16):
-                continue
-            for data in task_2[dna_length, error_time]:
-                info.append([data[1], data[-1]])
-    info = array(info).T
-    info[0] = info[0] / max(info[0])
-    info[0] = (info[0] * 10 + 0.5).astype(int)
-    shown_data = zeros(shape=(2, 11))
-    for sample in info.T:
-        shown_data[0, int(sample[0])] += sample[1]
-        shown_data[1, int(sample[0])] += 1
-
-    shown_data[1][shown_data[1] == 0] = 1
-    shown_data = shown_data[0] / shown_data[1]
-    pyplot.bar(range(11), shown_data, color="silver", edgecolor="black")
-    for index, value in enumerate(shown_data):
-        pyplot.text(x=index, y=value + 0.02, s=str(int(value * 100 + 0.5)) + "%", ha="center", va="bottom", fontsize=12)
-
-    pyplot.xlabel("normalized coefficient of variation", fontsize=12)
-    pyplot.xlim(-0.65, 10.65)
-    pyplot.xticks(range(11),
-                  ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"], fontsize=12)
-    pyplot.ylabel("correction rate", fontsize=12)
-    pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=12)
-    pyplot.savefig("./results/figures/2.5.png", format="png", bbox_inches="tight", dpi=600)
-    pyplot.close()
-
-    pyplot.figure(figsize=(10, 5))
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    violin_1, violin_2, points = None, None, None
+    values, rates = [[], []], [[], []]
     for filter_index in range(1, 13):
+        indices = where(task_1[filter_index, 1][:, 2] == 1)[0]
         formers, latters = task_1[filter_index, 1][:, 3], task_1[filter_index, 1][:, 6]
-        formers, latters = log10(formers[formers > 0]), log10(latters[latters > 0])
+        formers, latters = log10(formers[indices]), log10(latters[indices])
+
         violin_1 = pyplot.violinplot(formers, positions=[filter_index], widths=0.8, bw_method=0.5,
                                      showmeans=False, showextrema=False, showmedians=False)
         for body in violin_1["bodies"]:
@@ -307,8 +328,11 @@ def repair():
             body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], -inf, center)
             body.set_color(colors["algo1"])
             body.set_edgecolor("black")
+            body.set_linewidth(1.5)
             body.set_alpha(1)
-        pyplot.scatter([filter_index - 0.15], [mean(formers)], color="white", edgecolor="black", s=10)
+        pyplot.scatter([filter_index], [median(formers)], color=colors["algo1"], edgecolor="black", linewidth=1.5, s=40)
+        values[0].append(mean(formers))
+
         violin_2 = pyplot.violinplot(latters, positions=[filter_index], widths=0.8, bw_method=0.5,
                                      showmeans=False, showextrema=False, showmedians=False)
         for body in violin_2["bodies"]:
@@ -316,38 +340,22 @@ def repair():
             body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], center, inf)
             body.set_color(colors["yyco1"])
             body.set_edgecolor("black")
+            body.set_linewidth(1.5)
             body.set_alpha(1)
-        points = pyplot.scatter([filter_index + 0.15], [mean(latters)], color="white", edgecolor="black", s=10)
-    pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0], points],
-                  ["search-only", "combined", "mean value"], fontsize=12)
+
+        pyplot.scatter([filter_index], [median(latters)], color=colors["yyco1"], edgecolor="black", linewidth=1.5, s=40)
+        values[1].append(mean(latters))
+
+        if filter_index == 1:
+            pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0]], ["search-only", "combined"], fontsize=10)
+
     pyplot.xlabel("constraint set", fontsize=12)
     pyplot.xticks(range(1, 13), filter_indices, fontsize=12)
     pyplot.xlim(0.5, 12.5)
-    pyplot.ylabel("number of correction candidates", fontsize=12)
-    pyplot.yticks([0, 1, 2, 3], [1, 10, 100, 1000], fontsize=12)
+    pyplot.ylabel("candidate number", fontsize=12)
+    pyplot.yticks([0, 1, 2, 3], ["1", "10", "100", "1000"], fontsize=12)
     pyplot.ylim(-0.2, 3.2)
-    pyplot.savefig("./results/figures/2.6.png", format="png", bbox_inches="tight", dpi=600)
-    pyplot.close()
-
-    pyplot.figure(figsize=(10, 5))
-    rates = []
-    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    for filter_index in range(1, 13):
-        rates.append(sum(task_1[filter_index, 1][:, 2]) / 2000.0)
-        if filter_index < 9:
-            pyplot.text(filter_index, log10(rates[-1] * 10000) + 0.03, "%.1f" % (rates[-1] * 100) + "%",
-                        va="bottom", ha="center", fontsize=12)
-        else:
-            pyplot.text(filter_index, log10(rates[-1] * 10000) + 0.03, "%.1f" % (rates[-1] * 100) + "%",
-                        va="bottom", ha="center", color="red", fontsize=12)
-    pyplot.bar(linspace(1, 12, 12), log10(array(rates) * 10000), width=0.6, color="silver", edgecolor="black")
-    pyplot.xlabel("constraint set", fontsize=12)
-    pyplot.xticks(range(1, 13), filter_indices, fontsize=12)
-    pyplot.xlim(0.45, 12.55)
-    pyplot.ylabel("detection rate", fontsize=12)
-    pyplot.ylim(-0.25, 4.25)
-    pyplot.yticks([0, 1, 2, 3, 4], ["0.01%", "0.1%", "1%", "10%", "100%"], fontsize=12)
-    pyplot.savefig("./results/figures/2.7.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/2.5.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
     pyplot.figure(figsize=(10, 5))
@@ -362,10 +370,10 @@ def repair():
     pyplot.xlabel("DNA string length", fontsize=12)
     pyplot.xlim(100, 400)
     pyplot.xticks([100, 200, 300, 400], [100, 200, 300, 400], fontsize=12)
-    pyplot.ylabel("minimum correction read(s)", fontsize=12)
+    pyplot.ylabel("minimum read(s) for correction", fontsize=12)
     pyplot.ylim(0, 4)
     pyplot.yticks([0, 1, 2, 3, 4], ["0", "1", "2", "3", "4"], fontsize=12)
-    pyplot.savefig("./results/figures/2.8.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/2.6.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
     pyplot.figure(figsize=(10, 5))
@@ -382,7 +390,7 @@ def repair():
     pyplot.ylabel("average runtime (second)", fontsize=12)
     pyplot.ylim(0, 1)
     pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0.00", "0.25", "0.50", "0.75", "1.00"], fontsize=12)
-    pyplot.savefig("./results/figures/2.9.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./results/figures/2.7.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -392,42 +400,10 @@ def protect():
 
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
+
     reconstructions = load(file="./results/data/step_5_encrypability_reconstruction.npy")
     with open("./results/data/step_1_compatibility_capacities.pkl", "rb") as file:
         capacities, _ = pload(file)
-
-    pyplot.figure(figsize=(10, 5.5))
-    display_data, percentages = {}, linspace(0, 1, 101)
-    for index, data in enumerate(reconstructions):
-        medians = [0]
-        for iteration_data in data.T[1:]:
-            used_data = iteration_data[iteration_data > 0]
-            if len(used_data) == 0:
-                break
-            medians.append(median(used_data))
-        number = len(where(load(file="./results/data/a" + filter_indices[index] + "[v].npy") == 1)[0])
-        medians = array(medians) / number
-        numbers = array(list(range(len(medians))))
-        parameter = curve_fit(estimated_equation, xdata=medians[1:], ydata=numbers[1:], p0=(2,))[0][0]
-        used_capacities = parameter ** percentages * 100 * capacities[index] / 8
-        display_data[index] = used_capacities
-    for index, locations in display_data.items():
-        pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2,
-                    label=str(index + 1).zfill(2))
-    pyplot.legend(loc="upper left", fontsize=12)
-    pyplot.xlabel("graph reconstruction percentage", fontsize=12)
-    pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=12)
-    pyplot.xlim(0, 1)
-    pyplot.ylabel("transmitted data capacity", fontsize=12)
-    pyplot.yticks([0.0 * 1e8, 0.2 * 1e8, 0.4 * 1e8, 0.6 * 1e8, 0.8 * 1e8, 1.0 * 1e8,
-                   1.2 * 1e8, 1.4 * 1e8, 1.6 * 1e8, 1.8 * 1e8, 2.0 * 1e8],
-                  ["0.0E+8 bytes", "0.2E+8 bytes", "0.4E+8 bytes", "0.6E+8 bytes", "0.8E+8 bytes", "1.0E+8 bytes",
-                   "1.2E+8 bytes", "1.4E+8 bytes", "1.6E+8 bytes", "1.8E+8 bytes", "2.0E+8 bytes"],
-                  fontsize=12)
-    pyplot.ylim(0, 2 * 1e8)
-    pyplot.savefig("./results/figures/3.1.png", format="png", bbox_inches="tight", dpi=600)
-    pyplot.close()
 
     pyplot.figure(figsize=(10, 5))
     collected_data = zeros(shape=(12, 100))
@@ -456,9 +432,42 @@ def protect():
     pyplot.xlabel("constraint set", fontsize=12)
     pyplot.xticks(range(12), filter_indices, fontsize=12)
     pyplot.xlim(-0.5, 11.5)
-    pyplot.ylabel("transmitted data capacity", fontsize=12)
+    pyplot.ylabel("transmitted file size", fontsize=12)
     pyplot.yticks([0, 1, 2, 3], ["B", "KB", "MB", "GB"], fontsize=12)
     pyplot.ylim(0, 3)
+    pyplot.savefig("./results/figures/3.1.png", format="png", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+    pyplot.figure(figsize=(10, 5.5))
+    display_data, percentages = {}, linspace(0, 1, 101)
+    for index, data in enumerate(reconstructions):
+        medians = [0]
+        for iteration_data in data.T[1:]:
+            used_data = iteration_data[iteration_data > 0]
+            if len(used_data) == 0:
+                break
+            medians.append(median(used_data))
+        number = len(where(load(file="./results/data/a" + filter_indices[index] + "[v].npy") == 1)[0])
+        medians = array(medians) / number
+        numbers = array(list(range(len(medians))))
+        parameter = curve_fit(estimated_equation, xdata=medians[1:], ydata=numbers[1:], p0=(2,))[0][0]
+        used_capacities = parameter ** percentages * 100 * capacities[index] / 8
+        display_data[index] = used_capacities
+    for index, locations in display_data.items():
+        pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2,
+                    label=str(index + 1).zfill(2))
+    pyplot.legend(loc="upper left", fontsize=12)
+    pyplot.xlabel("graph reconstruction percentage", fontsize=12)
+    pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=12)
+    pyplot.xlim(0, 1)
+    pyplot.ylabel("transmitted file size", fontsize=12)
+    pyplot.yticks([0.0 * 1e8, 0.2 * 1e8, 0.4 * 1e8, 0.6 * 1e8, 0.8 * 1e8, 1.0 * 1e8,
+                   1.2 * 1e8, 1.4 * 1e8, 1.6 * 1e8, 1.8 * 1e8, 2.0 * 1e8],
+                  ["0.0E+8 bytes", "0.2E+8 bytes", "0.4E+8 bytes", "0.6E+8 bytes", "0.8E+8 bytes", "1.0E+8 bytes",
+                   "1.2E+8 bytes", "1.4E+8 bytes", "1.6E+8 bytes", "1.8E+8 bytes", "2.0E+8 bytes"],
+                  fontsize=12)
+    pyplot.ylim(0, 2 * 1e8)
     pyplot.savefig("./results/figures/3.2.png", format="png", bbox_inches="tight", dpi=600)
     pyplot.close()
 
@@ -475,7 +484,7 @@ def protect():
         follow_ups[index] = counts
 
     pyplot.hlines(bit_length, 0, 320, color="silver", linewidth=0.75, linestyle="--", zorder=1)
-    pyplot.text(4, 256 + 4, "reference", va="bottom", ha="left", fontsize=12)
+    pyplot.text(4, 256 + 4, "AES-256", va="bottom", ha="left", fontsize=12)
     for index, filter_index in enumerate(filter_indices):
         lengths = linspace(0, 320, 321)
         rate = follow_ups[index][0] * 2.0 + follow_ups[index][1] * 6.0 + follow_ups[index][2] * 24.0
@@ -498,7 +507,7 @@ def protect():
     pyplot.xlabel("DNA string length", fontsize=12)
     pyplot.xlim(0, 320)
     pyplot.xticks([0, 64, 128, 192, 256, 320], ["0nt", "64nt", "128nt", "192nt", "256nt", "320nt"], fontsize=12)
-    pyplot.ylabel("equivalent key strength", fontsize=12)
+    pyplot.ylabel("bits of security", fontsize=12)
     pyplot.ylim(0, 384)
     pyplot.yticks([0, 128, 256, 384], [0, 128, 256, 384], fontsize=12)
 
@@ -507,7 +516,7 @@ def protect():
     pyplot.close()
 
 
-def appendix():
+def capacity():
     def create_matrix(dna_strings):
         matrix = zeros(shape=(16, 16), dtype=int)
         vertices = [dna_to_number(dna_string=vertex, is_string=False) for vertex in dna_strings]
@@ -692,4 +701,4 @@ if __name__ == "__main__":
     stable()
     repair()
     protect()
-    appendix()
+    capacity()
