@@ -46,7 +46,7 @@ In order to further understand the experimental situation, the core raw data are
 like getting raw data, please do not hesitate to contact us.
 
 If you are interested in detailed design, evaluations, conclusions, mathematical proofs, and implementations, 
-please refer to our publication.
+please refer to our [publication](https://arxiv.org/pdf/2204.02855.pdf).
 
 ## Usage and Customization
 ### biochemical constraints set
@@ -103,7 +103,8 @@ print(capacity)
 ```
 
 The capacity approximater is based on the Perron–Frobenius theorem,
-we have proved its applicability for variable-length coding algorithms in the Appendix A of our publication.
+we have proved its applicability for coding algorithms 
+in the Appendix A of our [publication](https://arxiv.org/pdf/2204.02855.pdf).
 
 Unfortunately, when the observed length (or window length) reaches 8, 
 the data capacity will achieve 16.0GB with the data type (integer format), 
@@ -153,7 +154,8 @@ you can easily find 12 examples in our experiments under the observed length 10,
 Here the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, and TCTAGA.
 Meanwhile, the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
 
-The corresponding coding performances of generated coding algorithms are shown in the evaluation section of our publication.
+The corresponding coding performances of generated coding algorithms are shown 
+in the evaluation section of our [publication](https://arxiv.org/pdf/2204.02855.pdf).
 
 As an example, the encoding process for a GC-balanced accessor is:
 ```python
@@ -166,7 +168,11 @@ accessor = array([[-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1,
 binary_message = array([0, 1, 0, 1, 0, 1, 0, 1])
 encode(accessor=accessor, binary_message=binary_message, start_index=1)
 ```
-and a DNA string 'TCTCTCT' will be obtained.
+and a DNA string 
+````
+'TCTCTCT'
+```` 
+will be obtained.
 
 Reversely, in the decoding process:
 ```python
@@ -179,7 +185,10 @@ accessor = array([[-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1,
 dna_string = "TCTCTCT"
 decode(accessor=accessor, dna_string=dna_string, start_index=1, bit_length=8)
 ```
-and you will obtain a binary message with NumPy format: array([0, 1, 0, 1, 0, 1, 0, 1]).      
+and you will obtain a binary message with NumPy format: 
+````
+array([0, 1, 0, 1, 0, 1, 0, 1])
+````      
         
 ### path-based correcting
 <p align="center">
@@ -196,7 +205,10 @@ vt_length = 5
 dna_string = "TCTCTCT"
 set_vt(dna_string=dna_string, vt_length=vt_length)
 ```
-After that, you'll get a check string 'TAATA'. 
+After that, you'll get a check string:
+````
+'TAATA'
+```` 
 
 Without the check string, you can repair the DNA string directly through our proposed 'saturated reverse search'.
 Here is a case:
@@ -211,7 +223,10 @@ dna_string = "TCTCTATCTCTC"  # "TCTCTCTCTCTC" is original DNA string
 repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, 
            check_iterations=1, has_insertion=True, has_deletion=True, verbose=False)
 ```
-The returned data is a tuple: (['TCTCTCTCTCTC', 'TCTCTGTCTCTC'], (True, False, 2)).
+The returned data is a tuple: 
+````
+(['TCTCTCTCTCTC', 'TCTCTGTCTCTC'], (True, False, 2))
+````
 The former one is the repair string set, which may contain one or more candidate solutions.
 The latter one is the temporary parameters in the repair process are used to evaluate the repair results.
 
@@ -228,7 +243,10 @@ vt_check = "AACTG"  # check list of Varshamov-Tenengolts code.
 repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, 
            check_iterations=1, vt_check=vt_check, has_insertion=True, has_deletion=True, verbose=False)
 ```
-The updated result is: (['TCTCTCTCTCTC'], (True, True, 2)).
+The updated result is: 
+````
+(['TCTCTCTCTCTC'], (True, True, 2))
+````
 
 ### mapping shuffling
 <p align="center">
@@ -246,12 +264,12 @@ from dsw import create_random_shuffles
 create_random_shuffles(observed_length=2, random_seed=2021)
 ```
 By doing so,
-```html
+````
 array([[3, 2, 1, 0], [2, 3, 1, 0], [3, 1, 0, 2], [0, 3, 1, 2],
        [3, 2, 0, 1], [1, 0, 3, 2], [0, 3, 1, 2], [2, 0, 1, 3],
        [2, 3, 0, 1], [1, 0, 3, 2], [2, 0, 1, 3], [0, 1, 3, 2],
        [2, 3, 1, 0], [2, 0, 3, 1], [0, 1, 3, 2], [0, 3, 2, 1]])
-```
+````
 is the returned shuffled matrix.
 
 Using your shuffled matrix, the obtained DNA string will be different than before: 
@@ -269,7 +287,11 @@ shuffles = array([[3, 2, 1, 0], [2, 3, 1, 0], [3, 1, 0, 2], [0, 3, 1, 2],
                   [2, 3, 1, 0], [2, 0, 3, 1], [0, 1, 3, 2], [0, 3, 2, 1]])
 encode(accessor=accessor, binary_message=binary_message, shuffles=shuffles, start_index=1)
 ```
-you can get 'AGAGAGA' here (rather than 'TCTCTCT' before).
+you can get 
+````
+'AGAGAGA'
+```` 
+rather than 'TCTCTCT' before.
 
 If you use mapping shuffling, please don't forget to pass in the corresponding parameter during the decoding process.
 
