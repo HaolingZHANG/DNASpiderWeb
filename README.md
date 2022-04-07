@@ -46,7 +46,7 @@ In order to further understand the experimental situation, the core raw data are
 like getting raw data, please do not hesitate to contact us.
 
 If you are interested in detailed design, evaluations, conclusions, mathematical proofs, and implementations, 
-please refer to our publication [here]().
+please refer to our publication.
 
 ## Usage and Customization
 ### biochemical constraints set
@@ -103,7 +103,7 @@ print(capacity)
 ```
 
 The capacity approximater is based on the Perron–Frobenius theorem,
-we have proved its applicability for variable-length coding algorithms in the publication (Appendix A).
+we have proved its applicability for variable-length coding algorithms in the Appendix A of our publication.
 
 Unfortunately, when the observed length (or window length) reaches 8, 
 the data capacity will achieve 16.0GB with the data type (integer format), 
@@ -121,15 +121,13 @@ we believe our proposed method is high reliability and negligible error.
 
 ### graph-based encoding
 <p align="center">
-<img src="./docs/source/_static/strategy_1.svg" alt="graph-based encoding" title="graph-based encoding" width="100%"/>
+<img src="./docs/source/_static/strategy_1.png" alt="graph-based encoding" title="graph-based encoding" width="100%"/>
 </p>
 
-According to **SPIDER-WEB**, you can generate a coding algorithm 
-under the established biochemical constraints.
+According to **SPIDER-WEB**, you can generate a coding algorithm under the established biochemical constraints.
 For example,
 ```python
 from dsw import LocalBioFilter, find_vertices, connect_coding_graph
-
 bio_filter = LocalBioFilter(max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["ACA", "CAC", "GTG", "TGT"])
 vertices = find_vertices(observed_length=10, bio_filter=bio_filter)
 accessor = connect_coding_graph(observed_length=10, vertices=vertices, threshold=1)  # representation of directed graph
@@ -137,7 +135,7 @@ accessor = connect_coding_graph(observed_length=10, vertices=vertices, threshold
 In [experiments folder](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/__init__.py), 
 you can easily find 12 examples in our experiments under the observed length 10, the local biochemical constraint set are:
 
-| set index | homopolymer run-length constraint | regionalized GC content constraint | undesired motif constraint | approximated capacity |
+| set index | homopolymer run-length | regionalized GC content | undesired motifs | approximated capacity |
 | ---- | ---- | ---- | ---- | ----|
 | 01 |  2  | 50%~50% | restriction sites | 1.0000 |
 | 02 |  1  |   N/A   | N/A | 1.5850 |
@@ -155,8 +153,7 @@ you can easily find 12 examples in our experiments under the observed length 10,
 Here the restriction sites represent AGCT, GACGC, CAGCAG, GATATC, GGTACC, CTGCAG, GAGCTC, GTCGAC, AGTACT, ACTAGT, GCATGC, AGGCCT, and TCTAGA.
 Meanwhile, the similar structures in Nanopore sequencing are AGA, GAG, CTC, and TCT.
 
-The corresponding coding performances of generated coding algorithms 
-are shown in our publication [here]().
+The corresponding coding performances of generated coding algorithms are shown in the evaluation section of our publication.
 
 As an example, the encoding process for a GC-balanced accessor is:
 ```python
@@ -186,7 +183,7 @@ and you will obtain a binary message with NumPy format: array([0, 1, 0, 1, 0, 1,
         
 ### path-based correcting
 <p align="center">
-<img src="./docs/source/_static/strategy_2.svg" alt="path-based correcting" title="path-based correcting" width="100%"/>
+<img src="./docs/source/_static/strategy_2.png" alt="path-based correcting" title="path-based correcting" width="100%"/>
 </p>
 
 Before biochemical operation, 
@@ -235,7 +232,7 @@ The updated result is: (['TCTCTCTCTCTC'], (True, True, 2)).
 
 ### mapping shuffling
 <p align="center">
-<img src="./docs/source/_static/strategy_3.svg" alt="mapping shuffling" title="mapping shuffling" width="100%"/>
+<img src="./docs/source/_static/strategy_3.png" alt="mapping shuffling" title="mapping shuffling" width="100%"/>
 </p>
 
 To provide a certain amount of additional security against eavesdroppers, 
@@ -345,17 +342,14 @@ The installation process only includes folder 'dsw' and  'tests'.
 
 
 ## Citation
-If you think this repo helps or being used in your research, please consider refer this work.
+If you think this repository helps or being used in your research, please consider refer this work.
 Here is a Bibtex entry:
 
 ````
 @article{zhang2021spider,
   title={SPIDER-WEB enables stable, repairable, and encryptible algorithms under arbitrary local biochemical constraints in DNA-based storage},
   author={Zhang, Haoling and Lan, Zhaojun and Zhang, Wenwei and Xu, Xun and Ping, Zhi and Zhang, Yiwei and Shen, Yue},
-  journal={arXiv preprint arXiv:1606.01540},
+  journal={arXiv preprint arXiv:2204.02855},
   year={2022}
 }
 ````
-
-# Contributor for this repository
-[Haoling Zhang](https://github.com/HaolingZHANG)
