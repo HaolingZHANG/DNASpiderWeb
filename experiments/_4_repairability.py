@@ -251,7 +251,7 @@ def draw_corr():
                    format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
-    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
+    pyplot.figure(figsize=(10, 8), tight_layout=True)
     rcParams["font.family"] = "Linux Libertine"
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     values, rates = [[], []], [[], []]

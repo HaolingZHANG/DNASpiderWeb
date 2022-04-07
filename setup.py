@@ -27,7 +27,7 @@ setup(
     packages=["dsw", "tests"],
     install_requires=["numpy", "scipy"],
     license="GPL",
-    classifiers=["License :: OSI Approved :: GPL License",
+    classifiers=["License :: OSI Approved :: GNU General Public License (GPL)",
                  "Programming Language :: Python :: 3",
                  "Operating System :: OS Independent"],
     keywords="DNA-based Storage, Coding Algorithm, Automatic Algorithm Generator, Probabilistic Error-Correction",
