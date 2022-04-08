@@ -42,7 +42,7 @@ These experimental Python scripts [here](https://github.com/HaolingZHANG/DNASpid
 It may take about several months to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
 In order to further understand the experimental situation, the core raw data are saved
 [here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/results/raw%20data.xlsx).
-like getting raw data, please do not hesitate to contact us.
+If you want the whole raw data, please do not hesitate to contact us.
 
 If you are interested in detailed design, evaluations, conclusions, mathematical proofs, and implementations, 
 please refer to our [publication](https://arxiv.org/pdf/2204.02855.pdf).
