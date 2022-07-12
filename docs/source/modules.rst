@@ -37,11 +37,13 @@ Transcoding Process Module
 .. autofunction:: dsw.spiderweb.decode
 .. autofunction:: dsw.spiderweb.set_vt
 .. autofunction:: dsw.spiderweb.repair_dna
+.. autofunction:: dsw.spiderweb.remove_nasty_arc
 
 Graph-based Operation Module
 ------------------------------------------
 .. autofunction:: dsw.graphized.approximate_capacity
 .. autofunction:: dsw.graphized.path_matching
+.. autofunction:: dsw.graphized.calculate_intersection_score
 .. autofunction:: dsw.graphized.obtain_formers
 .. autofunction:: dsw.graphized.obtain_latters
 .. autofunction:: dsw.graphized.obtain_leaf_vertices
