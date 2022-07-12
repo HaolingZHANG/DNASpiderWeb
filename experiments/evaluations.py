@@ -215,7 +215,7 @@ def evaluate_correction():
             vertices = obtain_vertices(accessor)
             for error_times in [1, 2, 3, 4]:
                 results = evaluate_repair_multiple_errors(random_seed=2021, dna_length=100, repeats=2000,
-                                                          accessor=accessor, vertices=vertices,  observed_length=10,
+                                                          accessor=accessor, vertices=vertices, observed_length=10,
                                                           error_times=error_times, check_iterations=error_times + 1)
                 records["constraint influence"][index, error_times - 1] = sum(results[:, -2]) / 2000.0
 
@@ -225,7 +225,7 @@ def evaluate_correction():
             for error_times in [1, 2, 3, 4]:
                 error_number = length // 100 * error_times
                 results = evaluate_repair_multiple_errors(random_seed=2021, dna_length=length, repeats=2000,
-                                                          accessor=accessor, vertices=vertices,  observed_length=10,
+                                                          accessor=accessor, vertices=vertices, observed_length=10,
                                                           error_times=error_number, check_iterations=error_number + 1)
                 records["length influence"][length // 100 - 1, error_times - 1] = sum(results[:, -2]) / 2000.0
 

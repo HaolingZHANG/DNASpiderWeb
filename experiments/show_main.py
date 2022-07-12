@@ -71,8 +71,7 @@ def main04():
     display_data = [[[] for _ in range(4)] for _ in range(12)]
     record = load(file="./data/performance_evaluation_1.pkl", allow_pickle=True)
     for algorithm_index, filter_index, _, _, code_rate in record:
-        display_data[int(filter_index) - 1][int(algorithm_index) - 1].append(code_rate)
-        
+        display_data[int(filter_index - 1)][int(algorithm_index - 1)].append(code_rate)
     book = Workbook()
     sheet = book.create_sheet(title="main04", index=0)
     sheet.append(["constraint set index", "DNA Fountain", "Yin-Yang Code", "HEDGES", "SPIDER-WEB"])

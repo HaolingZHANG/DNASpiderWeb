@@ -278,8 +278,8 @@ def trans_hedges(dataset, shape, index_length):
                 bit_location += bit_number
                 pattern_flag = (pattern_flag + 1) % len(pattern)
             else:
-                raise ValueError("DNA string (index = " + str(strand_index) + ") " +
-                                 "cannot be encoded because of the established constraints!")
+                raise ValueError("DNA string (index = " + str(strand_index) + ") "
+                                 + "cannot be encoded because of the established constraints!")
 
             dna_string += nucleotide
 
