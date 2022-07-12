@@ -82,10 +82,10 @@ class LocalBioFilter(DefaultBioFilter):
                     raise ValueError("The parameter \"observed_length\" must "
                                      + "longer than the length of any motif in the parameter \"undesired_motifs\"!")
 
-        self._observed_length = observed_length
-        self._max_homopolymer_runs = max_homopolymer_runs
-        self._gc_range = gc_range
-        self._undesired_motifs = undesired_motifs
+        self.observed_length = observed_length
+        self.max_homopolymer_runs = max_homopolymer_runs
+        self.gc_range = gc_range
+        self.undesired_motifs = undesired_motifs
 
     def valid(self, dna_string, only_last=True):
         """
@@ -106,7 +106,7 @@ class LocalBioFilter(DefaultBioFilter):
             it is not necessary to detect the sub DNA strings observed in each window from scratch every time.
         """
         if only_last:
-            observed_dna_string = dna_string[-self._observed_length:]
+            observed_dna_string = dna_string[-self.observed_length:]
         else:
             observed_dna_string = dna_string
 
@@ -114,13 +114,13 @@ class LocalBioFilter(DefaultBioFilter):
             if nucleotide not in "ACGT":
                 return False
 
-        if self._max_homopolymer_runs is not None:
+        if self.max_homopolymer_runs is not None:
             for nucleotide in "ACGT":
-                if nucleotide * (1 + self._max_homopolymer_runs) in observed_dna_string:
+                if nucleotide * (1 + self.max_homopolymer_runs) in observed_dna_string:
                     return False
 
-        if self._undesired_motifs is not None:
-            for special in self._undesired_motifs:
+        if self.undesired_motifs is not None:
+            for special in self.undesired_motifs:
                 if special in observed_dna_string:
                     return False
                 reverse_complement = special.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
@@ -128,28 +128,28 @@ class LocalBioFilter(DefaultBioFilter):
                 if reverse_complement in observed_dna_string:
                     return False
 
-        if self._gc_range is not None:
-            if len(observed_dna_string) >= self._observed_length:
-                for index in range(len(observed_dna_string) - self._observed_length + 1):
-                    sub_dna_string = observed_dna_string[index: index + self._observed_length]
+        if self.gc_range is not None:
+            if len(observed_dna_string) >= self.observed_length:
+                for index in range(len(observed_dna_string) - self.observed_length + 1):
+                    sub_dna_string = observed_dna_string[index: index + self.observed_length]
                     gc_count = sub_dna_string.count("C") + sub_dna_string.count("G")
-                    if gc_count > self._gc_range[1] * self._observed_length:
+                    if gc_count > self.gc_range[1] * self.observed_length:
                         return False
-                    if gc_count < self._gc_range[0] * self._observed_length:
+                    if gc_count < self.gc_range[0] * self.observed_length:
                         return False
             else:
                 gc_count = observed_dna_string.count("C") + observed_dna_string.count("G")
-                if gc_count > self._gc_range[1] * self._observed_length:
+                if gc_count > self.gc_range[1] * self.observed_length:
                     return False
                 at_count = observed_dna_string.count("A") + observed_dna_string.count("T")
-                if at_count > (1 - self._gc_range[0]) * self._observed_length:
+                if at_count > (1 - self.gc_range[0]) * self.observed_length:
                     return False
 
         return True
 
     def __str__(self):
         info = self.screen_name + "\n"
-        info += "maximum homopolymer runs : " + str(self._max_homopolymer_runs) + "\n"
-        info += "local GC content range   : " + str(self._gc_range[0]) + "<= GC <=" + str(self._gc_range[1]) + "\n"
-        info += "undesired DNA motifs     : " + str(self._undesired_motifs).replace("\"", "") + "\n"
+        info += "maximum homopolymer runs : " + str(self.max_homopolymer_runs) + "\n"
+        info += "local GC content range   : " + str(self.gc_range[0]) + " <= GC <= " + str(self.gc_range[1]) + "\n"
+        info += "undesired DNA motifs     : " + str(self.undesired_motifs).replace("\"", "") + "\n"
         return info

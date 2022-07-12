@@ -1,4 +1,5 @@
-from numpy import zeros, ones, zeros_like, array, min, median, max, random, log, log2, sum, abs, all, where
+from itertools import combinations
+from numpy import zeros, ones, zeros_like, array, union1d, min, median, max, random, log, log2, sum, abs, all, where
 
 from dsw.operation import Monitor
 
@@ -207,7 +208,7 @@ def accessor_to_latter_map(accessor, verbose=False):
     :param verbose: need to print log.
     :type verbose: bool
 
-    :return: latter vertices map of graph.
+    :return: latter vertex map of graph.
     :rtype: dict
 
     Example
@@ -229,14 +230,14 @@ def accessor_to_latter_map(accessor, verbose=False):
         However, latter map is not suitable for matrix calculation.
     """
     latter_map, monitor, total = {}, Monitor(), len(accessor)
-    for current, vertex in enumerate(accessor):
-        if not all(vertex == -1):
-            latters = vertex[vertex >= 0].tolist()
-            if len(latters) > 0:
-                latter_map[current] = latters
+
+    locations = where(sum(((accessor + 1).astype(bool)), axis=1).astype(int) > 0)[0]
+    for index, location in enumerate(locations):
+        vertex = accessor[location]
+        latter_map[location] = vertex[vertex >= 0].tolist()
 
         if verbose:
-            monitor.output(current_state=current + 1, total_state=total)
+            monitor.output(current_state=index + 1, total_state=len(locations))
 
     return latter_map
 
@@ -245,7 +246,7 @@ def latter_map_to_accessor(latter_map, observed_length, threshold=None, nucleoti
     """
     Convert the latter map to the equivalent accessor.
 
-    :param latter_map: latter vertices map of graph.
+    :param latter_map: latter vertex map of graph.
     :type latter_map: dict
 
     :param observed_length: length of the DNA string in a vertex.
@@ -320,7 +321,7 @@ def remove_useless(latter_map, threshold, verbose=False):
     """
     Remove useless vertices (the out-degree of witch less than threshold) in the latter map.
 
-    :param latter_map: latter vertices map of graph.
+    :param latter_map: latter vertex map of graph.
     :type latter_map: dict
 
     :param threshold: minimum out-degree threshold.
@@ -483,6 +484,30 @@ def obtain_latters(current, observed_length, nucleotides=None):
     return latters
 
 
+def obtain_vertices(accessor):
+    """
+    Obtain available vertices from the established graph.
+
+    :param accessor: accessor of graph.
+    :type accessor: numpy.ndarray
+
+    :return: vertex list.
+    :rtype: numpy.ndarray
+
+    Example
+        >>> from numpy import array
+        >>> from dsw import obtain_vertices
+        >>> # accessor with GC-balanced
+        >>> accessor = array([[-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1], \
+                              [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
+                              [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
+                              [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
+        >>> obtain_vertices(accessor=accessor)
+        array([ 1,  2,  4,  7,  8, 11, 13, 14])
+    """
+    return where(sum(((accessor + 1).astype(bool)), axis=1).astype(bool) == 1)[0].astype(int)
+
+
 def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
     """
     Obtain leaf vertices in required depth of the tree with the rooted vertex.
@@ -496,7 +521,7 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
     :param accessor: accessor of graph.
     :type accessor: numpy.ndarray
 
-    :param latter_map: latter vertices map of graph.
+    :param latter_map: latter vertex map of graph.
     :type latter_map: dict
 
     :return: indices of required leaf vertex.
@@ -554,6 +579,7 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
     return array(branch)
 
 
+# noinspection PyUnresolvedReferences
 def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_iteration=500,
                          need_process=False, verbose=False):
     """
@@ -708,7 +734,7 @@ def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides
     :param verbose: need to print log.
     :type verbose: bool
 
-    :return: repaired DNA strings (may contain multiple repair results).
+    :return: repaired DNA strings (may contain multiple repair show).
     :rtype: list
 
     Example
@@ -901,3 +927,83 @@ def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides
             repair_info.append(("D", occur_location, delete_nucleotide, obtained_dna_string))
 
     return repair_info
+
+
+def calculate_intersection_score(latter_map, nucleotides=None, observed_length=10,
+                                 repair_insertion=True, repair_deletion=True, verbose=False):
+    """
+    Calculate the intersection score based on the breach-first search.
+
+    :param latter_map: latter vertex map of graph.
+    :type latter_map: dict
+
+    :param nucleotides: usage of nucleotides.
+    :type nucleotides: list
+
+    :param observed_length: length of the DNA string in a vertex.
+    :type observed_length: int
+
+    :param repair_insertion: consider to repair insertion errors.
+    :type repair_insertion: bool
+
+    :param repair_deletion: consider to repair deletion errors.
+    :type repair_deletion: bool
+
+    :param verbose: need to print log.
+    :type verbose: bool
+
+    :return: intersection scores for each arc in the coding graph (consistent with the shape of accessor).
+    :rtype: numpy.ndarray
+
+    Example
+        >>> from dsw import calculate_intersection_score
+        >>> # latter_map with GC-balanced
+        >>> latter_map = {1: [4, 7], 2: [8, 11], 4: [1, 2], 7: [13, 14], \
+                          8: [1, 2], 11: [13, 14], 13: [4, 7], 14: [8, 11]}
+        >>> calculate_intersection_score(latter_map, nucleotides=["A", "C", "G", "T"], observed_length=10, \
+                                         repair_insertion=True, repair_deletion=True, verbose=False)
+        array([[ 0,  0,  0,  0],
+               [28,  0,  0, 28],
+               [28,  0,  0, 28],
+               ...,
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]])
+
+    .. note::
+        It is a gift for the follow-up investigation.
+        That is, removing arc to improve the capability of the probabilistic error correction.
+    """
+    if nucleotides is None:
+        nucleotides = ["A", "C", "G", "T"]
+
+    currents, depth, monitor = list(latter_map.keys()), observed_length - 1, Monitor()
+    scores = zeros(shape=(len(nucleotides) ** observed_length, len(nucleotides)), dtype=int)
+    for current, current_index in enumerate(currents):
+        mutate_branches = []  # substitution
+        for latter_index in latter_map[current_index]:
+            mutate_branches.append(obtain_leaf_vertices(latter_index, depth, latter_map=latter_map))
+        for one, two in combinations(range(len(mutate_branches)), 2):
+            score = len(union1d(mutate_branches[one], mutate_branches[two]))
+            scores[current_index, latter_map[current_index][one] % len(nucleotides)] += score
+            scores[current_index, latter_map[current_index][two] % len(nucleotides)] += score
+
+        if repair_insertion:
+            for index, former_index in enumerate(latter_map[current_index]):  # insertion
+                if former_index in latter_map:
+                    for latter_index in latter_map[former_index]:
+                        insert_branch = obtain_leaf_vertices(latter_index, depth, latter_map=latter_map)
+                        score = len(union1d(mutate_branches[index], insert_branch))
+                        scores[current_index, latter_map[current_index][index] % len(nucleotides)] += score
+
+        if repair_deletion:
+            delete_branch = [obtain_leaf_vertices(current_index, depth, latter_map=latter_map)]  # deletion
+            for index in range(len(mutate_branches)):
+                score = len(union1d(mutate_branches[index], delete_branch))
+                scores[current_index, latter_map[current_index][index] % len(nucleotides)] += score
+            del delete_branch
+
+        if verbose:
+            monitor.output(current + 1, len(currents))
+
+    return scores

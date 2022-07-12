@@ -1,9 +1,10 @@
+from collections import Counter
 from copy import deepcopy
-from numpy import zeros, ones, array, random, sum, argsort, where
+from numpy import zeros, ones, array, random, log, sum, max, argmax, argsort, unique, intersect1d, where
 
 from dsw.operation import Monitor, calculus_addition, calculus_multiplication, calculus_division
 from dsw.operation import bit_to_number, number_to_bit, number_to_dna
-from dsw.graphized import obtain_latters, path_matching
+from dsw.graphized import obtain_vertices, obtain_latters, path_matching, calculate_intersection_score
 
 
 def encode(binary_message, accessor, start_index, nucleotides=None,
@@ -247,7 +248,7 @@ def set_vt(dna_string, vt_length, nucleotides=None):
     return former + latter
 
 
-def repair_dna(dna_string, accessor, start_index, observed_length, check_iterations=1, heap_size=1e6, vt_check=None,
+def repair_dna(dna_string, accessor, start_index, observed_length, check_iterations=1, heap_size=1e5, vt_check=None,
                has_insertion=False, has_deletion=False, nucleotides=None, verbose=False):
     """
     Repair the DNA string containing one (or more) errors.
@@ -368,16 +369,17 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
         else:
             break
 
-    repaired_results = []
+    repaired_results = set()
     if len(repaired_dna_strings) > 0:
         for repaired_dna_string in repaired_dna_strings:
             if vt_check is not None:
                 if vt_check == set_vt(dna_string=repaired_dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
-                    repaired_results.append(repaired_dna_string)
+                    repaired_results.add(repaired_dna_string)
                 else:
                     detected_flag_2 = True
             else:
-                repaired_results.append(repaired_dna_string)
+                repaired_results.add(repaired_dna_string)
+    repaired_results = list(repaired_results)
 
     if len(repaired_results) == 0:  # use original Varshamov-Tenengolts repair (only one error).
         if verbose:
@@ -462,7 +464,7 @@ def repair_dna(dna_string, accessor, start_index, observed_length, check_iterati
                         if not found_wrong:
                             repaired_results.append(repaired_dna_string)
 
-    return repaired_results, (detected_flag_1, detected_flag_2, len(repaired_dna_strings))
+    return sorted(repaired_results), (detected_flag_1, detected_flag_2, len(repaired_dna_strings))
 
 
 def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
@@ -704,6 +706,117 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
         return vertices, accessor
     else:
         raise ValueError("The coding graph cannot be created!")
+
+
+def remove_nasty_arc(accessor, latter_map, iteration=0, nucleotides=None, repair_insertion=True, repair_deletion=True,
+                     verbose=False):
+    """
+    Remove the nasty arc.
+
+    :param accessor: accessor of the coding algorithm.
+    :type accessor: numpy.ndarray
+
+    :param latter_map: latter map of the coding algorithm.
+    :type latter_map: dict
+
+    :param iteration: current round if required.
+    :type iteration: int
+
+    :param nucleotides: usage of nucleotides.
+    :type nucleotides: list
+
+    :param repair_insertion: need to repair insertion error.
+    :type repair_insertion: bool
+
+    :param repair_deletion: need to repair deletion error.
+    :type repair_deletion: bool
+
+    :param verbose: need to print log.
+    :type verbose: bool
+
+    :return: adjusted accessor, adjusted latter map, removed arc, and maximum intersection score.
+    :rtype: (numpy.ndarray, dict, tuple, int)
+
+    Example
+        >>> from numpy import array
+        >>> from dsw import accessor_to_latter_map, remove_nasty_arc
+        >>> # accessor with GC-balanced
+        >>> accessor = array([[-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1], \
+                              [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
+                              [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
+                              [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
+        >>> latter_map = accessor_to_latter_map(accessor)
+        >>> result = remove_nasty_arc(accessor=accessor, latter_map=latter_map, iteration=0, verbose=False, \
+                                      nucleotides=["A", "C", "G", "T"], repair_insertion=True, repair_deletion=True)
+        >>> result[0]
+        array([[-1, -1, -1, -1],
+               [-1, -1, -1,  7],
+               [ 8, -1, -1, 11],
+               [-1, -1, -1, -1],
+               [-1,  1,  2, -1],
+               [-1, -1, -1, -1],
+               [-1, -1, -1, -1],
+               [-1, 13, 14, -1],
+               [-1,  1,  2, -1],
+               [-1, -1, -1, -1],
+               [-1, -1, -1, -1],
+               [-1, 13, 14, -1],
+               [-1, -1, -1, -1],
+               [ 4, -1, -1,  7],
+               [ 8, -1, -1, 11],
+               [-1, -1, -1, -1]])
+        >>> result[1]
+        {1: [7], 2: [8, 11], 4: [1, 2], 7: [13, 14], 8: [1, 2], 11: [13, 14], 13: [4, 7], 14: [8, 11]}
+        >>> result[2]
+        (1, 4)
+        >>> result[3]
+        [16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16]
+
+    .. note::
+        The graph information contained in "accessor" and "latter_map" is consistent.
+
+        It is a gift for the follow-up investigation.
+        That is, removing arc to improve the capability of the probabilistic error correction.
+    """
+    if nucleotides is None:
+        nucleotides = ["A", "C", "G", "T"]
+
+    observed_length = int(log(len(accessor)) / log(len(nucleotides)))
+
+    if verbose:
+        if iteration > 0:
+            print("Calculate the intersection score for each remained arc in " + str(iteration) + " round(s).")
+        else:
+            print("Calculate the intersection score for each remained arc.")
+
+    scores = calculate_intersection_score(latter_map=latter_map, nucleotides=nucleotides,
+                                          repair_insertion=repair_insertion, repair_deletion=repair_deletion,
+                                          observed_length=observed_length, verbose=verbose)
+
+    vertex_indices = unique(where(scores == max(scores))[0])
+
+    former = intersect1d(obtain_vertices(accessor=accessor), vertex_indices)[0]
+    former_value, latter_value = former % len(nucleotides), argmax(scores[former])
+    latter = int((former * len(nucleotides) + latter_value) % (len(nucleotides) ** observed_length))
+
+    accessor[former, latter_value] = -1
+    del latter_map[former][latter_map[former].index(latter)]
+    if len(latter_map[former]) == 0:
+        del latter_map[former]
+
+    scores = scores.reshape(-1)
+    scores = scores[scores > 0].tolist()
+    score_record = array(list(Counter(scores).items())).T
+    score_record = score_record[:, argsort(score_record[0])[::-1]]
+
+    if verbose:
+        print("Current scores are:")
+        print(score_record)
+        print("Remove arc " + number_to_dna(int(former), dna_length=observed_length) + " -> "
+              + number_to_dna(int(latter), dna_length=observed_length)
+              + " with the maximum intersection score " + str(max(scores)) + ".")
+
+    return accessor, latter_map, (former, latter), scores
 
 
 def create_random_shuffles(observed_length, nucleotides=None, random_seed=None, verbose=False):

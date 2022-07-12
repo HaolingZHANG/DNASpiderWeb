@@ -7,21 +7,19 @@
 [![License](https://img.shields.io/badge/License-GPL-blue.svg?maxAge=259200)](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/LICENSE)
 
 
-DNA has become an attractive medium for storing digital information gradually. 
-Despite the biochemical progress on DNA synthesis and sequencing, 
-novel coding algorithms need to be constructed under the specific constraints in DNA-based storage. 
-In recent years, a growing number of functional operations and storage carriers were introduced, 
-bringing in various biochemical constraints including but not confined to long single-nucleotide repeats and abnormal GC content. 
-Given several local biochemical constraints and their combinations, 
-existing coding algorithms are not applicable or unstable. 
-In this paper, we design a graph-based architecture, named **SPIDER-WEB**, 
-to generate corresponding graph-based algorithms under arbitrary local biochemical constraints.
-These generated coding algorithms could be used to encode arbitrary digital data as DNA sequences directly 
-or served as a benchmark for the follow-up construction of coding algorithms. 
-To further consider recovery and security issues existing in the storage field, 
-it also provides pluggable algorithmic patches based on the generated coding algorithms: 
-path-based correcting and mapping shuffling.
-They provide approaches for probabilistic error correction and symmetric encryption respectively.
+DNA has been considered a promising medium for storing digital information. 
+Despite the biochemical progress in DNA synthesis and sequencing, 
+novel coding algorithms need to be constructed under specific constraints. 
+As various biochemical constraints were introduced because of the 
+developing functional operations and storage carriers in recent years, 
+the existing methods may not fit additional constraints. To solve this problem, we design a graph-based architecture, 
+named SPIDER-WEB, to generate coding algorithms under arbitrary local biochemical constraints. 
+These generated coding algorithms can serve state-of-the-art coding performances, 
+converting between digital data and DNA sequences or becoming a benchmark for further artificial algorithm designs. 
+SPIDER-WEB also provides probabilistic error correction, eliminating random errors 
+from improper storage and reaction uncertainties without multiple sequence alignment. 
+Further, SPIDER-WEB can guarantee an ideal key strength (equivalent to AES-256) 
+under the existing DNA sequence design length.
 
 ## Installation
 You can install this package using pip:
@@ -41,7 +39,7 @@ and [biopython 1.78](https://pypi.org/project/biopython/).
 These experimental Python scripts [here](https://github.com/HaolingZHANG/DNASpiderWeb/tree/main/experiments) are single threaded. 
 It may take about several months to complete all experiments on a conventional laptop (reference: Intel i7-4710MQ @ 2.50GHz).
 In order to further understand the experimental situation, the core raw data are saved
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/results/raw%20data.xlsx).
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/experiments/raw).
 If you want the whole raw data, please do not hesitate to contact us.
 
 If you are interested in detailed design, evaluations, conclusions, mathematical proofs, and implementations, 
@@ -315,6 +313,7 @@ The structure of this library is shown below:
 │    │    ├── obtain_leaf_vertices          // Obtain leaf vertex indices based on the current vertex index and the depth
 │    │    ├── approximate_capacity          // Approximate the capacity of the specific graph through Perron–Frobenius theorem
 │    │    ├── path_matching                 // Perform saturation repair by matching the path of the accessor
+│    │    ├── calculate_intersection_score  // Calculate the intersection score based on the breach-first search (further version)
 │    ├── operation.py                       // Progress monitor and digital calculation operation
 │    │    ├── Monitor                       // Monitor which outputting the progress based on current state and total state
 │    │    ├── calculus_addition             // Do huge number addition calculus with a small base value, as number + base
@@ -328,24 +327,21 @@ The structure of this library is shown below:
 │    ├── spiderweb.py                       // Generating, transcoding, repairing pipelines of SPIDER-WEB
 │    │    ├── encode                        // Encode a bit array by the specific accessor
 │    │    ├── decode                        // Decode a DNA string by the specific accessor
-│    │    ├── set_vt                        // Set (or calculate) Varshamov-Tenengolts-based path check for DNA string.
+│    │    ├── set_vt                        // Set (or calculate) Varshamov-Tenengolts-based path check for DNA string
 │    │    ├── repair_dna                    // Repair the DNA string containing one (or more) errors
 │    │    ├── find_vertices                 // Find valid vertices based on the given the biochemical constraints
 │    │    ├── connect_valid_graph           // Connect a valid graph by valid vertices
 │    │    ├── connect_coding_graph          // Connect a coding algorithm by valid vertices and the threshold for minimum out-degree
+│    │    ├── remove_nasty_arc              // Remove the nasty arc based on the intersection scores (further version)
 │    │    ├── create_random_shuffles        // Create the shuffles for accessor through the random mechanism
 ├── experiments                             // Experiment module of SPIDER-WEB
-│    ├── __init__.py                        // Local biochemical constraint set in this work
-│    ├── _1_compatibility.py                // Experiments for the gap between code rates obtained from generated algorithms and the corresponding capacities
-│    ├── _2_reliability.py                  // Experiments for the relative errors of capacity approximation
-│    ├── _3_stability.py                    // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
-│    ├── _4_repairability.py                // Experiments for the probabilistic correction of encoded DNA strings with multiple errors
-│    ├── _5_encrypability.py                // Experiments for the hidden danger of graph (algorithm) reconstruction and additional encryption algorithms
-│    ├── _6_slide_info.py                   // Drawing scheme for result part in the slides
-│    ├── _7_raw_data.py                     // Conversing main raw data to a excel file
 │    ├── __init__                           // Preset parameters in the simulation experiment
-│    ├── code_encode.py                     // Script in the encoding simulation experiment
-│    ├── code_repair.py                     // Script in the correcting simulation experiment
+│    ├── code_encode.py                     // Script in the encoding simulation process
+│    ├── code_repair.py                     // Script in the correcting simulation process
+│    ├── evaluations.py                     // Script of all the evaluation experiments
+│    ├── show_main.py                       // Script showing data in the main text
+│    ├── show_supp.py                       // Script showing data in the supplementary
+│    ├── sort_data.py                       // Script arranging the core raw data
 ├── tests                                   // Test module of source codes
 │    ├── test_accessor_vs_latter_map.py     // Unit test for the conversion between the accessor and the latter map
 │    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix

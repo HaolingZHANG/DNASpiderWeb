@@ -1,15 +1,21 @@
 # noinspection PyPackageRequirements
 from Bio.pairwise2 import align
 from datetime import datetime
-from numpy import random, array, load, sum, std, mean, where
+from numpy import random, array, load, sum, std, max, mean, log, where
+from warnings import filterwarnings
 
-from dsw import Monitor, encode, set_vt, repair_dna
+from dsw import Monitor, encode, set_vt, repair_dna, obtain_vertices
+from dsw import accessor_to_latter_map, approximate_capacity, remove_nasty_arc
+
+filterwarnings("ignore", category=RuntimeWarning)
 
 
 def show_single_examples():
-    accessor, vertices = load(file="./results/data/a01[g].npy"), load(file="./results/data/a01[v].npy")
+    with open("./data/coding_graphs.pkl", "rb") as file:
+        accessor = load(file, allow_pickle=True)["01"]
+    vertices = obtain_vertices(accessor)
 
-    start_index = where(vertices == 1)[0][0]
+    start_index = vertices[0]
     binary_message = [0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1]
     wrong_location = 14
     right_dna_string, vt_check = encode(binary_message=binary_message, accessor=accessor, start_index=start_index,
@@ -38,7 +44,7 @@ def show_single_examples():
         print()
         print()
 
-    start_index = where(vertices == 1)[0][0]
+    start_index = vertices[0]
     binary_message = [0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1]
     wrong_location = 14
     right_dna_string, vt_check = encode(binary_message=binary_message, accessor=accessor, start_index=start_index,
@@ -67,7 +73,7 @@ def show_single_examples():
         print()
         print()
 
-    start_index = where(vertices == 1)[0][0]
+    start_index = vertices[0]
     binary_message = [0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1]
     wrong_location = 14
     right_dna_string, vt_check = encode(binary_message=binary_message, accessor=accessor, start_index=start_index,
@@ -97,7 +103,9 @@ def show_single_examples():
 
 
 def show_multiple_examples():
-    accessor, vertices = load("./results/data/a01[g].npy"), where(load("./results/data/a01[v].npy") == 1)[0]
+    with open("./data/coding_graphs.pkl", "rb") as file:
+        accessor = load(file, allow_pickle=True)["01"]
+    vertices = obtain_vertices(accessor)
     dna_length, observed_length, nucleotides, error_times = 50, 10, ["A", "C", "G", "T"], 2
     random.seed(2021)
 
@@ -167,6 +175,9 @@ def show_multiple_examples():
 
 
 def introduce_errors(right_dna_string, error_times, observed_length, nucleotides=None):
+    if error_times == 0:
+        return right_dna_string
+
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
 
@@ -198,7 +209,7 @@ def evaluate_repair_multiple_errors(random_seed, accessor, vertices, observed_le
 
     print("Check DNA string of length " + str(dna_length) + " imposing " + str(error_times) + " error(s).")
     random.seed(random_seed)
-    records, monitor, start = [], Monitor(), None
+    records, monitor = [], Monitor()
     for current_repeat in range(repeats):
         start_index = random.choice(vertices)
 
@@ -226,20 +237,170 @@ def evaluate_repair_multiple_errors(random_seed, accessor, vertices, observed_le
         differences = differences / 1000.0
         variation_coefficient = std(differences) / mean(differences)  # variation coefficient
 
+        previous_time = datetime.now()
         # repair with check list of Varshamov-Tenengolts code.
         repaired_dna_strings, additions = repair_dna(dna_string=wrong_dna_string,
                                                      accessor=accessor, start_index=start_index,
                                                      observed_length=observed_length, vt_check=vt_check,
                                                      check_iterations=check_iterations,
                                                      has_insertion=True, has_deletion=True)
+        time_cost = (datetime.now() - previous_time).total_seconds()
 
         records.append([actual_error_rate, variation_coefficient,
                         additions[0], additions[2], additions[1], additions[0] or additions[1],
-                        len(repaired_dna_strings), right_dna_string in repaired_dna_strings])
+                        len(repaired_dna_strings), right_dna_string in repaired_dna_strings, time_cost])
         monitor.output(current_repeat + 1, repeats)
-        if start is None:
-            start = monitor.last_time
 
     random.seed(None)
 
-    return array(records), (datetime.now() - start).total_seconds()
+    return array(records)
+
+
+def calculate_spiderweb_minimum_reads(random_seed, accessor, vertices, observed_length, repeats, dna_length,
+                                      error_times, check_iterations, nucleotides=None):
+    if nucleotides is None:
+        nucleotides = ["A", "C", "G", "T"]
+
+    print("Check DNA string of length " + str(dna_length) + " imposing " + str(error_times) + " error(s).")
+    random.seed(random_seed)
+    records, monitor, maximum_reads = [], Monitor(), 1
+    for current_repeat in range(repeats):
+        start_index = random.choice(vertices)
+
+        # create ideal DNA string randomly.
+        vertex_index, right_dna_string = start_index, ""
+        for location in range(dna_length):
+            used_indices = where(accessor[vertex_index] >= 0)[0]
+            used_index = random.choice(used_indices)
+            nucleotide, vertex_index = nucleotides[used_index], accessor[vertex_index][used_index]
+            right_dna_string += nucleotide
+
+        vt_check = set_vt(dna_string=right_dna_string, vt_length=observed_length + 1, nucleotides=nucleotides)
+
+        reads, result_set = 1, {}  # zeros(shape=(4, dna_length), dtype=int)
+        while True:
+            wrong_dna_string = introduce_errors(right_dna_string=right_dna_string,
+                                                error_times=error_times, observed_length=observed_length,
+                                                nucleotides=nucleotides)
+
+            # repair with check list of Varshamov-Tenengolts code.
+            repaired_dna_strings, additions = repair_dna(dna_string=wrong_dna_string,
+                                                         accessor=accessor, start_index=start_index,
+                                                         observed_length=observed_length, vt_check=vt_check,
+                                                         check_iterations=check_iterations,
+                                                         has_insertion=True, has_deletion=True)
+            for repaired_dna_string in repaired_dna_strings:
+                if repaired_dna_string in result_set:
+                    result_set[repaired_dna_string] += 1
+                else:
+                    result_set[repaired_dna_string] = 1
+
+            strings, counts = [], []
+            for string, count in result_set.items():
+                strings.append(string)
+                counts.append(count)
+            counts = array(counts)
+
+            if where(counts == max(counts))[0] == 1:
+                best_dna_string = strings[where(counts == max(counts))[0][0]]
+                if best_dna_string == right_dna_string:
+                    maximum_reads = max([maximum_reads, reads])
+                    break
+
+            reads += 1
+
+        monitor.output(current_repeat + 1, repeats, extra={"current reads": reads, "maximum reads": maximum_reads})
+
+        records.append(reads)
+
+    random.seed(None)
+
+    return records
+
+
+def evaluate_spiderweb_established_reads(random_seed, accessor, vertices, observed_length, classes, dna_length,
+                                         error_times, check_iterations, established_reads, nucleotides=None):
+    if nucleotides is None:
+        nucleotides = ["A", "C", "G", "T"]
+
+    print("Check DNA string of length " + str(dna_length) + " imposing " + str(error_times) + " error(s).")
+    random.seed(random_seed)
+    right_set, obtained_set, monitor = [], {}, Monitor()
+    while True:
+        start_index = random.choice(vertices)
+
+        # create ideal DNA string randomly.
+        vertex_index, right_dna_string = start_index, ""
+        for location in range(dna_length):
+            used_indices = where(accessor[vertex_index] >= 0)[0]
+            used_index = random.choice(used_indices)
+            nucleotide, vertex_index = nucleotides[used_index], accessor[vertex_index][used_index]
+            right_dna_string += nucleotide
+
+        if right_dna_string not in right_set:
+            right_set.append(right_dna_string)
+        else:
+            continue
+
+        vt_check = set_vt(dna_string=right_dna_string, vt_length=observed_length + 1, nucleotides=nucleotides)
+
+        for read in range(established_reads):
+            wrong_dna_string = introduce_errors(right_dna_string=right_dna_string,
+                                                error_times=error_times, observed_length=observed_length,
+                                                nucleotides=nucleotides)
+
+            # repair with check list of Varshamov-Tenengolts code.
+            repaired_dna_strings, additions = repair_dna(dna_string=wrong_dna_string,
+                                                         accessor=accessor, start_index=start_index,
+                                                         observed_length=observed_length, vt_check=vt_check,
+                                                         check_iterations=check_iterations,
+                                                         has_insertion=True, has_deletion=True)
+            for repaired_dna_string in repaired_dna_strings:
+                if repaired_dna_string in obtained_set:
+                    obtained_set[repaired_dna_string] += 1
+                else:
+                    obtained_set[repaired_dna_string] = 1
+
+        monitor.output(len(right_set), classes)
+
+        if len(right_set) == classes:
+            break
+
+    random.seed(None)
+
+    return right_set, obtained_set
+
+
+def screen_edges_for_repair(accessor, maximum_rounds=0):
+    print("Obtain latter map from the accessor.")
+    latter_map = accessor_to_latter_map(accessor=accessor, verbose=True)
+    code_rate = approximate_capacity(accessor=accessor, repeats=4, maximum_iteration=100, verbose=False)
+    print("Original code rate is %.5f.\n" % float(code_rate))
+
+    current, results = 1, []
+    while True:
+        accessor, latter_map, arc, scores = remove_nasty_arc(accessor=accessor, latter_map=latter_map,
+                                                             iteration=current, verbose=True,
+                                                             repair_insertion=True, repair_deletion=True)
+        new_code_rate = approximate_capacity(accessor=accessor, repeats=4, maximum_iteration=100, verbose=False)
+
+        print("Current code rate is %.5f.\n" % float(new_code_rate))
+
+        vertices = obtain_vertices(accessor=accessor)
+        correction_data = {}
+        for error_time in [1, 2, 3, 4]:
+            records, runtimes = evaluate_repair_multiple_errors(random_seed=2021, error_times=error_time,
+                                                                accessor=accessor, vertices=vertices,
+                                                                observed_length=10, repeats=2000,
+                                                                dna_length=100, check_iterations=error_time + 2)
+            correction_data[(100, error_time)] = (records, runtimes)
+
+        results.append((arc, new_code_rate, correction_data))
+
+        # The observed length is 10, therefore, at least 10 nucleotides encode one bit.
+        if new_code_rate < log(4.0) / log(len(accessor)) or 0 < maximum_rounds == current:
+            break
+
+        current += 1
+
+    return results
