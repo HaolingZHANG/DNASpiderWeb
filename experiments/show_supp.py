@@ -330,7 +330,7 @@ def supp09():
         maximum_size = max(list(counts.keys()))
         for value in arange(1, maximum_size + 1, 1)[::-1]:
             if value in counts:
-                if location < 10000:
+                if location <= 10000:
                     if firsts[0]:
                         pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#FE817D",
                                       linewidth=4, label="right", zorder=3)

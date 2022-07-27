@@ -92,7 +92,7 @@ def main04():
 
 
 def main05():
-    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 6), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
 
     data = load(file="./data/correction_evaluation_1.pkl", allow_pickle=True)
@@ -144,8 +144,8 @@ def main05():
         pyplot.text(88, index + 0.65, "error rate = " + str(error_times) + "%", va="top", ha="right", fontsize=12,
                     zorder=4, bbox=dict(boxstyle="round", ec="black", fc="white"))
 
-    pyplot.xlabel("alignment-free reads", fontsize=12)
-    pyplot.ylabel("frequency of minimum reads", fontsize=12)
+    pyplot.xlabel("pretreatment-free reads for recovery", fontsize=12)
+    pyplot.ylabel("proportion", fontsize=12)
     pyplot.xlim(1, 90)
     pyplot.ylim(0.1, 3.8)
     pyplot.xticks(terminals, terminals, fontsize=12)
@@ -159,7 +159,7 @@ def main05():
     counts, location, firsts = Counter(values), 1, [True, True]
     for value in arange(1, 21, 1)[::-1]:
         if value in counts:
-            if location < 10000:
+            if location <= 10000:
                 if firsts[0]:
                     pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#FE817D",
                                   linewidth=4, label="right", zorder=3)
@@ -176,10 +176,6 @@ def main05():
                     pyplot.hlines(value, log10(location + 1), log10(location + counts[value]), color="#81B8DF",
                                   linewidth=4, zorder=3)
             location += counts[value]
-    pyplot.text(0, 3, "gap", va="center", ha="left", fontsize=12)
-    pyplot.hlines(4, -0.2, 5.2, color="black", linewidth=0.75, linestyle="--", zorder=2)
-    pyplot.hlines(2, -0.2, 5.2, color="black", linewidth=0.75, linestyle="--", zorder=2)
-    pyplot.fill_between([-2, 5.2], 2, 4, color="#EEEEEE", zorder=1)
     pyplot.legend(loc="upper right", fontsize=12)
     pyplot.xlabel("priority of repaired DNA strings", fontsize=12)
     pyplot.xlim(-0.2, 5.2)
@@ -194,17 +190,17 @@ def main05():
     figure.text(0.023, 0.49, "c", va="center", ha="center", fontsize=14)
     figure.text(0.507, 0.49, "d", va="center", ha="center", fontsize=14)
 
-    figure.patches.extend([patches.Rectangle((0.08, 0.1538), 0.01, 0.0309, fill=True, facecolor="white", zorder=10,
+    figure.patches.extend([patches.Rectangle((0.08, 0.1775), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
                                              transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.48, 0.1538), 0.01, 0.0309, fill=True, facecolor="white", zorder=10,
+    figure.patches.extend([patches.Rectangle((0.48, 0.1775), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
                                              transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.08, 0.2640), 0.01, 0.0309, fill=True, facecolor="white", zorder=10,
+    figure.patches.extend([patches.Rectangle((0.08, 0.2790), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
                                              transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.48, 0.2640), 0.01, 0.0309, fill=True, facecolor="white", zorder=10,
+    figure.patches.extend([patches.Rectangle((0.48, 0.2790), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
                                              transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.08, 0.3744), 0.01, 0.0309, fill=True, facecolor="white", zorder=10,
+    figure.patches.extend([patches.Rectangle((0.08, 0.3805), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
                                              transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.48, 0.3744), 0.01, 0.0309, fill=True, facecolor="white", zorder=10,
+    figure.patches.extend([patches.Rectangle((0.48, 0.3805), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
                                              transform=figure.transFigure, figure=figure)])
 
     pyplot.savefig("./show/main05.pdf", format="pdf", bbox_inches="tight", dpi=600)
@@ -225,7 +221,8 @@ def main06():
 
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
-    figure = pyplot.figure(figsize=(10, 5), tight_layout=True)
+
+    figure = pyplot.figure(figsize=(10, 4), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
 
     pyplot.subplot(1, 2, 1)
@@ -306,9 +303,9 @@ def main06():
 
 
 if __name__ == "__main__":
-    main01()
-    main02()
-    main03()
-    main04()
+    # main01()
+    # main02()
+    # main03()
+    # main04()
     main05()
-    main06()
+    # main06()
