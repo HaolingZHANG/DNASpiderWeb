@@ -303,9 +303,9 @@ def main06():
 
 
 if __name__ == "__main__":
-    # main01()
-    # main02()
-    # main03()
-    # main04()
+    main01()
+    main02()
+    main03()
+    main04()
     main05()
-    # main06()
+    main06()
