@@ -44,17 +44,13 @@ The following figure shows how the package and its algorithms are structured:
     │    │    ├── connect_coding_graph          // Connect a coding algorithm by valid vertices and the threshold for minimum out-degree
     │    │    ├── create_random_shuffles        // Create the shuffles for accessor through the random mechanism
     ├── experiments                             // Experiment module of SPIDER-WEB
-    │    ├── __init__.py                        // Local biochemical constraint set in this work
-    │    ├── _1_compatibility.py                // Experiments for the gap between code rates obtained from generated algorithms and the corresponding capacities
-    │    ├── _2_reliability.py                  // Experiments for the relative errors of capacity approximation
-    │    ├── _3_stability.py                    // Experiments for the code rates obtained from SPIDER-WEB and other advanced algorithms
-    │    ├── _4_repairability.py                // Experiments for the probabilistic correction of encoded DNA strings with multiple errors
-    │    ├── _5_encrypability.py                // Experiments for the hidden danger of graph (algorithm) reconstruction and additional privacy algorithms
-    │    ├── _6_slide_info.py                   // Drawing scheme for result part in the slides
-    │    ├── _7_raw_data.py                     // Conversing main raw data to a excel file
-    │    ├── __init__                           // Preset parameters in the simulation experiment
-    │    ├── code_encode.py                     // Script in the encoding simulation experiment
-    │    ├── code_repair.py                     // Script in the correcting simulation experiment
+    │    ├── __init__.py                        // Preset parameters in the simulation experiment
+    │    ├── code_encode.py                     // Script in the encoding simulation process
+    │    ├── code_repair.py                     // Script in the correcting simulation process
+    │    ├── evaluations.py                     // Script of all the evaluation experiments
+    │    ├── show_main.py                       // Script showing data in the main text
+    │    ├── show_supp.py                       // Script showing data in the supplementary
+    │    ├── sort_data.py                       // Script arranging the core raw data
     ├── tests                                   // Test module of source codes
     │    ├── test_accessor_vs_latter_map.py     // Unit test for the conversion between the accessor and the latter map
     │    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix
