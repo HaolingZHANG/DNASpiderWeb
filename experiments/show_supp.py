@@ -386,8 +386,8 @@ def supp10():
     for filter_index in range(12):
         record = [str(filter_index + 1).zfill(2)]
         for pattern_index in range(6):
-            record.append("%.2f" % matrix_1[filter_index - 1, pattern_index - 1] + "~" +
-                          "%.2f" % matrix_2[filter_index - 1, pattern_index - 1])
+            record.append("%.2f" % matrix_1[filter_index - 1, pattern_index - 1] + "~"
+                          + "%.2f" % matrix_2[filter_index - 1, pattern_index - 1])
         sheet.append(record)
 
     book.save("./show/supp10.xlsx")
