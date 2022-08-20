@@ -1,7 +1,7 @@
 from collections import Counter
 # noinspection PyPackageRequirements
 from matplotlib import pyplot, rcParams
-from numpy import load, array, zeros_like, ones, arange, linspace, percentile, random, where, inf
+from numpy import load, array, zeros_like, zeros, ones, arange, linspace, percentile, random, where, inf
 from numpy import median, min, max, mean, sum, abs, sqrt, std, log10, clip, polyfit
 # noinspection PyPackageRequirements
 from openpyxl import Workbook
@@ -369,6 +369,31 @@ def supp09():
 
 
 def supp10():
+    records = load(file="./data/correction_evaluation_4.pkl", allow_pickle=True)
+    matrix_1, matrix_2, values = zeros(shape=(12, 6)), zeros(shape=(12, 6)), []
+    for filter_index in range(1, 13):
+        for pattern_index in range(1, 7):
+            values.append(records[(filter_index, pattern_index)][:, 1].tolist())
+            matrix_1[filter_index - 1, pattern_index - 1] = min(records[(filter_index, pattern_index)][:, 1])
+            matrix_2[filter_index - 1, pattern_index - 1] = max(records[(filter_index, pattern_index)][:, 1])
+    values = array(values)
+
+    print("%.2f" % mean(values) + " seconds per sequence.")
+
+    book = Workbook()
+    sheet = book.create_sheet(title="supp10", index=0)
+    sheet.append(["constraint set index", "pattern 1", "pattern 2", "pattern 3", "pattern 4", "pattern 5", "pattern 6"])
+    for filter_index in range(12):
+        record = [str(filter_index + 1).zfill(2)]
+        for pattern_index in range(6):
+            record.append("%.2f" % matrix_1[filter_index - 1, pattern_index - 1] + "~" +
+                          "%.2f" % matrix_2[filter_index - 1, pattern_index - 1])
+        sheet.append(record)
+
+    book.save("./show/supp10.xlsx")
+
+
+def supp11():
     def estimated_equation(x, a):
         return a ** x
 
@@ -414,11 +439,11 @@ def supp10():
                   fontsize=12)
     pyplot.ylim(0, 2 * 1e8)
 
-    pyplot.savefig("./show/supp10.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp11.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp11():
+def supp12():
     record = load(file="./data/capacity_evaluation.pkl", allow_pickle=True)
 
     data, errors = record["detail"]
@@ -545,19 +570,20 @@ def supp11():
     figure.text(0.024, 0.34, "c", va="center", ha="center", fontsize=14)
 
     figure.align_labels()
-    pyplot.savefig("./show/supp11.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp12.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 if __name__ == "__main__":
-    supp01()
-    supp02()
-    supp03()
-    supp04()
-    supp05()
-    supp06()
-    supp07()
-    supp08()
-    supp09()
+    # supp01()
+    # supp02()
+    # supp03()
+    # supp04()
+    # supp05()
+    # supp06()
+    # supp07()
+    # supp08()
+    # supp09()
     supp10()
-    supp11()
+    # supp11()
+    # supp12()

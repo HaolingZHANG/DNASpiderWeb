@@ -306,6 +306,7 @@ def trans_hedges(dataset, shape, index_length):
                 if heap["i"][chuck_index] >= len(dna_string):
                     continue
 
+                # noinspection PyUnresolvedReferences
                 follow_info = heap["v"][chuck_index].next(dna_string, heap["i"][chuck_index], chuck_score,
                                                           pattern, used_filter, strand_index % (2 ** salt_number),
                                                           correct_penalty, mutate_penalty, insert_penalty,

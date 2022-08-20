@@ -11,6 +11,7 @@ from experiments import local_bio_filters
 from experiments.code_encode import generate_database, trans_fountain, trans_yinyang, trans_hedges, trans_spiderweb
 from experiments.code_repair import show_single_examples, show_multiple_examples, evaluate_repair_multiple_errors
 from experiments.code_repair import calculate_spiderweb_minimum_reads, evaluate_spiderweb_established_reads
+from experiments.code_repair import hedges_runtime
 
 
 def generate_algorithms():
@@ -154,6 +155,7 @@ def evaluate_performance():
 def evaluate_correction():
     show_single_examples()
     show_multiple_examples()
+
     if not exists("./data/correction_evaluation_1.pkl"):
         with open("./data/coding_graphs.pkl", "rb") as file:
             accessor = load(file)["01"]
@@ -230,6 +232,11 @@ def evaluate_correction():
                 records["length influence"][length // 100 - 1, error_times - 1] = sum(results[:, -2]) / 2000.0
 
         with open("./data/correction_evaluation_3.pkl", "wb") as file:
+            dump(obj=records, file=file)
+
+    if not exists("./data/correction_evaluation_4.pkl"):
+        records = hedges_runtime(random_seed=2021, check_number=100, error_number=2)
+        with open("./data/correction_evaluation_4.pkl", "wb") as file:
             dump(obj=records, file=file)
 
 

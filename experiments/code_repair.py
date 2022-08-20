@@ -1,11 +1,14 @@
 # noinspection PyPackageRequirements
 from Bio.pairwise2 import align
+from itertools import product
 from datetime import datetime
-from numpy import random, array, load, sum, std, max, mean, log, where
+from numpy import random, array, zeros, load, all, sum, std, max, mean, ceil, log, where, longlong
 from warnings import filterwarnings
 
-from dsw import Monitor, encode, set_vt, repair_dna, obtain_vertices
+from dsw import Monitor, encode, set_vt, repair_dna, obtain_vertices, bit_to_number
 from dsw import accessor_to_latter_map, approximate_capacity, remove_nasty_arc
+
+from experiments import local_bio_filters
 
 filterwarnings("ignore", category=RuntimeWarning)
 
@@ -404,3 +407,173 @@ def screen_edges_for_repair(accessor, maximum_rounds=0):
         current += 1
 
     return results
+
+
+def hedges_runtime(random_seed, check_number, error_number):
+    def hash_function(source_value):
+        target_value = array(source_value, dtype=longlong) * array(3935559000370003845, dtype=longlong)
+        target_value += array(2691343689449507681, dtype=longlong)
+        target_value ^= target_value >> 21
+        target_value ^= target_value << 37
+        target_value ^= target_value >> 4
+        target_value *= array(4768777513237032717, dtype=longlong)
+        target_value ^= target_value << 20
+        target_value ^= target_value >> 41
+        target_value ^= target_value << 5
+        return target_value
+
+    def hedges_encode(binary_message, strand_index, pattern, mapping, bio_filter,
+                      salt_number=46, previous_number=8, low_order_number=10):
+        dna_string, available_nucleotides, bit_location, pattern_flag = "", mapping, 0, 0
+        salt_index = strand_index % (2 ** salt_number)  # s bits of salt (strand ID).
+        while bit_location < len(binary_message):
+            bit_index = bit_location % (2 ** low_order_number)  # low-order q bits of the bit position index i.
+
+            if bit_location - previous_number >= 0:
+                previous_info = binary_message[bit_location - previous_number: bit_location]
+                previous_value = bit_to_number(previous_info, is_string=False)
+            else:
+                previous_value = 0
+
+            hash_value = hash_function(bit_index | previous_value | salt_index)
+            if len(available_nucleotides) > 0:
+                bit_number = pattern[pattern_flag]
+                message_bit = binary_message[bit_location: bit_location + bit_number]
+                bit_value = bit_to_number(message_bit, is_string=False) if len(message_bit) > 0 else 0
+                nucleotide = available_nucleotides[(hash_value + bit_value) % len(available_nucleotides)]
+                bit_location += bit_number
+                pattern_flag = (pattern_flag + 1) % len(pattern)
+            else:
+                raise ValueError("DNA string (index = " + str(strand_index) + ") " +
+                                 "cannot be encoded because of the established constraints!")
+
+            dna_string += nucleotide
+
+            available_nucleotides = []
+            for potential_nucleotide in mapping:
+                if bio_filter.valid(dna_string + potential_nucleotide, only_last=True):
+                    available_nucleotides.append(potential_nucleotide)
+
+        return dna_string
+
+    def hedges_decode(dna_string, strand_index, bit_length, pattern, mapping, bio_filter,
+                      salt_number=46, previous_number=8, low_order_number=10, heap_limitation=1e6, initial_score=0.0,
+                      correct_penalty=-0.035, insert_penalty=1.0, delete_penalty=1.0, mutate_penalty=1.0):
+        # s bits of salt (strand index).
+        salt_value = strand_index % (2 ** salt_number)
+
+        class HypothesisNode:
+
+            def __init__(self, pattern_flag, message, string):
+                self.pattern_flag, self.message, self.string = pattern_flag, message, string
+
+            def next(self, nucleotide_index, current_score):
+                follow_vertices, follow_scores, follow_indices = [], [], []
+
+                # collect the available nucleotides in this location.
+                available_nucleotides = []
+                for potential_nucleotide in mapping:
+                    if bio_filter.valid(self.string + potential_nucleotide, only_last=True):
+                        available_nucleotides.append(potential_nucleotide)
+
+                if len(available_nucleotides) == 0:  # this path is blocked, stop running.
+                    return [], [], [], []
+
+                # low-order q bits of the bit position index i.
+                bit_index = len(self.message) % (2 ** low_order_number)
+
+                if len(self.message) - previous_number >= 0:  # p previous concatenated bits.
+                    previous_info = self.message[len(self.message) - previous_number:]
+                    previous_value = bit_to_number(previous_info)
+                else:
+                    previous_value = 0
+
+                for message_bit in product([0, 1], repeat=pattern[self.pattern_flag]):
+                    hash_value = hash_function(bit_index | previous_value | salt_value)
+                    bit_value = bit_to_number(list(message_bit)) if len(message_bit) > 0 else 0
+                    nucleotide = available_nucleotides[(hash_value + bit_value) % len(available_nucleotides)]
+                    message, string = self.message + list(message_bit), self.string + nucleotide
+
+                    if nucleotide == dna_string[nucleotide_index]:  # assume that current nucleotide is correct.
+                        follow_vertices.append(HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                        follow_scores.append(current_score + correct_penalty)
+                        follow_indices.append(nucleotide_index + 1)
+                    else:
+                        # assume that current nucleotide is mutated.
+                        follow_vertices.append(HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                        follow_scores.append(current_score + mutate_penalty)
+                        follow_indices.append(nucleotide_index + 1)
+
+                        # assume that current nucleotide is inserted, the (i + 1)-th nucleotide is i-th nucleotide.
+                        if nucleotide_index + 1 < len(dna_string) and nucleotide == dna_string[nucleotide_index + 1]:
+                            follow_vertices.append(
+                                HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                            follow_scores.append(current_score + insert_penalty)
+                            follow_indices.append(nucleotide_index + 2)
+
+                        # assume that current nucleotide is deleted.
+                        follow_vertices.append(HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                        follow_scores.append(current_score + delete_penalty)
+                        follow_indices.append(nucleotide_index)
+
+                # noinspection PyShadowingNames
+                return follow_vertices, follow_scores, follow_indices, [len(v.message) for v in follow_vertices]
+
+        terminal_indices, heap_size = None, 1
+        heap = {"v": [HypothesisNode(0, [], "")], "s": [initial_score], "i": [0], "l": [0]}  # priority heap
+
+        while True:  # repair by A star search (score priority).
+            chuck_indices, chuck_score = where(array(heap["s"]) == min(heap["s"]))[0], min(heap["s"])
+
+            for chuck_index in chuck_indices:
+                # noinspection PyTypeChecker
+                heap["s"][chuck_index] = len(dna_string) + 1  # set the chuck vertex to inaccessible.
+                heap_size -= 1
+
+                if heap["i"][chuck_index] >= len(dna_string):
+                    continue
+
+                follow_info = heap["v"][chuck_index].next(heap["i"][chuck_index], chuck_score)
+                heap_size += len(follow_info[0])
+
+                heap["v"], heap["l"] = heap["v"] + follow_info[0], heap["l"] + follow_info[3]
+                heap["s"], heap["i"] = heap["s"] + follow_info[1], heap["i"] + follow_info[2]
+
+                # the first chain of hypotheses to decode the required bytes of message wins.
+                if bit_length == max(heap["l"]) or heap_size >= heap_limitation:
+                    candidates = []
+                    for terminal_index in where(array(heap["l"]) == bit_length)[0]:
+                        candidates.append((heap["v"][terminal_index].message, heap["v"][terminal_index].string))
+
+                    return candidates
+
+    nucleotides = ["A", "C", "G", "T"]
+    patterns = [[2, 1], [2, 1, 1, 1, 1], [1], [1, 1, 0], [1, 0], [1, 0, 0]]
+    correct_penalties = [-0.035, -0.082, -0.127, -0.229, -0.265, -0.324]
+    records = {}
+
+    for b_i, b in local_bio_filters.items():
+        for p_i, (p, c) in enumerate(zip(patterns, correct_penalties)):
+            random.seed(seed=random_seed)
+            binary_messages = random.randint(0, 2, size=(check_number, int(ceil(100 / len(p) * sum(p)))))
+            sub_records = zeros(shape=(check_number, 2))
+            for s_i, b_m in enumerate(binary_messages):
+                right_dna_string = hedges_encode(b_m, s_i, p, nucleotides, b)
+                wrong_dna_string = introduce_errors(right_dna_string, error_number, 10, nucleotides)
+
+                previous_time = datetime.now()
+                crs = hedges_decode(wrong_dna_string, s_i, len(b_m), p, nucleotides,
+                                    b, correct_penalty=c, heap_limitation=100000)
+                time_cost = (datetime.now() - previous_time).total_seconds()
+                found = False
+                for cr in crs:
+                    v = array(cr[0])
+                    if all(v == b_m):
+                        found = True
+                        break
+
+                sub_records[s_i] = (found, time_cost)
+
+            records[int(b_i), p_i + 1] = sub_records
+
+    return records
