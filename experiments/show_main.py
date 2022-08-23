@@ -15,14 +15,10 @@ filterwarnings("ignore")
 
 
 def main01():
-    print("main01.pdf is the \"pipelines and operations in DNA-based data storage\", created by PowerPoint.")
+    print("main01.pdf is the \"illustration of SPIDER-WEB\", created by PowerPoint.")
 
 
 def main02():
-    print("main02.pdf is the \"illustration of SPIDER-WEB\", created by PowerPoint.")
-
-
-def main03():
     capacities, _ = load(file="./data/capacity_reference.pkl", allow_pickle=True)
 
     book = Workbook()
@@ -64,10 +60,10 @@ def main03():
 
         sheet.append(save_data)
 
-    book.save("./show/main03.xlsx")
+    book.save("./show/main02.xlsx")
 
 
-def main04():
+def main03():
     display_data = [[[] for _ in range(4)] for _ in range(12)]
     record = load(file="./data/performance_evaluation_1.pkl", allow_pickle=True)
     for algorithm_index, filter_index, _, _, code_rate in record:
@@ -88,10 +84,10 @@ def main04():
                 record.append("%.2f ~ %.2f" % (min(sub_data), max(sub_data)))
         sheet.append(record)
 
-    book.save("./show/main04.xlsx")
+    book.save("./show/main03.xlsx")
 
 
-def main05():
+def main04():
     figure = pyplot.figure(figsize=(10, 6), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
 
@@ -100,6 +96,11 @@ def main05():
     pyplot.subplot(2, 2, 1)
     for error_times in [1, 2, 3, 4]:
         info = maximum(data["correction rate"][error_times][:, -1], 1e-3)
+        print("error = " + str(error_times) + "%")
+        print("%.2f" % mean(data["correction rate"][error_times][:, -1]) + " on average")
+        print("%.2f" % max(data["correction rate"][error_times][:, -1]) + " on maximum")
+        print()
+
         info[info == 0] = 1e-3
         pyplot.boxplot(log10(info), positions=[error_times - 1], widths=0.4, showfliers=False, whis=(0, 100),
                        boxprops=dict(color="#FE817D", facecolor="#FCBBAE", linewidth=1),
@@ -203,11 +204,11 @@ def main05():
     figure.patches.extend([patches.Rectangle((0.48, 0.3805), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
                                              transform=figure.transFigure, figure=figure)])
 
-    pyplot.savefig("./show/main05.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/main04.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def main06():
+def main05():
     # bit length or key strength is 256.
     # British Standards Institution (2020). Cryptographic Mechanisms: Recommendations and Key Lengths.
     bit_length = 256
@@ -298,7 +299,7 @@ def main06():
     figure.text(0.024, 0.98, "a", va="center", ha="center", fontsize=14)
     figure.text(0.504, 0.98, "b", va="center", ha="center", fontsize=14)
 
-    pyplot.savefig("./show/main06.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/main05.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -308,4 +309,3 @@ if __name__ == "__main__":
     main03()
     main04()
     main05()
-    main06()

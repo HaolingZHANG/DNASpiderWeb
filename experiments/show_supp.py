@@ -378,7 +378,8 @@ def supp10():
             matrix_2[filter_index - 1, pattern_index - 1] = max(records[(filter_index, pattern_index)][:, 1])
     values = array(values)
 
-    print("%.2f" % mean(values) + " seconds per sequence.")
+    print("maximum %.2f" % max(values) + " seconds per sequence.")
+    print("average %.2f" % mean(values) + " seconds per sequence.")
 
     book = Workbook()
     sheet = book.create_sheet(title="supp10", index=0)
@@ -575,15 +576,15 @@ def supp12():
 
 
 if __name__ == "__main__":
-    # supp01()
-    # supp02()
-    # supp03()
-    # supp04()
-    # supp05()
-    # supp06()
-    # supp07()
-    # supp08()
-    # supp09()
+    supp01()
+    supp02()
+    supp03()
+    supp04()
+    supp05()
+    supp06()
+    supp07()
+    supp08()
+    supp09()
     supp10()
-    # supp11()
-    # supp12()
+    supp11()
+    supp12()
