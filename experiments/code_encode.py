@@ -232,25 +232,25 @@ def trans_hedges(dataset, shape, index_length):
                 bit_value = bit_to_number(list(message_bit), is_string=False) if len(message_bit) > 0 else 0
                 nucleotide = available_nucleotides[(hash_value + bit_value) % len(available_nucleotides)]
                 message, string = self.message + list(message_bit), self.string + nucleotide
-
+                node = HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string)
                 if nucleotide == whole_string[nucleotide_index]:  # assume that current nucleotide is correct.
-                    follow_vertices.append(HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                    follow_vertices.append(node)
                     follow_scores.append(current_score + correct_penalty)
                     follow_indices.append(nucleotide_index + 1)
                 else:
                     # assume that current nucleotide is mutated.
-                    follow_vertices.append(HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                    follow_vertices.append(node)
                     follow_scores.append(current_score + mutate_penalty)
                     follow_indices.append(nucleotide_index + 1)
 
                     # assume that current nucleotide is inserted, the (i + 1)-th nucleotide is i-th nucleotide.
                     if nucleotide_index + 1 < len(whole_string) and nucleotide == whole_string[nucleotide_index + 1]:
-                        follow_vertices.append(HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                        follow_vertices.append(node)
                         follow_scores.append(current_score + insert_penalty)
                         follow_indices.append(nucleotide_index + 2)
 
                     # assume that current nucleotide is deleted.
-                    follow_vertices.append(HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string))
+                    follow_vertices.append(node)
                     follow_scores.append(current_score + delete_penalty)
                     follow_indices.append(nucleotide_index)
 
@@ -321,7 +321,7 @@ def trans_hedges(dataset, shape, index_length):
                                                                         "score": "%.2f" % chuck_score})
 
                 # the first chain of hypotheses to decode the required bytes of message wins.
-                if bit_length == max(heap["l"]) or len(heap["v"]) >= heap_limitation:
+                if bit_length == max(heap["l"]) or heap_size >= heap_limitation:
                     if current_process < len(dna_string):
                         print()  # not finish.
 

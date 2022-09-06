@@ -5,6 +5,7 @@ from numpy import load, zeros, array, linspace, arange, argmax, where
 from numpy import maximum, min, mean, median, max, sum, log, log2, log10
 # noinspection PyPackageRequirements
 from openpyxl import Workbook
+from scipy.stats import gaussian_kde
 from scipy.optimize import curve_fit
 from warnings import filterwarnings
 
@@ -88,127 +89,175 @@ def main03():
 
 
 def main04():
-    figure = pyplot.figure(figsize=(10, 6), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 3), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
+    used_colors = ["#F19D91", "#9EDBE9", "#74CCBE", "#95A2BF"]
 
     data = load(file="./data/correction_evaluation_1.pkl", allow_pickle=True)
 
-    pyplot.subplot(2, 2, 1)
-    for error_times in [1, 2, 3, 4]:
-        info = maximum(data["correction rate"][error_times][:, -1], 1e-3)
-        print("error = " + str(error_times) + "%")
-        print("%.2f" % mean(data["correction rate"][error_times][:, -1]) + " on average")
-        print("%.2f" % max(data["correction rate"][error_times][:, -1]) + " on maximum")
-        print()
-
-        info[info == 0] = 1e-3
-        pyplot.boxplot(log10(info), positions=[error_times - 1], widths=0.4, showfliers=False, whis=(0, 100),
-                       boxprops=dict(color="#FE817D", facecolor="#FCBBAE", linewidth=1),
-                       medianprops=dict(color="black", linewidth=3), patch_artist=True)
-        pyplot.text(error_times - 1, max(log10(info)), "%.2f" % max(info), va="bottom", ha="center", fontsize=12)
-
-    pyplot.xlabel("error rate", fontsize=12)
-    pyplot.ylabel("log10(seconds)", fontsize=12)
+    pyplot.subplot(1, 3, 1)
+    for index, (values, _) in enumerate(data.values()):
+        success_rate = sum(values[:, 4]) / 10000.0
+        pyplot.bar([index], [success_rate], width=0.5, color=used_colors[index], edgecolor="black", linewidth=0.75)
+        pyplot.text(index, success_rate + 0.01, "%.1f" % (success_rate * 100) + "%",
+                    va="bottom", ha="center", fontsize=9)
+    pyplot.xlabel("error rate", fontsize=10)
+    pyplot.ylabel("correction rate", fontsize=10)
     pyplot.xlim(-0.5, 3.5)
-    pyplot.ylim(-4, 1)
-    pyplot.xticks([0, 1, 2, 3], ["1%", "2%", "3%", "4%"], fontsize=12)
-    pyplot.yticks([-4, -3, -2, -1, 0, 1],
-                  ["\N{MINUS SIGN}4", "\N{MINUS SIGN}3", "\N{MINUS SIGN}2", "\N{MINUS SIGN}1", "+0", "+1"], fontsize=12)
+    pyplot.ylim(0.0, 1.0)
+    pyplot.xticks([0, 1, 2, 3], ["0.5%", "1.0%", "2.0%", "3.0%"], fontsize=10)
+    pyplot.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
 
-    pyplot.subplot(2, 2, 2)
-    values = [sum(data["correction rate"][error_times][:, -2]) / 10000.0 for error_times in [1, 2, 3, 4]]
-    pyplot.bar(arange(4), values, color="#FCBBAE", edgecolor="#FE817D", linewidth=1)
-    for error_times in range(1, 4):
-        pyplot.text(error_times, values[error_times], "%.2f" % (values[error_times] * 100) + "%",
-                    va="bottom", ha="center", fontsize=12)
-    pyplot.xlabel("error rate", fontsize=12)
-    pyplot.ylabel("correction rate", fontsize=12)
-    pyplot.xlim(-0.6, 3.6)
-    pyplot.ylim(0, 1)
-    pyplot.xticks([0, 1, 2, 3], ["1%", "2%", "3%", "4%"], fontsize=12)
-    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=12)
+    pyplot.subplot(1, 3, 2)
+    for index, (values, _) in enumerate(data.values()):
+        counts = values[:, 3]
+        counts = counts[counts > 0]
+        violin = pyplot.violinplot([log2(counts)], positions=[index], widths=0.5, showextrema=False)
+        for patch in violin["bodies"]:
+            patch.set_edgecolor("black")
+            patch.set_facecolor("#EEEEEE")
+            patch.set_linewidth(0.75)
+            patch.set_alpha(1)
 
-    pyplot.subplot(2, 2, 3)
-    locations = [1.0, 0.5, 0.2, 0.06]
-    terminals = []
-    for index, error_times in enumerate([1, 2, 3, 4]):
-        info = data["minimum reads"][error_times]
-        values = sorted(Counter(info).items(), key=lambda kv: (kv[0], kv[1]))
-        values = array(values).T.astype(float)
-        x, y = values[0], values[1] / sum(values[1]) / locations[index] * 0.7
-        pyplot.plot(x, y + index + 0.1, color="#FE817D", zorder=2)
-        pyplot.fill_between(x, index + 0.1, y + index + 0.1, color="#FE817D", linewidth=0, alpha=0.5, zorder=2)
-        terminals.append(int(max(x)))
+        label = "median " + ("  " if index < 3 else "") + str(int(median(counts)))
+        label += " candidates" if int(median(counts)) > 1 else " candidate"
+        pyplot.scatter([index], [median(log2(counts))], color=used_colors[index], edgecolor="black",
+                       linewidth=0.75, label=label)
+    pyplot.legend(loc="upper left", fontsize=9)
+    pyplot.xlabel("error rate", fontsize=10)
+    pyplot.ylabel("candidate number from correction", fontsize=10)
+    pyplot.xlim(-0.5, 3.5)
+    pyplot.ylim(0, 10)
+    pyplot.xticks([0, 1, 2, 3], ["0.5%", "1.0%", "2.0%", "3.0%"], fontsize=10)
+    pyplot.yticks([0, 2, 4, 6, 8, 10], [1, 4, 16, 64, 256, 1024], fontsize=10)
 
-        pyplot.fill_between([1, 90], index + 0.1, index + 0.8, color="#EEEEEE", zorder=1)
-        pyplot.vlines(max(x), 0.1, index + 0.1, color="black", linewidth=0.75, linestyle="--", zorder=1)
-        pyplot.text(88, index + 0.65, "error rate = " + str(error_times) + "%", va="top", ha="right", fontsize=12,
-                    zorder=4, bbox=dict(boxstyle="round", ec="black", fc="white"))
-
-    pyplot.xlabel("pretreatment-free reads for recovery", fontsize=12)
-    pyplot.ylabel("proportion", fontsize=12)
-    pyplot.xlim(1, 90)
-    pyplot.ylim(0.1, 3.8)
-    pyplot.xticks(terminals, terminals, fontsize=12)
-    pyplot.yticks([0.1, 0.8, 1.1, 1.8, 2.1, 2.8, 3.1, 3.8], ["0%", "100%", "0%", "50%", "0", "20%", "0%", "6%"],
-                  fontsize=12)
-
-    pyplot.subplot(2, 2, 4)
-    obtained_set, values = data["frequency-based recovery"][2][1], []
-    for index, (_, count) in enumerate(obtained_set.items()):
-        values.append(count)
-    counts, location, firsts = Counter(values), 1, [True, True]
-    for value in arange(1, 21, 1)[::-1]:
-        if value in counts:
-            if location <= 10000:
-                if firsts[0]:
-                    pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#FE817D",
-                                  linewidth=4, label="right", zorder=3)
-                    firsts[0] = False
-                else:
-                    pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#FE817D",
-                                  linewidth=4, zorder=3)
-            else:
-                if firsts[1]:
-                    pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#81B8DF",
-                                  linewidth=4, label="wrong", zorder=3)
-                    firsts[1] = False
-                else:
-                    pyplot.hlines(value, log10(location + 1), log10(location + counts[value]), color="#81B8DF",
-                                  linewidth=4, zorder=3)
-            location += counts[value]
-    pyplot.legend(loc="upper right", fontsize=12)
-    pyplot.xlabel("priority of repaired DNA strings", fontsize=12)
-    pyplot.xlim(-0.2, 5.2)
-    pyplot.xticks([0, 1, 2, 3, 4, 5], [1, 10, 100, 1000, 10000, 100000], fontsize=12)
-    pyplot.ylabel("frequency", fontsize=12)
-    pyplot.ylim(-1, 21)
-    pyplot.yticks([0, 4, 8, 12, 16, 20], [0, 4, 8, 12, 16, 20], fontsize=12)
+    pyplot.subplot(1, 3, 3)
+    speeds = []
+    for index, (_, time) in enumerate(data.values()):
+        speed = 200.0 / time
+        speeds.append(speed)
+        pyplot.text(index, log10(speed) + 0.2, str(int(speed)), va="bottom", ha="center", fontsize=9, zorder=1)
+        pyplot.scatter([index], [log10(speed)], color=used_colors[index], edgecolor="black", linewidth=0.75, zorder=2)
+    pyplot.plot(arange(4), log10(array(speeds)), color="black", linewidth=0.75, zorder=1)
+    pyplot.xlabel("error rate", fontsize=10)
+    pyplot.ylabel("average correction speed (bases / second)", fontsize=10)
+    pyplot.xlim(-0.5, 3.5)
+    pyplot.ylim(2, 7)
+    pyplot.xticks([0, 1, 2, 3], ["0.5%", "1.0%", "2.0%", "3.0%"], fontsize=10)
+    pyplot.yticks([2, 3, 4, 5, 6, 7], ["1E+2", "1E+3", "1E+4", "1E+5", "1E+6", "1E+7"], fontsize=10)
 
     figure.align_labels()
-    figure.text(0.023, 0.99, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.507, 0.99, "b", va="center", ha="center", fontsize=14)
-    figure.text(0.023, 0.49, "c", va="center", ha="center", fontsize=14)
-    figure.text(0.507, 0.49, "d", va="center", ha="center", fontsize=14)
-
-    figure.patches.extend([patches.Rectangle((0.08, 0.1775), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
-                                             transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.48, 0.1775), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
-                                             transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.08, 0.2790), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
-                                             transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.48, 0.2790), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
-                                             transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.08, 0.3805), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
-                                             transform=figure.transFigure, figure=figure)])
-    figure.patches.extend([patches.Rectangle((0.48, 0.3805), 0.02, 0.02, fill=True, facecolor="white", zorder=10,
-                                             transform=figure.transFigure, figure=figure)])
-
+    figure.text(0.022, 0.99, "a", va="center", ha="center", fontsize=14)
+    figure.text(0.352, 0.99, "b", va="center", ha="center", fontsize=14)
+    figure.text(0.679, 0.99, "c", va="center", ha="center", fontsize=14)
     pyplot.savefig("./show/main04.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 def main05():
+    figure = pyplot.figure(figsize=(10, 3), tight_layout=True)
+    rcParams["font.family"] = "Times New Roman"
+    used_colors = ["#F19D91", "#9EDBE9", "#74CCBE", "#95A2BF"]
+
+    data = load(file="./data/correction_evaluation_2.pkl", allow_pickle=True)
+
+    pyplot.subplot(1, 3, 1)
+    locations, error_rates = [2, 1, 0, 0], [0.03, 0.02, 0.01, 0.005]
+    for index, error_rate in enumerate(error_rates):
+        values = data[error_rate]
+        counts = linspace(1, max(values), max(values))
+        proportions = gaussian_kde(dataset=values, bw_method=0.5)(counts)
+        proportions = proportions / proportions[locations[index]] * (Counter(values)[locations[index] + 1] / 10000.0)
+        label = "%.1f" % (error_rates[3 - index] * 100) + "% error rate"
+        pyplot.plot(log2(counts), proportions, color=used_colors[3 - index], linewidth=3)
+        pyplot.hlines(-1, 0, 0, color=used_colors[index], linewidth=3, label=label, zorder=3)
+    pyplot.legend(loc="upper right", fontsize=9)
+    pyplot.xlabel("pretreatment-free reads", fontsize=10)
+    pyplot.ylabel("proportion", fontsize=10)
+    pyplot.xlim(0, 5)
+    pyplot.ylim(0, 0.8)
+    pyplot.xticks([0, 1, 2, 3, 4, 5], [1, 2, 4, 8, 16, 32], fontsize=10)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
+
+    data = load(file="./data/correction_evaluation_3.pkl", allow_pickle=True)
+
+    pyplot.subplot(1, 3, 2)
+    location, right_color, wrong_color = 1, "#EA8250", "#BBBBBB"
+    for count in [5, 4, 3, 2, 1]:
+        number = len(where(data[:, 1] == count)[0])
+        if location + number < 10000:
+            ranges = [location, location + number]
+            pyplot.fill_between(log10(ranges), 0, count, color=right_color, linewidth=0, zorder=1)
+        elif location < 10000 and location + number > 10000:
+            ranges = [location, 10000]
+            pyplot.fill_between(log10(ranges), 0, count, color=right_color, linewidth=0, zorder=1)
+            ranges = [10001, location + number]
+            pyplot.fill_between(log10(ranges), 0, count, color=wrong_color, linewidth=0, zorder=1)
+        else:
+            ranges = [location, location + number]
+            pyplot.fill_between(log10(ranges), 0, count, color=wrong_color, linewidth=0, zorder=1)
+        location += number
+    wrong_counts = [0, 0]
+    for location, (flag, count) in enumerate(data):
+        if not flag:
+            if count == 2:
+                wrong_counts[0] += 1
+            else:
+                wrong_counts[1] += 1
+        if location == 10000:
+            break
+    stop_2, rate = len(where(data[:, 1] >= 2)[0]), sum(data[:10000, 0]) / 100.0
+    pyplot.fill_between(log10([stop_2 - wrong_counts[0], stop_2]), 0, 2, color=wrong_color, linewidth=0, zorder=2)
+    pyplot.fill_between(log10([10000 - wrong_counts[1], 10000]), 0, 1, color=wrong_color, linewidth=0, zorder=2)
+    pyplot.fill_between(log10([10000, 20000 - sum(data[:10000, 0])]), 0, 1, color=right_color, linewidth=0, zorder=2)
+    pyplot.annotate(s="", xy=(0, 6), xytext=(4, 6),
+                    arrowprops=dict(arrowstyle="<|-|>", color="black", shrinkA=0, shrinkB=0, lw=0.75), zorder=2)
+    pyplot.text(2, 6, "overall success rate\n%.2f" % rate + "%",
+                bbox=dict(facecolor="white", edgecolor="white"), va="center", ha="center", fontsize=9)
+    handles = [patches.Patch(facecolor=right_color, label="right candidate"),
+               patches.Patch(facecolor=wrong_color, label="wrong candidate")]
+    pyplot.legend(handles=handles, loc="upper left", fontsize=9)
+    pyplot.vlines(log10(10000), 0, 10, color="black", linestyle="--", linewidth=0.75, zorder=3)
+    pyplot.xlabel("candidate priority", fontsize=10)
+    pyplot.ylabel("occurrence frequency", fontsize=10)
+    pyplot.xlim(0, 6)
+    pyplot.ylim(0, 10)
+    pyplot.xticks([0, 2, 4, 6], ["1E+0", "1E+2", "1E+4", "1E+6"], fontsize=10)
+    pyplot.yticks([0, 2, 4, 6, 8, 10], [0, 2, 4, 6, 8, 10], fontsize=10)
+
+    data = load(file="./data/correction_evaluation_4.pkl", allow_pickle=True)
+
+    pyplot.subplot(1, 3, 3)
+    processes = zeros(shape=(21, 3))
+    for index, values in enumerate(data[0.02]):
+        bounds = array([min(values[:, 0]), mean(values[:, 0]), max(values[:, 0])])
+        shown_values = (5.0 - maximum(log10(100000.0 * (1 - bounds)), 0)) / 5.0
+        processes[index + 1] = shown_values
+    pyplot.fill_between(arange(21), processes[:, 0], processes[:, 2], color=used_colors[2], label="range")
+    pyplot.plot(arange(21), processes[:, 1], color="black", linewidth=1, linestyle="--", label="average level")
+    location = (5.0 - log10(100000.0 * (1 - rate * 0.01))) / 5.0
+    pyplot.annotate(s="", xy=(7.0, location - 0.1), xytext=(5.0, location),
+                    arrowprops=dict(arrowstyle="-|>", color="black", shrinkA=1, shrinkB=2, lw=1), zorder=2)
+    pyplot.text(7.0, location - 0.1, "b (" + ("%.2f" % rate) + "%)", fontsize=9, va="top", ha="left")
+    pyplot.legend(loc="upper left", fontsize=9)
+    pyplot.xlabel("pretreatment-free depth", fontsize=10)
+    pyplot.ylabel("overall success rate", fontsize=10)
+    pyplot.xlim(0, 20)
+    pyplot.ylim(0, 1.0)
+    pyplot.xticks([0, 5, 10, 15, 20], [0, 5, 10, 15, 20], fontsize=10)
+    pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                  ["00.00%", "90.00%", "99.00%", "99.90%", "99.99%", "perfect "], fontsize=10)
+
+    figure.align_labels()
+    figure.text(0.021, 0.99, "a", va="center", ha="center", fontsize=14)
+    figure.text(0.374, 0.99, "b", va="center", ha="center", fontsize=14)
+    figure.text(0.680, 0.99, "c", va="center", ha="center", fontsize=14)
+
+    pyplot.savefig("./show/main05.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
+def main06():
     # bit length or key strength is 256.
     # British Standards Institution (2020). Cryptographic Mechanisms: Recommendations and Key Lengths.
     bit_length = 256
@@ -223,7 +272,7 @@ def main05():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
 
-    figure = pyplot.figure(figsize=(10, 4), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 3), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
 
     pyplot.subplot(1, 2, 1)
@@ -251,11 +300,11 @@ def main05():
             pyplot.hlines(median(collected_data[index]), index - 0.25, index + 0.25,
                           color=gradient_colors[index], linewidth=2)
 
-    pyplot.xlabel("constraint set index", fontsize=12)
-    pyplot.xticks(range(12), filter_indices, fontsize=12)
+    pyplot.xlabel("constraint set index", fontsize=10)
+    pyplot.xticks(range(12), filter_indices, fontsize=10)
     pyplot.xlim(-0.5, 11.5)
-    pyplot.ylabel("transmitted file size", fontsize=12)
-    pyplot.yticks([0, 1, 2, 3, 4], ["B", "KB", "MB", "GB", "TB"], fontsize=12)
+    pyplot.ylabel("transmitted file size", fontsize=10)
+    pyplot.yticks([0, 1, 2, 3, 4], ["B", "KB", "MB", "GB", "TB"], fontsize=10)
     pyplot.ylim(0, 4)
 
     pyplot.subplot(1, 2, 2)
@@ -269,7 +318,7 @@ def main05():
         follow_ups[index] = counts
 
     pyplot.hlines(bit_length, 0, 320, color="silver", linewidth=0.75, linestyle="--", zorder=1)
-    pyplot.text(4, 256 + 4, "AES-256", va="bottom", ha="left", fontsize=12)
+    pyplot.text(4, 256 + 4, "AES-256", va="bottom", ha="left", fontsize=10)
     for index, filter_index in enumerate(filter_indices):
         lengths = linspace(0, 320, 321)
         rate = follow_ups[index][0] * log2(2.0) + follow_ups[index][1] * log2(6.0) + follow_ups[index][2] * log2(24.0)
@@ -287,19 +336,19 @@ def main05():
                            color=gradient_colors[index], edgecolor="black", s=20, zorder=4,
                            label="[" + str(filter_index) + "] %.1f" % reference_length)
 
-    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
-    pyplot.xlabel("DNA string length", fontsize=12)
+    pyplot.legend(loc="upper right", ncol=3, fontsize=9)
+    pyplot.xlabel("DNA string length", fontsize=10)
     pyplot.xlim(0, 320)
-    pyplot.xticks([0, 64, 128, 192, 256, 320], ["0nt", "64nt", "128nt", "192nt", "256nt", "320nt"], fontsize=12)
-    pyplot.ylabel("equivalent key strength", fontsize=12)
+    pyplot.xticks([0, 64, 128, 192, 256, 320], ["0nt", "64nt", "128nt", "192nt", "256nt", "320nt"], fontsize=10)
+    pyplot.ylabel("equivalent key strength", fontsize=10)
     pyplot.ylim(0, 512)
-    pyplot.yticks([0, 128, 256, 384, 512], [0, 128, 256, 384, 512], fontsize=12)
+    pyplot.yticks([0, 128, 256, 384, 512], [0, 128, 256, 384, 512], fontsize=10)
 
     figure.align_labels()
-    figure.text(0.024, 0.98, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.504, 0.98, "b", va="center", ha="center", fontsize=14)
+    figure.text(0.020, 0.98, "a", va="center", ha="center", fontsize=14)
+    figure.text(0.506, 0.98, "b", va="center", ha="center", fontsize=14)
 
-    pyplot.savefig("./show/main05.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/main06.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -309,3 +358,4 @@ if __name__ == "__main__":
     main03()
     main04()
     main05()
+    main06()

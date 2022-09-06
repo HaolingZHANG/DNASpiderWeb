@@ -1,8 +1,7 @@
-from collections import Counter
 # noinspection PyPackageRequirements
-from matplotlib import pyplot, rcParams
+from matplotlib import pyplot, rcParams, patches
 from numpy import load, array, zeros_like, zeros, ones, arange, linspace, percentile, random, where, inf
-from numpy import median, min, max, mean, sum, abs, sqrt, std, log10, clip, polyfit
+from numpy import median, min, max, mean, sum, maximum, abs, sqrt, std, log2, log10, clip, polyfit
 # noinspection PyPackageRequirements
 from openpyxl import Workbook
 from scipy.optimize import curve_fit
@@ -31,15 +30,15 @@ def supp01():
     for index in range(12):
         if rates[index] > 0:
             pyplot.bar([len(visited_indices)], [rates[index]], color="silver", edgecolor="black", width=0.6)
-            pyplot.text(len(visited_indices), rates[index] + 0.001, "%.1f" % (rates[index] * 100) + "%", fontsize=12,
+            pyplot.text(len(visited_indices), rates[index] + 0.001, "%.1f" % (rates[index] * 100) + "%", fontsize=9,
                         va="bottom", ha="center")
             visited_indices.append(filter_indices[index])
 
-    pyplot.xlabel("selected constraint set index", fontsize=12)
-    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=12)
+    pyplot.xlabel("selected constraint set index", fontsize=10)
+    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=10)
     pyplot.xlim(-0.35, 3.35)
-    pyplot.ylabel("probability of out-degree 1", fontsize=12)
-    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=12)
+    pyplot.ylabel("probability of out-degree 1", fontsize=10)
+    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=10)
     pyplot.ylim(-0.005, 0.105)
 
     proposed_results, out_1_results = load("./data/performance_evaluation_2.pkl", allow_pickle=True)
@@ -57,15 +56,15 @@ def supp01():
                        color="#81B8DF", edgecolor="black", width=0.3, label="retain vertex of out-degree 1")
             pyplot.bar([index + 0.15], [value_2],
                        color="#FE817D", edgecolor="black", width=0.3, label="remove vertex of out-degree 1")
-        pyplot.text(index - 0.15, value_1 + 0.001, "%.3f" % value_1, fontsize=12, va="bottom", ha="center")
-        pyplot.text(index + 0.15, value_2 + 0.001, "%.3f" % value_2, fontsize=12, va="bottom", ha="center")
+        pyplot.text(index - 0.15, value_1 + 0.001, "%.3f" % value_1, fontsize=9, va="bottom", ha="center")
+        pyplot.text(index + 0.15, value_2 + 0.001, "%.3f" % value_2, fontsize=9, va="bottom", ha="center")
 
-    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
-    pyplot.xlabel("selected constraint set index", fontsize=12)
-    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=12)
+    pyplot.legend(loc="upper right", ncol=2, fontsize=9)
+    pyplot.xlabel("selected constraint set index", fontsize=10)
+    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=10)
     pyplot.xlim(-0.35, 3.35)
-    pyplot.ylabel("standard deviation of code rate", fontsize=12)
-    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0.00", "0.02", "0.04", "0.06", "0.08", "0.10"], fontsize=12)
+    pyplot.ylabel("standard deviation of code rate", fontsize=10)
+    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0.00", "0.02", "0.04", "0.06", "0.08", "0.10"], fontsize=10)
     pyplot.ylim(-0.005, 0.105)
 
     figure.align_labels()
@@ -85,7 +84,7 @@ def supp02():
     rcParams["font.family"] = "Times New Roman"
     for index, filter_index in enumerate(filter_indices):
         capacity, code_rates = capacities[index], transcode_results[index]
-        pyplot.text(x=index, y=capacity + 0.01, s="%.4f" % capacity, ha="center", va="bottom", fontsize=12)
+        pyplot.text(x=index, y=capacity + 0.01, s="%.4f" % capacity, ha="center", va="bottom", fontsize=9)
         pyplot.hlines(capacity, index - 0.4, index + 0.4, color="#81B8DF", linewidth=1)
         if max(code_rates) - min(code_rates) < 0.01 or max(code_rates) > capacity:
             code_rate = median(code_rates)
@@ -105,12 +104,12 @@ def supp02():
         if index % 2 != 0:
             pyplot.fill_between([index - 0.5, index + 0.5], [0.92, 0.92], [2.08, 2.08], color="#F1F1F1", zorder=0)
 
-    pyplot.xlabel("constraint set index", fontsize=12)
-    pyplot.xticks(range(12), filter_indices, fontsize=12)
+    pyplot.xlabel("constraint set index", fontsize=10)
+    pyplot.xticks(range(12), filter_indices, fontsize=10)
     pyplot.xlim(-0.5, 11.5)
-    pyplot.ylabel("code rate", fontsize=12)
+    pyplot.ylabel("code rate", fontsize=10)
     pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
-                  ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=12)
+                  ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=10)
     pyplot.ylim(0.95, 2.05)
     pyplot.savefig("./show/supp02.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
@@ -219,182 +218,183 @@ def supp06():
 
 
 def supp07():
-    data = load(file="./data/correction_evaluation_2.pkl", allow_pickle=True)
+    data = load(file="./data/correction_evaluation_1.pkl", allow_pickle=True)
 
-    pyplot.figure(figsize=(10, 8), tight_layout=True)
+    pyplot.figure(figsize=(10, 6), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
-    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    values, rates = [[], []], [[], []]
-    for filter_index in range(1, 13):
-        formers, latters = data[str(filter_index).zfill(2)]
-        formers, latters = log10(formers), log10(latters)
-
-        violin_1 = pyplot.violinplot(formers, positions=[filter_index], widths=0.8, bw_method=0.5,
+    for location, (error_rate, values) in enumerate(data.items()):
+        original, combined = [], []
+        for value in values[0]:
+            if value[0] > 0 and value[3] > 0:
+                original.append(value[2])
+                combined.append(value[3])
+        original, combined = array(original), array(combined)
+        violin_1 = pyplot.violinplot(log2(original), positions=[location], widths=0.8, bw_method=0.5,
                                      showmeans=False, showextrema=False, showmedians=False)
         for body in violin_1["bodies"]:
             center = mean(body.get_paths()[0].vertices[:, 0])
             body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], -inf, center)
             body.set_color("#FE817D")
             body.set_edgecolor("black")
-            body.set_linewidth(1.5)
+            body.set_linewidth(0.75)
             body.set_alpha(1)
-        pyplot.scatter([filter_index], [median(formers)], color="#FE817D", edgecolor="black", linewidth=1.5, s=40)
-        values[0].append(mean(formers))
-
-        violin_2 = pyplot.violinplot(latters, positions=[filter_index], widths=0.8, bw_method=0.5,
+        pyplot.scatter([location - 0.2], [median(log2(original))], color="black", s=30)
+        pyplot.text(location - 0.2, median(log2(original)) + 0.2, str(int(median(original))),
+                    va="bottom", ha="center", fontsize=9)
+        violin_2 = pyplot.violinplot(log2(combined), positions=[location], widths=0.8, bw_method=0.5,
                                      showmeans=False, showextrema=False, showmedians=False)
         for body in violin_2["bodies"]:
             center = mean(body.get_paths()[0].vertices[:, 0])
             body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], center, inf)
             body.set_color("#00C382")
             body.set_edgecolor("black")
-            body.set_linewidth(1.5)
+            body.set_linewidth(0.75)
             body.set_alpha(1)
+        pyplot.scatter([location + 0.2], [median(log2(combined))], color="black", s=30)
+        if median(combined) > 1:
+            pyplot.text(location + 0.2, median(log2(combined)) + 0.2, str(int(median(combined))),
+                        va="bottom", ha="center", fontsize=9)
+        else:
+            pyplot.text(location + 0.2, median(log2(combined)) + 0.45, str(int(median(combined))),
+                        va="bottom", ha="center", fontsize=9)
 
-        pyplot.scatter([filter_index], [median(latters)], color="#00C382", edgecolor="black", linewidth=1.5, s=40)
-        values[1].append(mean(latters))
-
-        if filter_index == 1:
-            pyplot.legend([violin_1["bodies"][0], violin_2["bodies"][0]], ["search-only", "combined"], fontsize=12)
-
-    pyplot.xlabel("constraint set index", fontsize=12)
-    pyplot.xticks(range(1, 13), filter_indices, fontsize=12)
-    pyplot.xlim(0.5, 12.5)
-    pyplot.ylabel("candidate number", fontsize=12)
-    pyplot.yticks([0, 1, 2, 3], ["1", "10", "100", "1000"], fontsize=12)
-    pyplot.ylim(-0.2, 3.2)
+    handles = [patches.Patch(facecolor="#FE817D", edgecolor="black", linewidth=0.75, label="search-only"),
+               patches.Patch(facecolor="#00C382", edgecolor="black", linewidth=0.75, label="combined")]
+    pyplot.legend(handles=handles, loc="upper right", fontsize=9)
+    pyplot.xlabel("error rate", fontsize=10)
+    pyplot.ylabel("candidate number", fontsize=10)
+    pyplot.xticks([0, 1, 2], ["1%", "2%", "3%"], fontsize=10)
+    pyplot.yticks([0, 2, 4, 6, 8, 10, 12], [1, 4, 16, 64, 256, 1024, 4096], fontsize=10)
+    pyplot.xlim(-0.8, 3.8)
+    pyplot.ylim(0, 12)
     pyplot.savefig("./show/supp07.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 def supp08():
-    data = load(file="./data/correction_evaluation_3.pkl", allow_pickle=True)
+    data = load(file="./data/correction_evaluation_5.pkl", allow_pickle=True)
 
     figure = pyplot.figure(figsize=(10, 4.5), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
 
     pyplot.subplot(1, 2, 1)
-    gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
-    for index in range(12):
-        pyplot.plot(range(4), data["constraint influence"][index], color=gradient_colors[index],
-                    linewidth=2, marker="o", label=str(index + 1).zfill(2))
-    pyplot.legend(loc="upper right", ncol=2, fontsize=12)
-    pyplot.xlabel("error rate", fontsize=12)
-    pyplot.xlim(-0.1, 3.1)
-    pyplot.xticks([0, 1, 2, 3], ["1%", "2%", "3%", "4%"], fontsize=12)
-    pyplot.ylabel("correction rate", fontsize=12)
-    pyplot.ylim(-0.05, 1.05)
-    pyplot.yticks([0, 0.25, 0.5, 0.75, 1], ["0%", "25%", "50%", "75%", "100%"], fontsize=12)
+    for (set_index, values), color in zip(data.items(), pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))):
+        detection_rate = sum(values[:, -2]) / 10000.0
+        pyplot.bar([int(set_index)], [detection_rate], color=color, edgecolor="black", linewidth=0.75)
+        if detection_rate > 0:
+            pyplot.text(int(set_index), detection_rate + 0.005, "%.2f" % (detection_rate * 100) + "%",
+                        va="bottom", ha="center", fontsize=9)
+        else:
+            pyplot.scatter([int(set_index)], [0.02], marker="x", s=15, color="black")
+    pyplot.xlabel("constraint set index", fontsize=10)
+    pyplot.ylabel("detection rate", fontsize=10)
+    pyplot.xticks(arange(12) + 1, ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"], fontsize=10)
+    pyplot.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
+    pyplot.xlim(0.4, 12.6)
+    pyplot.ylim(0, 1)
 
     pyplot.subplot(1, 2, 2)
-    pyplot.pcolormesh(range(4 + 1), range(4 + 1), data["length influence"].T, vmax=1, vmin=0, cmap="RdYlGn")
-    for i in range(4):
-        for j in range(4):
-            if data["length influence"][i, j] >= 0:
-                pyplot.text(x=i + 0.5, y=j + 0.5, s="%.1f" % (data["length influence"][i, j] * 100) + "%",
-                            va="center", ha="center", fontsize=12)
-            else:
-                pyplot.text(x=i + 0.5, y=j + 0.5, s="x",
-                            va="center", ha="center", fontsize=12)
+    for (set_index, values), color in zip(data.items(), pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))):
+        counts = values[:, 3]
+        counts = counts[counts > 0]
+        if sum(values[:, -2]) > 0:
+            violin = pyplot.violinplot([counts], positions=[int(set_index)],
+                                       widths=0.5, bw_method=0.5, showextrema=False)
+            for patch in violin["bodies"]:
+                patch.set_edgecolor("black")
+                patch.set_facecolor(color)
+                patch.set_linewidth(0.75)
+                patch.set_alpha(1)
+        else:
+            pyplot.scatter([int(set_index)], [1], marker="x", s=15, color="black")
 
-    pyplot.xlabel("DNA string length", fontsize=12)
-    pyplot.xlim(0, 4)
-    pyplot.xticks([0.5, 1.5, 2.5, 3.5], ["100nt", "200nt", "300nt", "400nt"], fontsize=12)
-    pyplot.ylabel("error rate", fontsize=12)
-    pyplot.ylim(0, 4)
-    pyplot.yticks([0.5, 1.5, 2.5, 3.5], ["1%", "2%", "3%", "4%"], fontsize=12)
+    pyplot.xlabel("constraint set index", fontsize=10)
+    pyplot.ylabel("candidate number from correction", fontsize=10)
+    pyplot.xticks(arange(12) + 1, ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"], fontsize=10)
+    pyplot.yticks([0, 4, 8, 12, 16, 20], [0, 4, 8, 12, 16, 20], fontsize=10)
+    pyplot.xlim(0.4, 12.6)
+    pyplot.ylim(0, 20)
 
     figure.align_labels()
-    figure.text(0.02, 0.98, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.52, 0.98, "b", va="center", ha="center", fontsize=14)
+    figure.text(0.020, 0.98, "a", va="center", ha="center", fontsize=14)
+    figure.text(0.525, 0.98, "b", va="center", ha="center", fontsize=14)
 
     pyplot.savefig("./show/supp08.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 def supp09():
-    data = load(file="./data/correction_evaluation_1.pkl", allow_pickle=True)
+    data = load(file="./data/correction_evaluation_4.pkl", allow_pickle=True)
+    used_colors = ["#F19D91", "#9EDBE9", "#74CCBE", "#95A2BF"]
 
-    figure = pyplot.figure(figsize=(10, 11), tight_layout=True)
+    figure = pyplot.figure(figsize=(10, 10), tight_layout=True)
     rcParams["font.family"] = "Times New Roman"
 
-    for location, establish_reads in enumerate([10, 20, 50, 100]):
-        pyplot.subplot(4, 1, location + 1)
-        pyplot.title("error rate = " + str(location + 1) + "% | established reads = " + str(establish_reads),
-                     fontsize=12)
-        obtained_set, values = data["frequency-based recovery"][location + 1][1], []
-        for index, (_, count) in enumerate(obtained_set.items()):
-            values.append(count)
-
-        counts, location, firsts = Counter(values), 1, [True, True]
-        maximum_size = max(list(counts.keys()))
-        for value in arange(1, maximum_size + 1, 1)[::-1]:
-            if value in counts:
-                if location <= 10000:
-                    if firsts[0]:
-                        pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#FE817D",
-                                      linewidth=4, label="right", zorder=3)
-                        firsts[0] = False
-                    else:
-                        pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#FE817D",
-                                      linewidth=4, zorder=3)
-                else:
-                    if firsts[1]:
-                        pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#81B8DF",
-                                      linewidth=4, label="wrong", zorder=3)
-                        firsts[1] = False
-                    else:
-                        pyplot.hlines(value, log10(location), log10(location + counts[value]), color="#81B8DF",
-                                      linewidth=4, zorder=3)
-                location += counts[value]
-
-        pyplot.fill_between([4, 6], -maximum_size / 10, maximum_size + maximum_size / 10,
-                            color="#EEEEEE", label="ignored range", zorder=0)
-        pyplot.legend(loc="upper right", ncol=2, fontsize=12)
-        pyplot.xlabel("priority of repaired DNA strings", fontsize=12)
-        pyplot.xlim(-0.2, 6.2)
-        pyplot.xticks([0, 1, 2, 3, 4, 5, 6], ["1E+0", "1E+1", "1E+2", "1E+3", "1E+4", "1E+5", "1E+6"], fontsize=12)
-        pyplot.ylabel("frequency", fontsize=12)
-        pyplot.ylim(-maximum_size / 10, maximum_size + maximum_size / 10)
-        pyplot.yticks(linspace(0, maximum_size, 6), linspace(0, maximum_size, 6, dtype=int), fontsize=12)
+    for location, (error_rate, values) in enumerate(data.items()):
+        pyplot.subplot(2, 2, location + 1)
+        pyplot.title("error rate = %.1f" % (error_rate * 100) + "%", fontsize=10)
+        processes = zeros(shape=(21, 3))
+        for index, sub_values in enumerate(values):
+            bounds = array([min(sub_values[:, 0]), mean(sub_values[:, 0]), max(sub_values[:, 0])])
+            shown_values = (5.0 - maximum(log10(100000.0 * (1 - bounds)), 0)) / 5.0
+            processes[index + 1] = shown_values
+        pyplot.fill_between(arange(21), processes[:, 0], processes[:, 2], color=used_colors[location], label="range")
+        pyplot.plot(arange(21), processes[:, 1], color="black", linewidth=1, linestyle="--", label="average level")
+        pyplot.legend(loc="upper left", fontsize=9)
+        pyplot.xlabel("pretreatment-free depth", fontsize=10)
+        pyplot.ylabel("overall success rate", fontsize=10)
+        pyplot.xlim(0, 20)
+        pyplot.ylim(0, 1.0)
+        pyplot.xticks([0, 5, 10, 15, 20], [0, 5, 10, 15, 20], fontsize=10)
+        pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                      ["00.00%", "90.00%", "99.00%", "99.90%", "99.99%", "perfect "], fontsize=10)
 
     figure.align_labels()
-    figure.text(0.025, 0.98, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.025, 0.73, "b", va="center", ha="center", fontsize=14)
-    figure.text(0.025, 0.48, "c", va="center", ha="center", fontsize=14)
-    figure.text(0.025, 0.24, "d", va="center", ha="center", fontsize=14)
+    figure.text(0.020, 0.98, "a", va="center", ha="center", fontsize=14)
+    figure.text(0.515, 0.98, "b", va="center", ha="center", fontsize=14)
+    figure.text(0.020, 0.48, "c", va="center", ha="center", fontsize=14)
+    figure.text(0.515, 0.48, "d", va="center", ha="center", fontsize=14)
 
     pyplot.savefig("./show/supp09.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 def supp10():
-    records = load(file="./data/correction_evaluation_4.pkl", allow_pickle=True)
-    matrix_1, matrix_2, values = zeros(shape=(12, 6)), zeros(shape=(12, 6)), []
-    for filter_index in range(1, 13):
-        for pattern_index in range(1, 7):
-            values.append(records[(filter_index, pattern_index)][:, 1].tolist())
-            matrix_1[filter_index - 1, pattern_index - 1] = min(records[(filter_index, pattern_index)][:, 1])
-            matrix_2[filter_index - 1, pattern_index - 1] = max(records[(filter_index, pattern_index)][:, 1])
-    values = array(values)
-
-    print("maximum %.2f" % max(values) + " seconds per sequence.")
-    print("average %.2f" % mean(values) + " seconds per sequence.")
+    data = load(file="./data/correction_evaluation_4.pkl", allow_pickle=True)
 
     book = Workbook()
     sheet = book.create_sheet(title="supp10", index=0)
-    sheet.append(["constraint set index", "pattern 1", "pattern 2", "pattern 3", "pattern 4", "pattern 5", "pattern 6"])
-    for filter_index in range(12):
-        record = [str(filter_index + 1).zfill(2)]
-        for pattern_index in range(6):
-            record.append("%.2f" % matrix_1[filter_index - 1, pattern_index - 1] + "~"
-                          + "%.2f" % matrix_2[filter_index - 1, pattern_index - 1])
-        sheet.append(record)
-
+    sheet.append(["error rate", "maximum frequency of wrong candidate"])
+    for error_rate, values in data.items():
+        sheet.append(["%.1f" % (error_rate * 100), str(int(max(values[:, :, -1])))])
     book.save("./show/supp10.xlsx")
 
 
 def supp11():
+    data = load(file="./data/correction_evaluation_6.pkl", allow_pickle=True)
+
+    book = Workbook()
+    sheet = book.create_sheet(title="supp11", index=0)
+    sheet.append(["", "error = 0.0%", "error = 0.5%", "error = 1.0%", "error = 2.0%", "error = 3.0%"])
+    values = data["spiderweb"]
+    sheet.append(["SPIDER-WEB",
+                  "%.2f (%.2f)" % (mean(values[0.000]), std(values[0.000])),
+                  "%.2f (%.2f)" % (mean(values[0.005]), std(values[0.005])),
+                  "%.2f (%.2f)" % (mean(values[0.010]), std(values[0.010])),
+                  "%.2f (%.2f)" % (mean(values[0.020]), std(values[0.020])),
+                  "%.2f (%.2f)" % (mean(values[0.030]), std(values[0.030]))])
+    values = data["hedges"]
+    sheet.append(["HEDGES",
+                  "%.2f (%.2f)" % (mean(values[0.000]), std(values[0.000])),
+                  "%.2f (%.2f)" % (mean(values[0.005]), std(values[0.005])),
+                  "%.2f (%.2f)" % (mean(values[0.010]), std(values[0.010])),
+                  "%.2f (%.2f)" % (mean(values[0.020]), std(values[0.020])),
+                  "%.2f (%.2f)" % (mean(values[0.030]), std(values[0.030]))])
+
+    book.save("./show/supp11.xlsx")
+
+
+def supp12():
     def estimated_equation(x, a):
         return a ** x
 
@@ -427,24 +427,24 @@ def supp11():
         pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2,
                     label="constraint set " + str(index + 1).zfill(2))
 
-    pyplot.legend(loc="upper left", fontsize=12)
-    pyplot.xlabel("graph reconstruction percentage", fontsize=12)
+    pyplot.legend(loc="upper left", fontsize=9)
+    pyplot.xlabel("graph reconstruction percentage", fontsize=10)
     pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=12)
+                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=10)
     pyplot.xlim(0, 1)
-    pyplot.ylabel("transmitted file size", fontsize=12)
+    pyplot.ylabel("transmitted file size", fontsize=10)
     pyplot.yticks([0.0 * 1e8, 0.2 * 1e8, 0.4 * 1e8, 0.6 * 1e8, 0.8 * 1e8, 1.0 * 1e8,
                    1.2 * 1e8, 1.4 * 1e8, 1.6 * 1e8, 1.8 * 1e8, 2.0 * 1e8],
                   ["0.0E+8 bytes", "0.2E+8 bytes", "0.4E+8 bytes", "0.6E+8 bytes", "0.8E+8 bytes", "1.0E+8 bytes",
                    "1.2E+8 bytes", "1.4E+8 bytes", "1.6E+8 bytes", "1.8E+8 bytes", "2.0E+8 bytes"],
-                  fontsize=12)
+                  fontsize=10)
     pyplot.ylim(0, 2 * 1e8)
 
-    pyplot.savefig("./show/supp11.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp12.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp12():
+def supp13():
     record = load(file="./data/capacity_evaluation.pkl", allow_pickle=True)
 
     data, errors = record["detail"]
@@ -467,29 +467,29 @@ def supp12():
     pyplot.vlines(x=v_50, ymin=0, ymax=6.5, color="black", linewidth=1, zorder=2)
     pyplot.vlines(x=v_50, ymin=6.9, ymax=8.5, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=8.5, xmin=v_50 - 0.3, xmax=v_50 + 0.3, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=v_50, y=8.6, s="median", va="bottom", ha="center", fontsize=12, zorder=2)
+    pyplot.text(x=v_50, y=8.6, s="median", va="bottom", ha="center", fontsize=10, zorder=2)
 
     pyplot.vlines(x=v_25, ymin=0, ymax=7, color="black", linewidth=1, zorder=2)
     pyplot.vlines(x=v_75, ymin=0, ymax=7, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=6.7, xmin=v_25, xmax=v_75, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=v_75 + 0.1, y=6.7, s="interquartile range", va="center", ha="left", fontsize=12, zorder=2)
+    pyplot.text(x=v_75 + 0.1, y=6.7, s="interquartile range", va="center", ha="left", fontsize=10, zorder=2)
     pyplot.vlines(x=lower, ymin=0, ymax=4, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=3.7, xmin=lower, xmax=min(errors) + 2, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=min(errors) + 1.9, y=3.7, s="outlier range", va="center", ha="right", fontsize=12, zorder=2)
+    pyplot.text(x=min(errors) + 1.9, y=3.7, s="outlier range", va="center", ha="right", fontsize=10, zorder=2)
     pyplot.vlines(x=upper, ymin=0, ymax=4, color="black", linewidth=1, zorder=2)
     pyplot.hlines(y=3.7, xmin=upper, xmax=max(errors) - 2, color="black", linewidth=1, zorder=2)
-    pyplot.text(x=max(errors) - 1.9, y=3.7, s="outlier range", va="center", ha="left", fontsize=12, zorder=2)
+    pyplot.text(x=max(errors) - 1.9, y=3.7, s="outlier range", va="center", ha="left", fontsize=10, zorder=2)
 
     pyplot.xlim(-14.1, -3.9)
     pyplot.ylim(-0.5, 10.5)
-    pyplot.ylabel("frequency", fontsize=12)
+    pyplot.ylabel("frequency", fontsize=10)
     pyplot.xticks([-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4],
                   ["1E\N{MINUS SIGN}14", "1E\N{MINUS SIGN}13", "1E\N{MINUS SIGN}12", "1E\N{MINUS SIGN}11",
                    "1E\N{MINUS SIGN}10", "1E\N{MINUS SIGN}09", "1E\N{MINUS SIGN}08", "1E\N{MINUS SIGN}07",
                    "1E\N{MINUS SIGN}06", "1E\N{MINUS SIGN}05", "1E\N{MINUS SIGN}04"],
-                  fontsize=12)
-    pyplot.xlabel("relative error", fontsize=12)
-    pyplot.yticks([0, 2, 4, 6, 8, 10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=12)
+                  fontsize=10)
+    pyplot.xlabel("relative error", fontsize=10)
+    pyplot.yticks([0, 2, 4, 6, 8, 10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=10)
 
     pyplot.subplot(3, 1, 2)
     pyplot.scatter(errors, data, color="#81B8DF", edgecolor="black", zorder=3)
@@ -509,16 +509,16 @@ def supp12():
     y = a * x + b
     pyplot.plot(x, y, color="black", linestyle="--", linewidth=1, zorder=2)
 
-    pyplot.xlabel("relative error", fontsize=12)
-    pyplot.ylabel("capacity from SPIDER-WEB", fontsize=12)
+    pyplot.xlabel("relative error", fontsize=10)
+    pyplot.ylabel("capacity from SPIDER-WEB", fontsize=10)
     pyplot.xlim(-14.1, -3.9)
     pyplot.ylim(-0.1, 2.1)
     pyplot.xticks([-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4],
                   ["1E\N{MINUS SIGN}14", "1E\N{MINUS SIGN}13", "1E\N{MINUS SIGN}12", "1E\N{MINUS SIGN}11",
                    "1E\N{MINUS SIGN}10", "1E\N{MINUS SIGN}09", "1E\N{MINUS SIGN}08", "1E\N{MINUS SIGN}07",
                    "1E\N{MINUS SIGN}06", "1E\N{MINUS SIGN}05", "1E\N{MINUS SIGN}04"],
-                  fontsize=12)
-    pyplot.yticks([0, 0.5, 1.0, 1.5, 2.0], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=12)
+                  fontsize=10)
+    pyplot.yticks([0, 0.5, 1.0, 1.5, 2.0], ["0.0", "0.5", "1.0", "1.5", "2.0"], fontsize=10)
     whole_data = record["extend"]
 
     pyplot.subplot(3, 1, 3)
@@ -554,24 +554,24 @@ def supp12():
             if value < lower or value > upper:
                 pyplot.scatter(x=[index + 1.2], y=[value],
                                color="white", edgecolor="#81B8DF", linewidth=1, s=20, zorder=4)
-    pyplot.xlabel("size of adjacency matrix", fontsize=12)
-    pyplot.ylabel("relative error", fontsize=12)
+    pyplot.xlabel("size of adjacency matrix", fontsize=10)
+    pyplot.ylabel("relative error", fontsize=10)
     pyplot.xlim(0.5, 5.5)
     pyplot.ylim(-15, -3)
     pyplot.xticks([1, 2, 3, 4, 5],
                   ["4^2", "4^3", "4^4", "4^5", "4^6"],
-                  fontsize=12)
+                  fontsize=10)
     pyplot.yticks([-15, -13, -11, -9, -7, -5, -3],
                   ["1E\N{MINUS SIGN}15", "1E\N{MINUS SIGN}13", "1E\N{MINUS SIGN}11", "1E\N{MINUS SIGN}09",
                    "1E\N{MINUS SIGN}07", "1E\N{MINUS SIGN}05", "1E\N{MINUS SIGN}03"],
-                  fontsize=12)
+                  fontsize=10)
 
     figure.text(0.024, 0.99, "a", va="center", ha="center", fontsize=14)
     figure.text(0.024, 0.66, "b", va="center", ha="center", fontsize=14)
     figure.text(0.024, 0.34, "c", va="center", ha="center", fontsize=14)
 
     figure.align_labels()
-    pyplot.savefig("./show/supp12.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp13.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -588,3 +588,4 @@ if __name__ == "__main__":
     supp10()
     supp11()
     supp12()
+    supp13()

@@ -705,8 +705,7 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
         return median(results)
 
 
-def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides=None,
-                  has_insertion=False, has_deletion=False, verbose=False):
+def path_matching(dna_string, accessor, previous_index, occur_location, has_indel=False, nucleotides=None):
     """
     Perform saturation repair at the selected position and obtain the DNA strings matching the path of accessor.
 
@@ -716,26 +715,20 @@ def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides
     :param accessor: accessor.
     :type accessor: numpy.ndarray
 
-    :param index_queue: queue of vertex indices (transcoding path in the graph).
-    :type index_queue: list
+    :param previous_index: previous vertex index before the occurred error location.
+    :type previous_index: int
 
     :param occur_location: the location that may occurring substitution (or specific location).
     :type occur_location: int
 
+    :param has_indel: consider insertion and/or deletion error.
+    :type has_indel: bool
+
     :param nucleotides: usage of nucleotides.
     :type nucleotides: list
 
-    :param has_insertion: consider insertion error.
-    :type has_insertion: bool
-
-    :param has_deletion: consider deletion error.
-    :type has_deletion: bool
-
-    :param verbose: need to print log.
-    :type verbose: bool
-
-    :return: repaired DNA strings (may contain multiple repair show).
-    :rtype: list
+    :return: repaired DNA strings (may contain multiple repair show) and visited count.
+    :rtype: list, int
 
     Example
         >>> from numpy import array
@@ -746,187 +739,64 @@ def path_matching(dna_string, accessor, index_queue, occur_location, nucleotides
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
         >>> dna_string = "TCTCTATCTCT"  # "TCTCTCTCTCT" is original DNA string
-        >>> path_matching(dna_string=dna_string, accessor=accessor, index_queue=[1, 7, 13, 7, 13, 7], \
-                          occur_location=4, has_insertion=True, has_deletion=True)
-        [('D', 4, 'T', 'TCTCATCTCT')]
+        >>> path_matching(dna_string=dna_string, accessor=accessor, previous_index=7, occur_location=5, has_indel=True)
+        ([(('S', 5, 'C'), 'TCTCTCTCTCT'), (('S', 5, 'G'), 'TCTCTGTCTCT')], 12)
     """
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
 
-    repair_info, observed_length = [], int(log(len(accessor)) / log(len(nucleotides)))
-    original = dna_string[occur_location]
+    repair_info, visited_count = [], 0
+    original, used_indices = dna_string[occur_location], where(accessor[previous_index] >= 0)[0]
 
-    if occur_location + observed_length < len(dna_string):
-        check_segment = dna_string[occur_location: occur_location + observed_length]
-    else:
-        check_segment = dna_string[occur_location:]
-
-    if verbose:
-        print("Original = [" + dna_string + "]")
-        if occur_location + observed_length < len(dna_string):
-            remain = len(dna_string) - (occur_location + observed_length)
-            print("Checking = [" + "-" * occur_location + check_segment + "-" * remain + "]")
-        else:
-            print("Checking = [" + "-" * occur_location + check_segment + "]")
-
-    # find substitution error.
-    used_indices = where(accessor[index_queue[occur_location]] >= 0)[0]
-    o_options = [nucleotides[used_index] for used_index in used_indices]
-    b_options = accessor[index_queue[occur_location]][~(accessor[index_queue[occur_location]] == -1)]
-    for replace_nucleotide in list(filter(lambda n: n != original, o_options)):
-        try:
-            segment = "".join([replace_nucleotide] + list(check_segment)[1:])
-
-            if verbose:
-                print("Replace " + original + " to " + replace_nucleotide)
-                if occur_location + observed_length < len(dna_string):
-                    remain = len(dna_string) - (occur_location + observed_length)
-                    print("         = [" + "-" * occur_location + segment + "-" * remain + "]"
-                          + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-                else:
-                    print("         = [" + "-" * occur_location + segment + "]"
-                          + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-
-            vertex_index, reliable = index_queue[occur_location], True
-
-            for index, nucleotide in enumerate(segment):
-                inner_used_indices = where(accessor[vertex_index] >= 0)[0]
-                used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
-                if nucleotide in used_nucleotides:
-                    if verbose:
-                        show_used_indices = where(accessor[vertex_index] >= 0)[0]
-                        o_options = [nucleotides[used_index] for used_index in show_used_indices]
-                        b_options = accessor[vertex_index][~(accessor[vertex_index] == -1)]
-                        if occur_location + observed_length < len(dna_string):
-                            remain = len(dna_string) - (occur_location + observed_length)
-                            print("           [" + "-" * (occur_location + index) + segment[index]
-                                  + "-" * (remain + len(segment) - index - 1) + "]"
-                                  + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-                        else:
-                            print("           [" + "-" * (occur_location + index) + segment[index] + "]"
-                                  + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-
-                    vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
-                else:
-                    reliable = False
-                    break
-        except IndexError:
-            reliable = False
-
-        if reliable:
-            if verbose:
-                print("Reliable: True")
-            obtained_dna_string = list(dna_string)
-            obtained_dna_string[occur_location] = replace_nucleotide
-            obtained_dna_string = "".join(obtained_dna_string)
-            # "S" refers to repair by substation.
-            repair_info.append(("S", occur_location, replace_nucleotide, obtained_dna_string))
-
-    if has_insertion:  # find insertion error if required.
-        used_indices = where(accessor[index_queue[occur_location]] >= 0)[0]
-        o_options = [nucleotides[used_index] for used_index in used_indices]
-        b_options = accessor[index_queue[occur_location]][~(accessor[index_queue[occur_location]] == -1)]
-        for add_nucleotide in o_options:
-            try:
-                segment = "".join([add_nucleotide] + list(check_segment))
-                if verbose:
-                    print("Insert " + add_nucleotide + " in location " + str(occur_location))
-                    if occur_location + observed_length < len(dna_string):
-                        remain = len(dna_string) - (occur_location + observed_length)
-                        print("         = [" + "-" * occur_location + segment + "-" * remain + "]"
-                              + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-                    else:
-                        print("         = [" + "-" * occur_location + segment + "]"
-                              + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-
-                vertex_index, reliable = index_queue[occur_location], True
-                for index, nucleotide in enumerate(segment):
-                    inner_used_indices = where(accessor[vertex_index] >= 0)[0]
-                    used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
-                    if nucleotide in used_nucleotides:
-                        if verbose:
-                            show_used_indices = where(accessor[vertex_index] >= 0)[0]
-                            o_options = [nucleotides[used_index] for used_index in show_used_indices]
-                            b_options = accessor[vertex_index][~(accessor[vertex_index] == -1)]
-                            if occur_location + observed_length < len(dna_string):
-                                remain = len(dna_string) - (occur_location + observed_length)
-                                print("           [" + "-" * (occur_location + index) + segment[index]
-                                      + "-" * (remain + len(segment) - index - 1) + "]"
-                                      + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-                            else:
-                                print("           [" + "-" * (occur_location + index) + segment[index] + "]"
-                                      + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-
-                        vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
-                    else:
-                        reliable = False
-                        break
-            except IndexError:
+    for r_nucleotide in list(filter(lambda n: n != original, [nucleotides[index] for index in used_indices])):
+        vertex_index, reliable = accessor[previous_index][nucleotides.index(r_nucleotide)], True
+        for index, nucleotide in enumerate(dna_string[occur_location + 1:]):
+            used_nucleotides = [nucleotides[used_index] for used_index in where(accessor[vertex_index] >= 0)[0]]
+            if nucleotide in used_nucleotides:
+                vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+                visited_count += 1
+            else:
                 reliable = False
+                break
 
-            if reliable:
-                if verbose:
-                    print("Reliable: True")
-                obtained_dna_string = list(dna_string)
-                obtained_dna_string.insert(occur_location, add_nucleotide)
-                obtained_dna_string = "".join(obtained_dna_string)
-                # "I" refers to repair by insertion.
-                repair_info.append(("I", occur_location, add_nucleotide, obtained_dna_string))
+        if reliable:  # "S" refers to repair by substation.
+            obtained_dna_string = list(dna_string)
+            obtained_dna_string[occur_location] = r_nucleotide
+            repair_info.append((("S", occur_location, r_nucleotide), "".join(obtained_dna_string)))
 
-    if has_deletion:  # find deletion error if required.
-        delete_nucleotide = None
-        try:
-            used_indices = where(accessor[index_queue[occur_location]] >= 0)[0]
-            o_options = [nucleotides[used_index] for used_index in used_indices]
-            b_options = accessor[index_queue[occur_location]][~(accessor[index_queue[occur_location]] == -1)]
-
-            delete_nucleotide = check_segment[0]
-            segment = "".join(list(check_segment)[1:])
-            if verbose:
-                print("Delete " + check_segment[0] + " in location " + str(occur_location))
-                if occur_location + observed_length < len(dna_string):
-                    remain = len(dna_string) - (occur_location + observed_length)
-                    print("         = [" + "-" * occur_location + segment + "-" * remain + "]"
-                          + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-                else:
-                    print("         = [" + "-" * occur_location + segment + "]"
-                          + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-
-            vertex_index, reliable = index_queue[occur_location], True
-            for index, nucleotide in enumerate(segment):
-                inner_used_indices = where(accessor[vertex_index] >= 0)[0]
-                used_nucleotides = [nucleotides[used_index] for used_index in inner_used_indices]
+    if has_indel:
+        for a_nucleotide in [nucleotides[used_index] for used_index in used_indices]:
+            vertex_index, reliable = accessor[previous_index][nucleotides.index(a_nucleotide)], True
+            for nucleotide in dna_string[occur_location:]:
+                used_nucleotides = [nucleotides[used_index] for used_index in where(accessor[vertex_index] >= 0)[0]]
                 if nucleotide in used_nucleotides:
-                    if verbose:
-                        show_used_indices = where(accessor[vertex_index] >= 0)[0]
-                        o_options = [nucleotides[used_index] for used_index in show_used_indices]
-                        b_options = accessor[vertex_index][~(accessor[vertex_index] == -1)]
-                        if occur_location + observed_length < len(dna_string):
-                            remain = len(dna_string) - (occur_location + observed_length)
-                            print("           [" + "-" * (occur_location + index) + segment[index]
-                                  + "-" * (remain + len(segment) - index - 1) + "]"
-                                  + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-                        else:
-                            print("           [" + "-" * (occur_location + index) + segment[index] + "]"
-                                  + " | " + str(o_options).replace("\'", "") + ", " + str(b_options))
-
                     vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+                    visited_count += 1
                 else:
                     reliable = False
                     break
-        except IndexError:
-            reliable = False
 
-        if reliable:
-            if verbose:
-                print("Reliable: True")
+            if reliable:  # "I" refers to repair by insertion.
+                obtained_dna_string = list(dna_string)
+                obtained_dna_string.insert(occur_location, a_nucleotide)
+                repair_info.append((("I", occur_location, a_nucleotide), "".join(obtained_dna_string)))
+
+        d_nucleotide, vertex_index, reliable = original, previous_index, True
+        for index, nucleotide in enumerate(dna_string[occur_location + 1:]):
+            used_nucleotides = [nucleotides[used_index] for used_index in where(accessor[vertex_index] >= 0)[0]]
+            if nucleotide in used_nucleotides:
+                vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+                visited_count += 1
+            else:
+                reliable = False
+                break
+
+        if reliable:   # "D" refers to repair by deletion.
             obtained_dna_string = list(dna_string)
             del obtained_dna_string[occur_location]
-            obtained_dna_string = "".join(obtained_dna_string)
-            # "D" refers to repair by deletion.
-            repair_info.append(("D", occur_location, delete_nucleotide, obtained_dna_string))
+            repair_info.append((("D", occur_location, d_nucleotide), "".join(obtained_dna_string)))
 
-    return repair_info
+    return repair_info, visited_count
 
 
 def calculate_intersection_score(latter_map, nucleotides=None, observed_length=10,

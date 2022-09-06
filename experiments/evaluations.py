@@ -1,5 +1,5 @@
 from itertools import permutations
-from numpy import random, array, zeros, abs, sum, max, linalg, real, log2, where, any, save
+from numpy import random, array, arange, zeros, abs, sum, min, max, linalg, real, log2, where, any, save
 from os.path import exists
 from pickle import load, dump
 
@@ -9,9 +9,8 @@ from dsw import get_complete_accessor, accessor_to_adjacency_matrix, adjacency_m
 
 from experiments import local_bio_filters
 from experiments.code_encode import generate_database, trans_fountain, trans_yinyang, trans_hedges, trans_spiderweb
-from experiments.code_repair import show_single_examples, show_multiple_examples, evaluate_repair_multiple_errors
-from experiments.code_repair import calculate_spiderweb_minimum_reads, evaluate_spiderweb_established_reads
-from experiments.code_repair import hedges_runtime
+from experiments.code_repair import evaluate_repair_errors, calculate_minimum_reads, evaluate_established_depth
+from experiments.code_repair import spiderweb_step, hedges_step
 
 
 def generate_algorithms():
@@ -72,12 +71,9 @@ def evaluate_performance():
         for index in range(12):
             filter_index = str(index + 1).zfill(2)
             print("Evaluate coding algorithm " + filter_index + ".")
-
             accessor = coding_graphs[filter_index]
             vertices = obtain_vertices(accessor=accessor)
-
             random.seed(task_seed)
-
             encoded_matrix, nucleotide_numbers = random.randint(0, 2, size=(repeats, bit_length)), []
             for current, start_index in enumerate(vertices):
                 dna_strings, nucleotide_number = [], 0
@@ -85,16 +81,13 @@ def evaluate_performance():
                     dna_string = encode(binary_message=binary_message, accessor=accessor, start_index=start_index)
                     nucleotide_number += len(dna_string)
                     dna_strings.append(dna_string)
-
                 nucleotide_numbers.append(nucleotide_number)
-
                 decoded_matrix = []  # temp the correctness of transcoding.
                 for dna_string in dna_strings:
                     binary_message = decode(dna_string=dna_string, bit_length=bit_length,
                                             accessor=accessor, start_index=start_index)
                     decoded_matrix.append(binary_message)
                 decoded_matrix = array(decoded_matrix)
-
                 if any(encoded_matrix != decoded_matrix):
                     raise ValueError("Encoded matrix is not equal to decoded matrix!")
 
@@ -113,9 +106,7 @@ def evaluate_performance():
                 continue
 
             print("Evaluate coding algorithm " + filter_index + " [out-degree 1].")
-
             random.seed(task_seed)
-
             encoded_matrix, nucleotide_numbers, current = random.randint(0, 2, size=(repeats, bit_length)), [], 0
             for mapping in permutations(["A", "C", "G", "T"]):
                 for binary_message in encoded_matrix:
@@ -128,16 +119,13 @@ def evaluate_performance():
 
                         elif len(available) == 1:  # current vertex does not contain information.
                             dna_string += available[0]
-
                         available = []
                         for potential_nucleotide in mapping:
                             if bio_filter.valid(dna_string + potential_nucleotide, only_last=True):
                                 available.append(potential_nucleotide)
-
                         if len(available) == 0:
                             dna_string = ""
                             break
-
                     if len(dna_string) > 0:
                         nucleotide_numbers.append(len(dna_string))
                     else:
@@ -153,90 +141,111 @@ def evaluate_performance():
 
 
 def evaluate_correction():
-    show_single_examples()
-    show_multiple_examples()
+    random_seed = 2021
 
     if not exists("./data/correction_evaluation_1.pkl"):
+        print("Evaluate correction rate of the coding graph of constraint set 01.")
+        records = {}
         with open("./data/coding_graphs.pkl", "rb") as file:
             accessor = load(file)["01"]
         vertices = obtain_vertices(accessor)
-
-        records = {"correction rate": {}, "minimum reads": {}, "frequency-based recovery": {}}
-
-        print("Evaluate the correction rate and runtime.")
-        for error_times in [1, 2, 3, 4]:
-            results = evaluate_repair_multiple_errors(random_seed=2021, dna_length=100, repeats=10000,
-                                                      accessor=accessor, vertices=vertices, observed_length=10,
-                                                      error_times=error_times, check_iterations=error_times + 1)
-            records["correction rate"][error_times] = results
-
-        print("Evaluate the minimum reads.")
-        for error_times in [1, 2, 3, 4]:
-            results = calculate_spiderweb_minimum_reads(random_seed=2021, dna_length=100, repeats=10000,
-                                                        accessor=accessor, vertices=vertices, observed_length=10,
-                                                        error_times=error_times, check_iterations=error_times + 1)
-            records["minimum reads"][error_times] = results
-
-        print("Evaluate the frequency-based recovery.")
-        for error_times, established_reads in zip([1, 2, 3, 4], [10, 20, 50, 100]):
-            results = evaluate_spiderweb_established_reads(random_seed=2021, dna_length=100, classes=10000,
-                                                           accessor=accessor, vertices=vertices, observed_length=10,
-                                                           error_times=error_times, check_iterations=error_times + 1,
-                                                           established_reads=established_reads)
-            records["frequency-based recovery"][error_times] = results
-
+        for errors in [1, 2, 4, 6]:
+            results, time_cost = evaluate_repair_errors(random_seed=random_seed, dna_length=200,
+                                                        repeats=10000, errors=errors,
+                                                        accessor=accessor, vertices=vertices, observed_length=10)
+            records[errors / 200.0] = (results, time_cost / 10000.0)
         with open("./data/correction_evaluation_1.pkl", "wb") as file:
             dump(obj=records, file=file)
 
     if not exists("./data/correction_evaluation_2.pkl"):
-        with open("./data/coding_graphs.pkl", "rb") as file:
-            accessors = load(file)
-
+        print("Evaluate minimum pretreatment-free depth of the coding graph of constraint set 01.")
         records = {}
-        for filter_index, accessor in accessors.items():
-            vertices = obtain_vertices(accessor)
-            results = evaluate_repair_multiple_errors(random_seed=2021, dna_length=100, repeats=2000,
-                                                      accessor=accessor, vertices=vertices, observed_length=10,
-                                                      error_times=1, check_iterations=2)
-            chuck_indices = where(results[:, 2] == 1)[0]
-            formers, latters = results[chuck_indices, 3], results[chuck_indices, 6]
-            records[filter_index] = (formers, latters)
-
+        with open("./data/coding_graphs.pkl", "rb") as file:
+            accessor = load(file)["01"]
+        vertices = obtain_vertices(accessor)
+        for errors in [1, 2, 4, 6]:
+            results = calculate_minimum_reads(random_seed=random_seed, dna_length=200, repeats=10000,
+                                              errors=errors, accessor=accessor, vertices=vertices, observed_length=10)
+            records[errors / 200.0] = results
         with open("./data/correction_evaluation_2.pkl", "wb") as file:
             dump(obj=records, file=file)
 
     if not exists("./data/correction_evaluation_3.pkl"):
+        print("Evaluate success rate of the coding graph of constraint set 01 with established depths under 2% errors.")
+        records = []
         with open("./data/coding_graphs.pkl", "rb") as file:
-            accessors = load(file)
-
-        records = {"constraint influence": zeros(shape=(12, 4)), "length influence": zeros(shape=(4, 4))}
-
-        for index in range(12):
-            filter_index = str(index + 1).zfill(2)
-            accessor = accessors[filter_index]
-            vertices = obtain_vertices(accessor)
-            for error_times in [1, 2, 3, 4]:
-                results = evaluate_repair_multiple_errors(random_seed=2021, dna_length=100, repeats=2000,
-                                                          accessor=accessor, vertices=vertices, observed_length=10,
-                                                          error_times=error_times, check_iterations=error_times + 1)
-                records["constraint influence"][index, error_times - 1] = sum(results[:, -2]) / 2000.0
-
-        accessor = accessors["01"]
+            accessor = load(file)["01"]
         vertices = obtain_vertices(accessor)
-        for length in [100, 200, 300, 400]:
-            for error_times in [1, 2, 3, 4]:
-                error_number = length // 100 * error_times
-                results = evaluate_repair_multiple_errors(random_seed=2021, dna_length=length, repeats=2000,
-                                                          accessor=accessor, vertices=vertices, observed_length=10,
-                                                          error_times=error_number, check_iterations=error_number + 1)
-                records["length influence"][length // 100 - 1, error_times - 1] = sum(results[:, -2]) / 2000.0
-
+        results = evaluate_established_depth(random_seed=random_seed, dna_length=200,
+                                             accessor=accessor, vertices=vertices, observed_length=10,
+                                             classes=10000, errors=4, established_depth=5)
+        right_strings, obtained_set = results
+        right_strings = set(right_strings)
+        final_results = sorted(obtained_set.items(), key=lambda sample: sample[1], reverse=True)
+        for obtained_string, count in final_results:
+            records.append([obtained_string in right_strings, count])
         with open("./data/correction_evaluation_3.pkl", "wb") as file:
-            dump(obj=records, file=file)
+            dump(obj=array(records), file=file)
 
     if not exists("./data/correction_evaluation_4.pkl"):
-        records = hedges_runtime(random_seed=2021, check_number=100, error_number=2)
+        print("Evaluate success rate of the coding graph of constraint set 01 with established depths under 2% errors.")
+        records = {0.005: zeros(shape=(20, 100, 3)), 0.010: zeros(shape=(20, 100, 3)),
+                   0.020: zeros(shape=(20, 100, 3)), 0.030: zeros(shape=(20, 100, 3))}
+        with open("./data/coding_graphs.pkl", "rb") as file:
+            accessor = load(file)["01"]
+        vertices = obtain_vertices(accessor)
+        for error_index, errors in enumerate([1, 2, 4, 6]):
+            for depth_index, depth in enumerate(arange(20) + 1):
+                for repeat in range(100):
+                    results = evaluate_established_depth(random_seed=random_seed + repeat, dna_length=200,
+                                                         accessor=accessor, vertices=vertices, observed_length=10,
+                                                         classes=10000, errors=errors, established_depth=depth)
+                    right_strings, obtained_set = results
+                    right_strings = set(right_strings)
+                    final_results = sorted(obtained_set.items(), key=lambda sample: sample[1], reverse=True)
+                    success, right_count, wrong_count = 0, None, None
+                    for obtained_string, count in final_results[:10000]:
+                        if obtained_string in right_strings:
+                            success += 1
+                            right_count = min([right_count, count]) if right_count is not None else count
+                        else:
+                            wrong_count = max([wrong_count, count]) if wrong_count is not None else count
+                    if wrong_count is None:
+                        for obtained_string, count in final_results[10000:]:
+                            if obtained_string not in right_strings:
+                                wrong_count = max([wrong_count, count]) if wrong_count is not None else count
+                    records[errors / 200.0][depth_index, repeat] = [success / 10000, right_count, wrong_count]
         with open("./data/correction_evaluation_4.pkl", "wb") as file:
+            dump(obj=records, file=file)
+
+    if not exists("./data/correction_evaluation_5.pkl"):
+        print("Evaluate the influence of constraint capacity on correction rate.")
+        records = {}
+        with open("./data/coding_graphs.pkl", "rb") as file:
+            accessors = load(file)
+        for set_index, accessor in accessors.items():
+            print("Calculate constraint set " + set_index + ".")
+            vertices = obtain_vertices(accessor)
+            results = evaluate_repair_errors(random_seed=random_seed, dna_length=200, repeats=10000,
+                                             errors=2, accessor=accessor, vertices=vertices, observed_length=10)
+            records[set_index] = results
+        with open("./data/correction_evaluation_5.pkl", "wb") as file:
+            dump(obj=records, file=file)
+
+    if not exists("./data/correction_evaluation_6.pkl"):
+        records = {"spiderweb": {}, "hedges": {}}
+        with open("./data/coding_graphs.pkl", "rb") as file:
+            accessor = load(file)["01"]
+        vertices = obtain_vertices(accessor)
+        for errors in [0, 1, 2, 4, 6]:
+            results = spiderweb_step(random_seed=random_seed, accessor=accessor, vertices=vertices,
+                                     dna_length=200, observed_length=10, repeats=10000, errors=errors)
+            records["spiderweb"][errors / 200.0] = results
+        for errors in [0, 1, 2, 4, 6]:
+            results = hedges_step(random_seed=2021, bio_filter=local_bio_filters["01"],
+                                  dna_length=200, observed_length=10, repeats=10000, errors=errors)
+            records["hedges"][errors / 200.0] = results
+        with open("./data/correction_evaluation_6.pkl", "wb") as file:
             dump(obj=records, file=file)
 
 
@@ -332,8 +341,8 @@ def evaluate_reliability():
 
 
 if __name__ == "__main__":
-    generate_algorithms()
-    evaluate_performance()
+    # generate_algorithms()
+    # evaluate_performance()
     evaluate_correction()
-    evaluate_reconstruction()
-    evaluate_reliability()
+    # evaluate_reconstruction()
+    # evaluate_reliability()
