@@ -810,14 +810,16 @@ def main04():
         return 200 * (sequence_diversity ** 2) + 48000200 * sequence_diversity
 
     def propose40(sequence_diversity):
-        a = 7267.904 * sequence_diversity * (log10(sequence_diversity) ** 2)
-        b = 76672.229 * sequence_diversity
-        return a + b
+        a = 7275.66 * sequence_diversity * (log10(sequence_diversity) ** 2)
+        b = 76702.78 * sequence_diversity
+        c = 1.864 * (log10(sequence_diversity) ** 2) + 7.100
+        return a + b + c
 
     def propose05(sequence_diversity):
-        a = 183.178 * sequence_diversity * (log10(sequence_diversity) ** 2)
-        b = 50508.157 * sequence_diversity
-        return a + b
+        a = 183.18 * sequence_diversity * (log10(sequence_diversity) ** 2)
+        b = 50508.16 * sequence_diversity
+        c = 0.259 * (log10(sequence_diversity) ** 2) + 2.147
+        return a + b + c
 
     values_1, values_2, values_3 = [], [], []
     for n_i, number in enumerate(10 ** linspace(0, 20, 21)):
@@ -880,6 +882,6 @@ def main04():
 
 if __name__ == "__main__":
     main01()
-    # main02()
-    # main03()
-    # main04()
+    main02()
+    main03()
+    main04()
