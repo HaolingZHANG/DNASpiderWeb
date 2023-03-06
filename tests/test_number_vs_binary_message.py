@@ -50,7 +50,7 @@ class TestTransform(TestCase):
         self.bit_length = 8
 
     def test(self):
-        for requested in range(2 ** (self.bit_length * 2)):
+        for requested in range(2 ** self.bit_length):
             bits = number_to_bit(decimal_number=str(requested), bit_length=self.bit_length)
             predicted_1 = int(bit_to_number(bit_array=bits))
             predicted_2 = bit_to_number(bit_array=bits, is_string=False)

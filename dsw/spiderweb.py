@@ -1,14 +1,15 @@
 from collections import Counter
 from itertools import product
+from networkx import DiGraph, find_cycle
 from numpy import zeros, ones, array, random, log, sum, max, argmax, argsort, unique, intersect1d, where
 
 from dsw.operation import Monitor, calculus_addition, calculus_multiplication, calculus_division
 from dsw.operation import bit_to_number, number_to_bit, number_to_dna, dna_to_number
-from dsw.graphized import obtain_vertices, obtain_latters, path_matching, calculate_intersection_score
+from dsw.graphized import obtain_vertices, obtain_formers, obtain_latters, path_matching, calculate_intersection_score
 
 
-def encode(binary_message, accessor, start_index, nucleotides=None,
-           vt_length=0, shuffles=None, verbose=False):
+def encode(binary_message, accessor, start_index,
+           is_faster=False, vt_length=0, shuffles=None, need_path=False, verbose=False):
     """
     Encode a bit array by the specific accessor.
 
@@ -21,8 +22,8 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
     :param start_index: virtual vertex to start encoding.
     :type start_index: int
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list or None
+    :param is_faster: encode in a faster way.
+    :type is_faster: bool
 
     :param vt_length: length of Varshamov-Tenengolts code for error-correction.
     :type vt_length: int or None
@@ -30,11 +31,18 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
     :param shuffles: shuffle relationships for bit-nucleotide mapping.
     :type: numpy.ndarray
 
+    :param need_path: need to record the restricted state transition path.
+    :type need_path: bool
+
     :param verbose: need to print log.
     :type verbose: bool
 
-    :return: DNA string encoded by this graph (and VT check string if required).
+    :return: DNA sequence encoded by this graph (and VT check sequence if required).
     :rtype: str or (str, str)
+
+    .. note::
+        If the parameter "is_faster" is set as True, the out-degree of coding digraph cannot contains 3.
+
 
     Example
         >>> from numpy import array
@@ -56,54 +64,109 @@ def encode(binary_message, accessor, start_index, nucleotides=None,
         >>> encode(accessor=accessor, binary_message=binary_message, shuffles=shuffles, start_index=1)
         'AGAGAGA'
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    monitor, record_path, vertex_index, dna_sequence, nucleotides = Monitor(), [], start_index, "", "ACGT"
 
-    quotient, dna_string, vertex_index, monitor = bit_to_number(binary_message), "", start_index, Monitor()
-    total_state = len(quotient)  # number of symbol.
+    if not is_faster:
+        quotient = bit_to_number(binary_message, verbose=verbose)
+        total_state = len(quotient)  # number of symbol.
 
-    while quotient != "0":
-        used_indices = where(accessor[vertex_index] >= 0)[0]
+        while quotient != "0":
+            used_indices = where(accessor[vertex_index] >= 0)[0]
 
-        if len(used_indices) > 1:  # current vertex contains information.
-            quotient, remainder = calculus_division(number=quotient, base=str(len(used_indices)))
-            remainder = int(remainder)
+            if len(used_indices) > 1:  # current vertex contains information.
+                quotient, remainder = calculus_division(number=quotient, base=str(len(used_indices)))
+                remainder = int(remainder)
 
-            if shuffles is not None:  # shuffle remainder based on the inputted shuffles.
-                remainder = argsort(shuffles[vertex_index, used_indices])[remainder]
+                if shuffles is not None:  # shuffle remainder based on the inputted shuffles.
+                    remainder = argsort(shuffles[vertex_index, used_indices])[remainder]
 
-            value = used_indices[remainder]
+                value = used_indices[remainder]
 
-        elif len(used_indices) == 1:  # current vertex does not contain information.
-            value = used_indices[0]
+                if need_path:
+                    record_path.append([vertex_index, 1])
 
-        else:  # current vertex is wrong.
-            raise ValueError("Current vertex doesn't have an out-degree, the accessor or the start vertex is wrong!")
+            elif len(used_indices) == 1:  # current vertex does not contain information.
+                value = used_indices[0]
 
-        nucleotide, vertex_index = nucleotides[value], accessor[vertex_index][value]
+                if need_path:
+                    record_path.append([vertex_index, 0])
 
-        dna_string += nucleotide
+            else:  # current vertex is wrong.
+                raise ValueError("Current vertex doesn't have an out-degree, "
+                                 + "the accessor or the start vertex is wrong!")
 
-        if verbose:
-            if quotient != "0":
-                monitor.output(total_state - len(quotient), total_state)
-            else:
-                monitor.output(total_state, total_state)
+            nucleotide, vertex_index = nucleotides[value], accessor[vertex_index][value]
+
+            dna_sequence += nucleotide
+
+            if verbose:
+                if quotient != "0":
+                    monitor(total_state - len(quotient), total_state)
+                else:
+                    monitor(total_state, total_state)
+
+    else:
+        location = 0
+        while location < len(binary_message):
+            used_indices = where(accessor[vertex_index] >= 0)[0]
+            radix = len(used_indices)
+
+            if radix == 4:  # current vertex contains information.
+                remainder = binary_message[location] * 2 + binary_message[location + 1]
+
+                if shuffles is not None:  # shuffle remainder based on the inputted shuffles.
+                    remainder = argsort(shuffles[vertex_index, used_indices])[remainder]
+
+                value = used_indices[remainder]
+                location += 2
+            elif radix == 2:
+                remainder = binary_message[location]
+
+                if shuffles is not None:  # shuffle remainder based on the inputted shuffles.
+                    remainder = argsort(shuffles[vertex_index, used_indices])[remainder]
+
+                value = used_indices[remainder]
+                location += 1
+            elif radix == 1:  # current vertex does not contain information.
+                value = used_indices[0]
+            elif radix == 3:
+                raise ValueError("Not implementation!")
+            else:  # current vertex is wrong.
+                raise ValueError("Current vertex doesn't have an out-degree, "
+                                 + "the accessor or the start vertex is wrong!")
+
+            nucleotide, vertex_index = nucleotides[value], accessor[vertex_index][value]
+            dna_sequence += nucleotides[value]
+
+            if need_path:
+                record_path.append([vertex_index, int(radix > 1)])
+
+            if verbose:
+                monitor(location + 1, len(binary_message))
+
+    if need_path:
+        record_path = array(record_path)
 
     if vt_length > 0:
-        vt_check = set_vt(dna_string=dna_string, vt_length=vt_length, nucleotides=nucleotides)
-        return dna_string, vt_check
+        vt_check = set_vt(dna_sequence=dna_sequence, vt_length=vt_length)
+        if need_path:
+            return dna_sequence, set_vt(dna_sequence=dna_sequence, vt_length=vt_length), record_path
+        else:
+            return dna_sequence, vt_check
     else:
-        return dna_string
+        if need_path:
+            return dna_sequence, record_path
+        else:
+            return dna_sequence
 
 
-def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
-           vt_check=None, shuffles=None, verbose=False):
+def decode(dna_sequence, bit_length, accessor, start_index,
+           is_faster=False, vt_check=None, shuffles=None, verbose=False):
     """
-    Decode a DNA string by the specific accessor.
+    Decode a DNA sequence by the specific accessor.
 
-    :param dna_string: DNA string encoded by this graph.
-    :type dna_string: str
+    :param dna_sequence: DNA sequence encoded by this graph.
+    :type dna_sequence: str
 
     :param bit_length: length of the bit array.
     :type bit_length: int
@@ -114,10 +177,10 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
     :param start_index: virtual vertex to start decoding (consistent with the encoding process).
     :type start_index: int
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list or None
+    :param is_faster: encode in a faster way.
+    :type is_faster: bool
 
-    :param vt_check: check string of Varshamov-Tenengolts code.
+    :param vt_check: check sequence of Varshamov-Tenengolts code.
     :type vt_check: str or None
 
     :param shuffles: shuffle relationships for bit-nucleotide mapping.
@@ -131,6 +194,9 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
 
     :raise ValueError: if one or more errors are found.
 
+    .. note::
+        If the parameter "is_faster" is set as True, the out-degree of coding digraph cannot contains 3.
+
     Example
         >>> from numpy import array
         >>> from dsw import decode
@@ -139,86 +205,118 @@ def decode(dna_string, bit_length, accessor, start_index, nucleotides=None,
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
-        >>> dna_string = "TCTCTCT"
-        >>> decode(accessor=accessor, dna_string=dna_string, start_index=1, bit_length=8)
+        >>> dna_sequence = "TCTCTCT"
+        >>> decode(accessor=accessor, dna_sequence=dna_sequence, start_index=1, bit_length=8)
         array([0, 1, 0, 1, 0, 1, 0, 1])
         >>> vt_check = "TAAGC"
-        >>> decode(accessor=accessor, dna_string=dna_string, start_index=1, vt_check=vt_check, bit_length=8)
+        >>> decode(accessor=accessor, dna_sequence=dna_sequence, start_index=1, vt_check=vt_check, bit_length=8)
         array([0, 1, 0, 1, 0, 1, 0, 1])
         >>> shuffles = array([[3, 2, 1, 0], [2, 3, 1, 0], [3, 1, 0, 2], [0, 3, 1, 2], \
                               [3, 2, 0, 1], [1, 0, 3, 2], [0, 3, 1, 2], [2, 0, 1, 3], \
                               [2, 3, 0, 1], [1, 0, 3, 2], [2, 0, 1, 3], [0, 1, 3, 2], \
                               [2, 3, 1, 0], [2, 0, 3, 1], [0, 1, 3, 2], [0, 3, 2, 1]])
-        >>> decode(accessor=accessor, dna_string="TCTCTCT", start_index=1, shuffles=shuffles, bit_length=8)
+        >>> decode(accessor=accessor, dna_sequence="TCTCTCT", start_index=1, shuffles=shuffles, bit_length=8)
         array([0, 0, 0, 0, 0, 0, 0, 0])
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    vertex_index, nucleotides, monitor = start_index, "ACGT", Monitor()
 
-    quotient, saved_values, vertex_index, monitor = "0", [], start_index, Monitor()
+    if vt_check is not None:
+        if vt_check != set_vt(dna_sequence=dna_sequence, vt_length=len(vt_check)):
+            raise ValueError("At least one error is found in this DNA sequence!")
 
-    for location, nucleotide in enumerate(dna_string):
-        used_indices = where(accessor[vertex_index] >= 0)[0]
+    if not is_faster:
+        quotient, saved_values = "0", []
 
-        if len(used_indices) > 1:  # current vertex contains information.
+        for location, nucleotide in enumerate(dna_sequence):
+            used_indices = where(accessor[vertex_index] >= 0)[0]
+
+            if len(used_indices) > 1:  # current vertex contains information.
+                used_nucleotides = [nucleotides[used_index] for used_index in used_indices]
+
+                if nucleotide in used_nucleotides:  # check whether the DNA sequence is right currently.
+                    remainder = used_nucleotides.index(nucleotide)
+                else:
+                    raise ValueError("At least one error is found in this DNA sequence!")
+
+                if shuffles is not None:  # shuffle remainder based on the inputted shuffles.
+                    remainder = where(argsort(shuffles[vertex_index, used_indices]) == remainder)[0][0]
+
+                saved_values.append((len(used_indices), remainder))
+                vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+
+            elif len(used_indices) == 1:  # current vertex does not contain information.
+                used_nucleotide = nucleotides[used_indices[0]]
+                if nucleotide == used_nucleotide:
+                    vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+                else:
+                    raise ValueError("At least one error is found in this DNA sequence!")
+
+            else:  # current vertex is wrong.
+                raise ValueError("Current vertex doesn't have an out-degree, "
+                                 + "the accessor, the start vertex, or DNA sequence is wrong!")
+
+            if verbose:
+                monitor(location + 1, len(dna_sequence))
+
+        for location, (out_degree, number) in enumerate(saved_values[::-1]):
+            quotient = calculus_multiplication(number=quotient, base=str(out_degree))
+            quotient = calculus_addition(number=quotient, base=str(number))
+
+        binary_message = array(number_to_bit(decimal_number=quotient, bit_length=bit_length), dtype=int)
+
+    else:
+        message_location, binary_message = 0, zeros(shape=(bit_length,), dtype=int)
+
+        for location, nucleotide in enumerate(dna_sequence):
+            used_indices = where(accessor[vertex_index] >= 0)[0]
+            radix = len(used_indices)
+
             used_nucleotides = [nucleotides[used_index] for used_index in used_indices]
-
-            if nucleotide in used_nucleotides:  # check whether the DNA string is right currently.
+            if nucleotide in used_nucleotides:  # check whether the DNA sequence is right currently.
                 remainder = used_nucleotides.index(nucleotide)
             else:
-                raise ValueError("At least one error is found in this DNA string!")
+                raise ValueError("At least one error is found in this DNA sequence!")
 
             if shuffles is not None:  # shuffle remainder based on the inputted shuffles.
                 remainder = where(argsort(shuffles[vertex_index, used_indices]) == remainder)[0][0]
 
-            saved_values.append((len(used_indices), remainder))
             vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
 
-        elif len(used_indices) == 1:  # current vertex does not contain information.
-            used_nucleotide = nucleotides[used_indices[0]]
-            if nucleotide == used_nucleotide:
-                vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
+            if radix == 4:
+                binary_message[message_location] = remainder // 2
+                binary_message[message_location + 1] = remainder % 2
+                message_location += 2
+            elif radix == 2:
+                binary_message[message_location] = remainder % 2
+                message_location += 1
+            elif radix == 1:
+                pass  # do nothing.
+            elif radix == 3:
+                raise ValueError("Not implementation!")
             else:
-                raise ValueError("At least one error is found in this DNA string!")
+                raise ValueError("Current vertex doesn't have an out-degree, "
+                                 + "the accessor, the start vertex, or DNA sequence is wrong!")
 
-        else:  # current vertex is wrong.
-            raise ValueError("Current vertex doesn't have an out-degree, "
-                             + "the accessor, the start vertex, or DNA string is wrong!")
-
-        if verbose:
-            monitor.output(location + 1, len(dna_string))
-
-    if vt_check is not None:
-        if vt_check != set_vt(dna_string=dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
-            raise ValueError("At least one error is found in this DNA string!")
-
-    for location, (out_degree, number) in enumerate(saved_values[::-1]):
-        quotient = calculus_multiplication(number=quotient, base=str(out_degree))
-        quotient = calculus_addition(number=quotient, base=str(number))
-
-    return array(number_to_bit(decimal_number=quotient, bit_length=bit_length), dtype=int)
+    return binary_message
 
 
-def set_vt(dna_string, vt_length, nucleotides=None):
+def set_vt(dna_sequence, vt_length):
     """
-    Set Varshamov-Tenengolts-based path check string ('salt-protected') from DNA (payload) string.
+    Set Varshamov-Tenengolts-based path check string ('salt-protected') from DNA (payload) sequence.
 
-    :param dna_string: DNA string encoded through SPIDER-WEB.
-    :type dna_string: str
+    :param dna_sequence: DNA sequence encoded through SPIDER-WEB.
+    :type dna_sequence: str
 
-    :param vt_length: length of DNA string (path check).
+    :param vt_length: length of DNA sequence (path check).
     :type vt_length: int or None
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list or None
-
-    :return: path check DNA string with required length.
+    :return: path check DNA sequence with required length.
 
     Example
         >>> from dsw import set_vt
-        >>> dna_string = "TCTCTCT"
+        >>> dna_sequence = "TCTCTCT"
         >>> vt_length = 5
-        >>> set_vt(dna_string=dna_string, vt_length=vt_length)
+        >>> set_vt(dna_sequence=dna_sequence, vt_length=vt_length)
         'TAAGC'
 
     .. note::
@@ -230,22 +328,21 @@ def set_vt(dna_string, vt_length, nucleotides=None):
 
         Reference [4] A. Xavier Kohll et al. (2020) Chemical Communications
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
-    values = array([nucleotides.index(nucleotide) for nucleotide in dna_string])
+    values = array([nucleotides.index(nucleotide) for nucleotide in dna_sequence])
     vt_value = sum(where((values[1:] - values[:-1]) > 0)[0]) % (len(nucleotides) ** (vt_length - 1))
     vt_flag = sum(values) % len(nucleotides)
 
     return nucleotides[vt_flag] + number_to_dna(decimal_number=int(vt_value), dna_length=vt_length - 1)
 
 
-def repair_dna(dna_string, accessor, start_index, observed_length, vt_check=None, has_indel=False, nucleotides=None):
+def repair_dna(dna_sequence, accessor, start_index, observed_length, vt_check=None, has_indel=False, heap_size=1e3):
     """
-    Repair the DNA string containing one (or more) errors.
+    Repair the DNA sequence containing one (or more) errors.
 
-    :param dna_string: DNA string waiting for recovery.
-    :type dna_string: str
+    :param dna_sequence: DNA sequence waiting for recovery.
+    :type dna_sequence: str
 
     :param accessor: accessor of the coding algorithm.
     :type accessor: numpy.ndarray
@@ -253,19 +350,19 @@ def repair_dna(dna_string, accessor, start_index, observed_length, vt_check=None
     :param start_index: virtual vertex to start encoding.
     :type start_index: int
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
-    :param vt_check: check string of Varshamov-Tenengolts code.
+    :param vt_check: check sequence of Varshamov-Tenengolts code.
     :type vt_check: str or None
 
     :param has_indel: consider insertion and/or deletion error.
     :type has_indel: bool
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
+    :param heap_size: maximum heap size.
+    :type heap_size: int
 
-    :return: repaired DNA string set and additional information (includes detect flags and initial repaired strings).
+    :return: repaired DNA sequence set and additional information.
     :rtype: (list, (bool, bool, int))
 
     Example
@@ -276,45 +373,45 @@ def repair_dna(dna_string, accessor, start_index, observed_length, vt_check=None
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
-        >>> dna_string = "TCTCTATCTCTC"  # "TCTCTCTCTCTC" is original DNA string
-        >>> repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, has_indel=True)
-        (['TCTCTCTCTCTC', 'TCTCTGTCTCTC'], (1, False, 2, 15))
+        >>> dna_sequence = "TCTCTATCTCTC"  # "TCTCTCTCTCTC" is original DNA sequence
+        >>> repair_dna(dna_sequence=dna_sequence, accessor=accessor, start_index=1, observed_length=2, has_indel=True)
+        (['TCTCTCTCTCTC', 'TCTCTGTCTCTC'], (1, False, 2, 14))
         >>> vt_check = "AACGC"  # check list of Varshamov-Tenengolts code.
-        >>> repair_dna(dna_string=dna_string, accessor=accessor, start_index=1, observed_length=2, \
+        >>> repair_dna(dna_sequence=dna_sequence, accessor=accessor, start_index=1, observed_length=2, \
                        vt_check=vt_check, has_indel=True)
-        (['TCTCTCTCTCTC'], (1, True, 2, 15))
+        (['TCTCTCTCTCTC'], (1, True, 2, 14))
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
-    location, vertex_index, index_queue = 0, start_index, -ones(shape=(len(dna_string),), dtype=int)
-    split_strings, chuck_strings, index_markers, detected_count, chuck_flag, visited_times = [""], [], [], 0, False, 0
+    location, vertex_index, index_queue = 0, start_index, -ones(shape=(len(dna_sequence),), dtype=int)
+    split_sequences, chuck_sequences, index_markers = [""], [], []
+    detected_count, chuck_flag, visited_times = 0, False, 0
 
-    while location < len(dna_string):
-        used_indices, nucleotide = where(accessor[vertex_index] >= 0)[0], dna_string[location]
-        if dna_string[location] in [nucleotides[used_index] for used_index in used_indices]:
-            split_strings[-1] += nucleotide
+    while location < len(dna_sequence):
+        used_indices, nucleotide = where(accessor[vertex_index] >= 0)[0], dna_sequence[location]
+        if dna_sequence[location] in [nucleotides[used_index] for used_index in used_indices]:
+            split_sequences[-1] += nucleotide
             vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
             index_queue[location] = vertex_index
             visited_times += 1
             location += 1
-        elif len(split_strings) > 0:
+        elif len(split_sequences[-1]) > 0:
             detected_count += 1
-            split_strings[-1] = split_strings[-1][: - observed_length + 1]
-            split_strings.append("")
-            vertex_index = dna_to_number(dna_string[location + 2: location + observed_length + 2], is_string=False)
+            split_sequences[-1] = split_sequences[-1][: - observed_length + 1]
+            vertex_index = dna_to_number(dna_sequence[location + 1: location + observed_length + 1], is_string=False)
+            split_sequences.append(nucleotides[vertex_index % 4])
             index_markers.append(index_queue[location - observed_length: location])
-            chuck_strings.append(dna_string[location - observed_length + 1: location + observed_length])
-            location += observed_length
+            chuck_sequences.append(dna_sequence[location - observed_length + 1: location + observed_length])
+            location += observed_length + 1
 
     repaired_fragment_set = [set() for _ in range(len(index_markers))]
-    for index, (chuck_string, index_marker) in enumerate(zip(chuck_strings, index_markers)):
+    for index, (chuck_sequence, index_marker) in enumerate(zip(chuck_sequences, index_markers)):
         for recall, vertex_index in enumerate(index_marker[::-1]):
-            record, times = path_matching(dna_string=chuck_string, accessor=accessor, has_indel=has_indel,
+            record, times = path_matching(dna_sequence=chuck_sequence, accessor=accessor, has_indel=has_indel,
                                           previous_index=vertex_index, occur_location=observed_length - recall - 1)
             visited_times += times
             for _, fragment in record:
-                if dna_string not in repaired_fragment_set[index]:
+                if dna_sequence not in repaired_fragment_set[index]:
                     repaired_fragment_set[index].add(fragment)
         repaired_fragment_set[index] = list(repaired_fragment_set[index])
 
@@ -322,43 +419,40 @@ def repair_dna(dna_string, accessor, start_index, observed_length, vt_check=None
     for fragments in repaired_fragment_set:
         count *= len(fragments)
 
-    if count == 0:
+    if count == 0 or count > heap_size:
         if vt_check is not None:
-            if vt_check == set_vt(dna_string=dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
-                return [dna_string], (0, False, 0, visited_times)
+            if vt_check == set_vt(dna_sequence=dna_sequence, vt_length=len(vt_check)):
+                return [dna_sequence], (0, False, 0, visited_times)
             else:
                 return [], (0, True, 0, visited_times)
         else:
-            return [dna_string], (0, False, 0, visited_times)
+            return [dna_sequence], (0, False, 0, visited_times)
 
     for fragments in product(*repaired_fragment_set):
-        repaired_dna_string = ""
-        for index in range(len(split_strings) - 1):
-            repaired_dna_string += split_strings[index] + fragments[index]
-        repaired_dna_string += split_strings[-1]
+        repaired_dna_sequence = ""
+        for index in range(len(split_sequences) - 1):
+            repaired_dna_sequence += split_sequences[index] + fragments[index]
+        repaired_dna_sequence += split_sequences[-1]
         if vt_check is not None:
-            if vt_check == set_vt(dna_string=repaired_dna_string, vt_length=len(vt_check), nucleotides=nucleotides):
-                repaired_results.add(repaired_dna_string)
+            if vt_check == set_vt(dna_sequence=repaired_dna_sequence, vt_length=len(vt_check)):
+                repaired_results.add(repaired_dna_sequence)
             else:
                 chuck_flag = True
         else:
-            repaired_results.add(repaired_dna_string)
+            repaired_results.add(repaired_dna_sequence)
 
     return sorted(list(repaired_results)), (detected_count, chuck_flag, count, visited_times)
 
 
-def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
+def find_vertices(observed_length, bio_filter, verbose=False):
     """
     Find valid vertices based on the given the biochemical constraints.
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
-    :param bio_filter: screening operation for identifying the valid DNA string (required the given constraints).
+    :param bio_filter: screening operation for identifying the valid DNA sequence (required the given constraints).
     :type bio_filter: dsw.biofilter.DefaultBioFilter
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -378,20 +472,19 @@ def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
     .. note::
         Reference [1] Florent Capelli and Yann Strozecki (2019) Discrete Applied Mathematics
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     vertices, monitor = zeros(shape=(int(len(nucleotides) ** observed_length),), dtype=bool), Monitor()
 
     if verbose:
-        print("Find valid vertices in this observed length of DNA string.")
+        print("Find valid vertices in this observed length of DNA sequence.")
 
     for vertex_index in range(len(vertices)):
-        dna_string = number_to_dna(decimal_number=vertex_index, dna_length=observed_length)
-        vertices[vertex_index] = bio_filter.valid(dna_string=dna_string)
+        dna_sequence = number_to_dna(decimal_number=vertex_index, dna_length=observed_length)
+        vertices[vertex_index] = bio_filter.valid(dna_sequence=dna_sequence)
 
         if verbose:
-            monitor.output(vertex_index + 1, len(vertices))
+            monitor(vertex_index + 1, len(vertices), extra={"valid": sum(vertices[: vertex_index + 1])})
 
     valid_rate = sum(vertices) / len(vertices)
 
@@ -404,18 +497,15 @@ def find_vertices(observed_length, bio_filter, nucleotides=None, verbose=False):
     return vertices
 
 
-def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=False):
+def connect_valid_graph(observed_length, vertices, verbose=False):
     """
     Connect a valid graph by valid vertices.
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
     :param vertices: vertex accessor, in each cell, True is valid vertex and False is invalid vertex.
     :type vertices: numpy.ndarray
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -450,8 +540,7 @@ def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=Fal
     .. note::
         Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     if vertices is None:
         raise ValueError("No collected vertex!")
@@ -472,7 +561,7 @@ def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=Fal
                         accessor[vertex_index][position] = latter_vertex_index
 
             if verbose:
-                monitor.output(vertex_index + 1, len(vertices))
+                monitor(vertex_index + 1, len(vertices))
 
         if verbose:
             print("Valid graph is created.")
@@ -482,11 +571,11 @@ def connect_valid_graph(observed_length, vertices, nucleotides=None, verbose=Fal
         raise ValueError("No collected vertex!")
 
 
-def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None, verbose=False):
+def connect_coding_graph(observed_length, vertices, threshold, verbose=False):
     """
     Connect a coding algorithm by valid vertices and the threshold for minimum out-degree.
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
     :param vertices: vertex accessor, in each cell, True is valid vertex and False is invalid vertex.
@@ -494,9 +583,6 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
 
     :param threshold: threshold for minimum out-degree.
     :type threshold: int
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -534,10 +620,7 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
     .. note::
         Reference [1] Nicolaas Govert de Bruijn (1946) Indagationes Mathematicae
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
-
-    times = 1
+    times, nucleotides = 1, "ACGT"
 
     while True:
         if verbose:
@@ -550,7 +633,7 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
             new_vertices[vertex_index] = sum(vertices[latter_indices]) >= threshold
 
             if verbose:
-                monitor.output(current + 1, len(saved_indices))
+                monitor(current + 1, len(saved_indices))
 
         changed = sum(vertices) - sum(new_vertices)
 
@@ -578,7 +661,35 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
                         accessor[vertex_index][position] = latter_vertex_index
 
             if verbose:
-                monitor.output(vertex_index + 1, len(vertices))
+                monitor(vertex_index + 1, len(vertices))
+
+        if threshold == 1:
+            while True:
+                vertices = obtain_vertices(accessor)
+                graph = DiGraph()
+                for former_index, latter_indices in enumerate(accessor):
+                    for latter_index in latter_indices:
+                        if latter_index >= 0:
+                            graph.add_edge(u_of_edge=former_index, v_of_edge=latter_index)
+                useless_vertices, cycle = [], find_cycle(graph)
+                for former_index, latter_index in cycle:
+                    if len(where(accessor[former_index] >= 0)[0]) == 1:
+                        useless_vertices.append(former_index)
+                if len(useless_vertices) == len(cycle):
+                    for useless_vertex in useless_vertices:
+                        accessor[useless_vertex] = -1
+                        pairs = [(i, useless_vertex) for i in obtain_formers(useless_vertex, 10)]
+                        while len(pairs) > 0:
+                            new_pairs = []
+                            for former_index, latter_index in pairs:
+                                previous = len(where(accessor[former_index] >= 0)[0])
+                                accessor[former_index, latter_index % 4] = -1
+                                current = len(where(accessor[former_index] >= 0)[0])
+                                if previous > current == 0:
+                                    new_pairs += [(i, former_index) for i in obtain_formers(former_index, 10)]
+                            pairs = new_pairs
+                else:
+                    break
 
         if verbose:
             print("The coding graph is created.")
@@ -588,8 +699,7 @@ def connect_coding_graph(observed_length, vertices, threshold, nucleotides=None,
         raise ValueError("The coding graph cannot be created!")
 
 
-def remove_nasty_arc(accessor, latter_map, iteration=0, nucleotides=None, repair_insertion=True, repair_deletion=True,
-                     verbose=False):
+def remove_nasty_arc(accessor, latter_map, iteration=0, has_insertion=True, has_deletion=True, verbose=False):
     """
     Remove the nasty arc.
 
@@ -602,14 +712,11 @@ def remove_nasty_arc(accessor, latter_map, iteration=0, nucleotides=None, repair
     :param iteration: current round if required.
     :type iteration: int
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
+    :param has_insertion: need to repair insertion error.
+    :type has_insertion: bool
 
-    :param repair_insertion: need to repair insertion error.
-    :type repair_insertion: bool
-
-    :param repair_deletion: need to repair deletion error.
-    :type repair_deletion: bool
+    :param has_deletion: need to repair deletion error.
+    :type has_deletion: bool
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -627,7 +734,7 @@ def remove_nasty_arc(accessor, latter_map, iteration=0, nucleotides=None, repair
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
         >>> latter_map = accessor_to_latter_map(accessor)
         >>> result = remove_nasty_arc(accessor=accessor, latter_map=latter_map, iteration=0, verbose=False, \
-                                      nucleotides=["A", "C", "G", "T"], repair_insertion=True, repair_deletion=True)
+                                      has_insertion=True, has_deletion=True)
         >>> result[0]
         array([[-1, -1, -1, -1],
                [-1, -1, -1,  7],
@@ -658,8 +765,7 @@ def remove_nasty_arc(accessor, latter_map, iteration=0, nucleotides=None, repair
         It is a gift for the follow-up investigation.
         That is, removing arc to improve the capability of the probabilistic error correction.
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     observed_length = int(log(len(accessor)) / log(len(nucleotides)))
 
@@ -669,8 +775,7 @@ def remove_nasty_arc(accessor, latter_map, iteration=0, nucleotides=None, repair
         else:
             print("Calculate the intersection score for each remained arc.")
 
-    scores = calculate_intersection_score(latter_map=latter_map, nucleotides=nucleotides,
-                                          repair_insertion=repair_insertion, repair_deletion=repair_deletion,
+    scores = calculate_intersection_score(latter_map=latter_map, has_insertion=has_insertion, has_deletion=has_deletion,
                                           observed_length=observed_length, verbose=verbose)
 
     vertex_indices = unique(where(scores == max(scores))[0])
@@ -699,15 +804,12 @@ def remove_nasty_arc(accessor, latter_map, iteration=0, nucleotides=None, repair
     return accessor, latter_map, (former, latter), scores
 
 
-def create_random_shuffles(observed_length, nucleotides=None, random_seed=None, verbose=False):
+def create_random_shuffles(observed_length, random_seed=None, verbose=False):
     """
     Create the shuffles for accessor through the random mechanism.
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
 
     :param random_seed: random seed for creating shuffles.
     :type random_seed: int
@@ -749,8 +851,7 @@ def create_random_shuffles(observed_length, nucleotides=None, random_seed=None, 
 
         Ths shuffle will not disclose the topology information of accessor.
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     shuffles = zeros(shape=(4 ** observed_length, len(nucleotides)), dtype=int)
     shuffles[:, 1] = 1
@@ -766,7 +867,7 @@ def create_random_shuffles(observed_length, nucleotides=None, random_seed=None, 
         shuffles[index] = card
 
         if verbose:
-            monitor.output(index + 1, 4 ** observed_length)
+            monitor(index + 1, 4 ** observed_length)
 
     random.seed(None)
 

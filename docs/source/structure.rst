@@ -56,12 +56,13 @@ The following figure shows how the package and its algorithms are structured:
     │    ├── test_accessor_vs_matrix.py         // Unit test for the conversion between the accessor and the adjacency matrix
     │    ├── test_bio_filters.py                // Unit test for the correctness of the biochemical constraint filter
     │    ├── test_capacities.py                 // Unit test for the reliability if the capacity approximation
-    │    ├── test_coding.py                     // Unit test for the default encoding/decoding correctness
-    │    ├── test_generating.py                 // Unit test for the generating correctness
-    │    ├── test_number_vs_binary_message.py   // Unit test for the conversion between the decimal number and binary message
-    │    ├── test_number_vs_dna_string.py       // Unit test for the conversion between the decimal number and DNA string
-    │    ├── test_operations.py                 // Unit test for the correctness of large number basic operations
-    │    ├── test_shuffles.py                   // Unit test for the transcoding correctness when using the shuffle strategy
+    │    ├── test_coding.py                     // Unit test for the default or faster encoding/decoding correctness.
+    │    ├── test_generating.py                 // Unit test for the generating correctness.
+    │    ├── test_number_vs_binary_message.py   // Unit test for the conversion between the decimal number and binary message.
+    │    ├── test_number_vs_dna_string.py       // Unit test for the conversion between the decimal number and DNA string.
+    │    ├── test_operations.py                 // Unit test for the correctness of large number basic operations.
+    │    ├── test_repair.py                     // Unit test for the correcting process.
+    │    ├── test_shuffles.py                   // Unit test for the encoding/decoding correctness when using the shuffle strategy.
     ├── README.md                               // Description document of library
 
 The installation process using 'pip' only includes folder 'dsw' and 'tests'.

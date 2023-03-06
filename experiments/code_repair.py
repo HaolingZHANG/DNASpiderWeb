@@ -1,51 +1,50 @@
 from itertools import product
-from datetime import datetime
-from numpy import random, array, zeros, all, min, max, log, where, longlong
+from time import time
+from networkx import DiGraph
+from numpy import random, array, arange, ones, zeros, fromfile, unpackbits, hstack, expand_dims
+from numpy import abs, all, sum, min, max, log, where, longlong, uint8
 from warnings import filterwarnings
 
-from dsw import Monitor, set_vt, repair_dna, obtain_vertices, bit_to_number
-from dsw import accessor_to_latter_map, approximate_capacity, remove_nasty_arc
+from dsw import encode, decode, set_vt, repair_dna, obtain_vertices, bit_to_number, dna_to_number, number_to_bit
+from dsw import Monitor, accessor_to_latter_map, approximate_capacity, remove_nasty_arc
 
 filterwarnings("ignore", category=RuntimeWarning)
 
 
-def introduce_errors(right_dna_string, errors, observed_length, nucleotides=None):
+def introduce_errors(right_dna_string, errors, nucleotides=None):
     if errors == 0:
         return right_dna_string
 
     if nucleotides is None:
         nucleotides = ["A", "C", "G", "T"]
 
+    total_length = len(right_dna_string)
     while True:
         wrong_dna_string = list(right_dna_string)  # introduce error under most dense.
-        used_locations = []
+        locations = []
 
         for _ in range(errors):
-            wrong_type, error_location, success = random.randint(0, 3), None, True
-            for _ in range(100):
-                error_location = random.randint(observed_length + 2, len(wrong_dna_string) - observed_length - 2)
-                success = True
-                for used_location in used_locations:
-                    if abs(error_location - used_location) < 2 * observed_length:
-                        success = False
-                        break
-
-                if success:
-                    used_locations.append(error_location)
+            wrong_type, location, success = random.randint(0, 3), None, False
+            candidates = arange(11, len(wrong_dna_string) - 11, dtype=int)
+            random.shuffle(candidates)
+            for location in candidates:
+                # uniform distribution detection
+                if len(locations) == 0 or min(abs(array(locations) - location)) > total_length / (errors + 2):
+                    success = True
+                    locations.append(location)
                     break
 
             if not success:
-                wrong_dna_string, used_locations, wrong_type = list(right_dna_string), [], -1
+                wrong_dna_string, locations, wrong_type = list(right_dna_string), [], -1
                 break
 
             if wrong_type == 0:  # substitution
-                nucleotide = random.choice(list(filter(lambda n: n != wrong_dna_string[error_location], nucleotides)))
-                wrong_dna_string[error_location] = nucleotide
+                nucleotide = wrong_dna_string[location]
+                wrong_dna_string[location] = random.choice(list(filter(lambda n: n != nucleotide, nucleotides)))
             elif wrong_type == 1:  # insertion
-                nucleotide = random.choice(nucleotides)
-                wrong_dna_string.insert(error_location, nucleotide)
+                wrong_dna_string.insert(location, random.choice(nucleotides))
             else:  # deletion
-                del wrong_dna_string[error_location]
+                del wrong_dna_string[location]
 
         wrong_dna_string = "".join(wrong_dna_string)
 
@@ -53,14 +52,12 @@ def introduce_errors(right_dna_string, errors, observed_length, nucleotides=None
             return wrong_dna_string
 
 
-def evaluate_repair_errors(random_seed, accessor, vertices, observed_length,
-                           repeats, dna_length, errors, nucleotides=None):
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+def evaluate_repair_errors(random_seed, accessor, vertices, observed_length, repeats, dna_length, errors):
+    nucleotides = ["A", "C", "G", "T"]
 
-    print("Check DNA string of length " + str(dna_length) + " imposing " + str(errors) + " error(s).")
     random.seed(random_seed)
-    records, count, monitor, previous_time = [], 0, Monitor(), datetime.now()
+
+    records, sequence_data, count, monitor = [], [], 0, Monitor()
     for current_repeat in range(repeats):
         start_index = random.choice(vertices)
 
@@ -74,32 +71,29 @@ def evaluate_repair_errors(random_seed, accessor, vertices, observed_length,
 
         vt_check = set_vt(dna_string=right_dna_string, vt_length=observed_length + 1, nucleotides=nucleotides)
 
-        wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors,
-                                            observed_length=observed_length, nucleotides=nucleotides)
+        wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors, nucleotides=nucleotides)
+        sequence_data.append((right_dna_string, start_index, vt_check, wrong_dna_string))
+        monitor(current_repeat + 1, repeats)
 
+    previous_time = time()
+    for index in range(len(sequence_data)):
+        right_dna_string, start_index, vt_check, wrong_dna_string = sequence_data[index]
         repaired_strings, params = repair_dna(dna_string=wrong_dna_string, accessor=accessor, start_index=start_index,
                                               observed_length=observed_length, vt_check=vt_check, has_indel=True)
         found_flag = right_dna_string in repaired_strings
-
         records.append([params[0], params[1], params[2], len(repaired_strings), found_flag])
-
         count += found_flag
+        monitor(index + 1, len(sequence_data), extra={"count": count})
 
-        monitor.output(current_repeat + 1, repeats, extra={"count": count})
-
-    time_cost = (datetime.now() - previous_time).total_seconds()
-
+    used_times = time() - previous_time
     random.seed(None)
 
-    return array(records), time_cost
+    return array(records), used_times
 
 
-def calculate_minimum_reads(random_seed, accessor, vertices, observed_length, repeats, dna_length,
-                            errors, nucleotides=None):
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+def calculate_minimum_reads(random_seed, accessor, vertices, observed_length, repeats, dna_length, errors):
+    nucleotides = ["A", "C", "G", "T"]
 
-    print("Check DNA string of length " + str(dna_length) + " imposing " + str(errors) + " error(s).")
     random.seed(random_seed)
     records, monitor, maximum_reads = [], Monitor(), 1
     for current_repeat in range(repeats):
@@ -118,7 +112,7 @@ def calculate_minimum_reads(random_seed, accessor, vertices, observed_length, re
         reads, result_set = 1, {}
         while True:
             wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors,
-                                                observed_length=observed_length, nucleotides=nucleotides)
+                                                nucleotides=nucleotides)
 
             repaired_strings, _ = repair_dna(dna_string=wrong_dna_string, accessor=accessor, start_index=start_index,
                                              observed_length=observed_length, vt_check=vt_check, has_indel=True)
@@ -143,7 +137,7 @@ def calculate_minimum_reads(random_seed, accessor, vertices, observed_length, re
 
             reads += 1
 
-        monitor.output(current_repeat + 1, repeats, extra={"current reads": reads, "maximum reads": maximum_reads})
+        monitor(current_repeat + 1, repeats, extra={"current reads": reads, "maximum reads": maximum_reads})
 
         records.append(reads)
 
@@ -153,16 +147,14 @@ def calculate_minimum_reads(random_seed, accessor, vertices, observed_length, re
 
 
 def evaluate_established_depth(random_seed, accessor, vertices, observed_length, classes, dna_length,
-                               errors, established_depth, nucleotides=None):
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+                               errors, established_depth):
+    nucleotides = ["A", "C", "G", "T"]
 
     random.seed(random_seed)
     right_set, obtained_set, monitor = [], {}, Monitor()
     for index in range(classes):
-        start_index = random.choice(vertices)
-
         while True:  # create ideal DNA string randomly.
+            start_index = random.choice(vertices)
             vertex_index, right_dna_string = start_index, ""
             for location in range(dna_length):
                 used_indices = where(accessor[vertex_index] >= 0)[0]
@@ -177,8 +169,7 @@ def evaluate_established_depth(random_seed, accessor, vertices, observed_length,
         vt_check = set_vt(dna_string=right_dna_string, vt_length=observed_length + 1, nucleotides=nucleotides)
 
         for _ in range(established_depth):
-            wrong_dna_string = introduce_errors(right_dna_string=right_dna_string,
-                                                errors=errors, observed_length=observed_length,
+            wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors,
                                                 nucleotides=nucleotides)
 
             repaired_strings, _ = repair_dna(dna_string=wrong_dna_string, accessor=accessor, start_index=start_index,
@@ -190,7 +181,7 @@ def evaluate_established_depth(random_seed, accessor, vertices, observed_length,
                 else:
                     obtained_set[repaired_dna_string] = 1
 
-        monitor.output(index + 1, classes)
+        monitor(index + 1, classes)
 
     random.seed(None)
 
@@ -207,7 +198,7 @@ def screen_edges_for_repair(accessor, maximum_rounds=0):
     while True:
         accessor, latter_map, arc, scores = remove_nasty_arc(accessor=accessor, latter_map=latter_map,
                                                              iteration=current, verbose=True,
-                                                             repair_insertion=True, repair_deletion=True)
+                                                             has_insertion=True, has_deletion=True)
         new_code_rate = approximate_capacity(accessor=accessor, repeats=4, maximum_iteration=100, verbose=False)
 
         print("Current code rate is %.5f.\n" % float(new_code_rate))
@@ -232,14 +223,13 @@ def screen_edges_for_repair(accessor, maximum_rounds=0):
     return results
 
 
-def spiderweb_step(random_seed, accessor, vertices, dna_length, observed_length, repeats, errors, nucleotides=None):
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+def spiderweb_step(random_seed, accessor, vertices, dna_length, observed_length, repeats, errors):
+    nucleotides = ["A", "C", "G", "T"]
 
     print("Check DNA string of length " + str(dna_length) + " imposing " + str(errors) + " error(s).")
     random.seed(random_seed)
     records, count, monitor = zeros(shape=(repeats,), dtype=int), 0, Monitor()
-    while count < repeats:
+    for repeat in range(repeats):
         start_index = random.choice(vertices)
 
         # create ideal DNA string randomly.
@@ -252,25 +242,18 @@ def spiderweb_step(random_seed, accessor, vertices, dna_length, observed_length,
 
         vt_check = set_vt(dna_string=right_dna_string, vt_length=observed_length + 1, nucleotides=nucleotides)
 
-        wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors,
-                                            observed_length=observed_length, nucleotides=nucleotides)
+        wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors, nucleotides=nucleotides)
 
         repaired_strings, params = repair_dna(dna_string=wrong_dna_string, accessor=accessor, start_index=start_index,
                                               observed_length=observed_length, vt_check=vt_check, has_indel=True)
-
-        if right_dna_string in repaired_strings:
-            monitor.output(count + 1, repeats)
-            records[count] = params[-1]
-            count += 1
-        else:
-            monitor.output(count, repeats)
+        records[count] = params[-1]
+        monitor(count, repeats)
 
     return records
 
 
-def hedges_step(random_seed, bio_filter, dna_length, observed_length, repeats, errors, nucleotides=None):
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+def hedges_step(random_seed, bio_filter, dna_length, repeats, errors):
+    nucleotides = ["A", "C", "G", "T"]
 
     def hash_function(source_value):
         target_value = array(source_value, dtype=longlong) * array(3935559000370003845, dtype=longlong)
@@ -287,33 +270,41 @@ def hedges_step(random_seed, bio_filter, dna_length, observed_length, repeats, e
     def hedges_encode(binary_message, strand_index, pattern, salt_number=46, previous_number=8, low_order_number=10):
         dna_string, available_nucleotides, bit_location, pattern_flag = "", nucleotides, 0, 0
         salt_index = strand_index % (2 ** salt_number)  # s bits of salt (strand ID).
-        while bit_location < len(binary_message):
-            bit_index = bit_location % (2 ** low_order_number)  # low-order q bits of the bit position index i.
 
-            if bit_location - previous_number >= 0:
-                previous_info = binary_message[bit_location - previous_number: bit_location]
-                previous_value = bit_to_number(previous_info, is_string=False)
-            else:
-                previous_value = 0
+        while True:
+            try:
+                while bit_location < len(binary_message):
+                    bit_index = bit_location % (2 ** low_order_number)  # low-order q bits of the bit position index i.
 
-            hash_value = hash_function(bit_index | previous_value | salt_index)
-            if len(available_nucleotides) > 0:
-                bit_number = pattern[pattern_flag]
-                message_bit = binary_message[bit_location: bit_location + bit_number]
-                bit_value = bit_to_number(message_bit, is_string=False) if len(message_bit) > 0 else 0
-                nucleotide = available_nucleotides[(hash_value + bit_value) % len(available_nucleotides)]
-                bit_location += bit_number
-                pattern_flag = (pattern_flag + 1) % len(pattern)
-            else:
-                raise ValueError("DNA string (index = " + str(strand_index) + ") "
-                                 + "cannot be encoded because of the established constraints!")
+                    if bit_location - previous_number >= 0:
+                        previous_info = binary_message[bit_location - previous_number: bit_location]
+                        previous_value = bit_to_number(previous_info, is_string=False)
+                    else:
+                        previous_value = 0
 
-            dna_string += nucleotide
+                    hash_value = hash_function(bit_index | previous_value | salt_index)
+                    if len(available_nucleotides) > 0:
+                        bit_number = pattern[pattern_flag]
+                        message_bit = binary_message[bit_location: bit_location + bit_number]
+                        bit_value = bit_to_number(message_bit, is_string=False) if len(message_bit) > 0 else 0
+                        nucleotide = available_nucleotides[(hash_value + bit_value) % len(available_nucleotides)]
+                        bit_location += bit_number
+                        pattern_flag = (pattern_flag + 1) % len(pattern)
+                    else:
+                        raise ValueError("DNA string (index = " + str(strand_index) + ") "
+                                         + "cannot be encoded because of the established constraints!")
 
-            available_nucleotides = []
-            for potential_nucleotide in nucleotides:
-                if bio_filter.valid(dna_string + potential_nucleotide, only_last=True):
-                    available_nucleotides.append(potential_nucleotide)
+                    dna_string += nucleotide
+
+                    available_nucleotides = []
+                    for potential_nucleotide in nucleotides:
+                        if bio_filter.valid(dna_string + potential_nucleotide, only_last=True):
+                            available_nucleotides.append(potential_nucleotide)
+            except ValueError:
+                dna_string = ""
+
+            if len(dna_string) > 0:
+                break
 
         return dna_string
 
@@ -399,8 +390,8 @@ def hedges_step(random_seed, bio_filter, dna_length, observed_length, repeats, e
                 heap["v"], heap["l"] = heap["v"] + follow_info[0], heap["l"] + follow_info[3]
                 heap["s"], heap["i"] = heap["s"] + follow_info[1], heap["i"] + follow_info[2]
                 heap["v"][chuck_index], current_process = None, heap["i"][chuck_index] + 1
-                monitor.output(current_process, len(dna_string),
-                               extra={"size": heap_size, "score": "%.2f" % chuck_score, "search step": search_step})
+                monitor(current_process, len(dna_string),
+                        extra={"size": heap_size, "score": "%.2f" % chuck_score, "search step": search_step})
                 # the first chain of hypotheses to decode the required bytes of message wins.
                 if bit_length == max(heap["l"]):
                     if current_process < len(dna_string):
@@ -413,20 +404,19 @@ def hedges_step(random_seed, bio_filter, dna_length, observed_length, repeats, e
                     return candidates, heap_size, search_step, current_process
 
     random.seed(seed=random_seed)
-    records = zeros(shape=(repeats, 4), dtype=int)
+    records = zeros(shape=(repeats,), dtype=int)
     for repeat in range(repeats):
         print("Run test " + str(repeat + 1) + "/" + str(repeats) + " with " + str(errors) + " errors.")
-        used_message, found = random.randint(0, 2, size=(dna_length,)), False
-        right_dna_string = hedges_encode(binary_message=used_message, strand_index=repeat, pattern=[1])
-        wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors,
-                                            observed_length=observed_length, nucleotides=nucleotides)
-        availables, size, step, p = hedges_decode(dna_string=wrong_dna_string, strand_index=repeat,
-                                                  bit_length=len(used_message), pattern=[1], correct_penalty=-0.127)
+        used_message, found = random.randint(0, 2, size=(dna_length // 3 + 1,)), False
+        right_dna_string = hedges_encode(binary_message=used_message, strand_index=repeat, pattern=[1, 0, 0])
+        wrong_dna_string = introduce_errors(right_dna_string=right_dna_string, errors=errors, nucleotides=nucleotides)
+        availables, size, step, process = hedges_decode(dna_string=wrong_dna_string, strand_index=repeat,
+                                                        bit_length=len(used_message), pattern=[1, 0, 0],
+                                                        correct_penalty=-0.324)
         for available in availables:
-            if all(available == used_message):
+            if all(available[:-1] == used_message[:-1]):
                 found = True
                 break
-        records[repeat] = [step, size, found, p]
-        print("Found = " + str(found) + ", with " + str(step) + " steps.")
+        records[repeat] = step
 
     return records

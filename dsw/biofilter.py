@@ -30,7 +30,7 @@ class LocalBioFilter(DefaultBioFilter):
         """
         Initialize the screen of local biochemical constraints.
 
-        :param observed_length: length of the DNA string observed in the window.
+        :param observed_length: length of the DNA sequence observed in the window.
         :type observed_length: int
 
         :param max_homopolymer_runs: maximum homopolymer runs.
@@ -46,11 +46,11 @@ class LocalBioFilter(DefaultBioFilter):
             >>> from dsw import LocalBioFilter
             >>> bio_filter = LocalBioFilter(observed_length=8, \
                                             max_homopolymer_runs=2, gc_range=[0.4, 0.6], undesired_motifs=["GC"])
-            >>> bio_filter.valid(dna_string="ACGTACGT")
+            >>> bio_filter.valid(dna_sequence="ACGTACGT")
             True
-            >>> bio_filter.valid(dna_string="GCATGCAT")
+            >>> bio_filter.valid(dna_sequence="GCATGCAT")
             False
-            >>> bio_filter.valid(dna_string="AAACCGGA")
+            >>> bio_filter.valid(dna_sequence="AAACCGGA")
             False
 
         .. notes::
@@ -60,15 +60,15 @@ class LocalBioFilter(DefaultBioFilter):
 
             Reference [3] William H. Press et al. (2020) Proceedings of the National Academy of Sciences
 
-            Reference [4] Hannah F Löchel et al. (2021) Nucleic Acids Research
+            Reference [4] Hannah F Lochel et al. (2021) Nucleic Acids Research
 
             If the maximum homopolymer runs (max_homopolymer_runs) is 1,
-            "AA", "CC", "GG", "TT" cannot be included in tue valid DNA strings.
+            "AA", "CC", "GG", "TT" cannot be included in tue valid DNA sequences.
 
             If the range of GC content (gc_range) is [0.4, 0.6],
-            the GC content of valid DNA strings must between 40% and 60%.
+            the GC content of valid DNA sequences must between 40% and 60%.
 
-            If "GC" in the undesired DNA motifs (undesired_motifs), "GC" cannot be included in tue valid DNA strings.
+            If "GC" in the undesired DNA motifs (undesired_motifs), "GC" cannot be included in tue valid DNA sequences.
             This parameter could contain the restriction enzyme sites or some low compatibility DNA patterns.
         """
         super().__init__(screen_name="Local")
@@ -87,14 +87,14 @@ class LocalBioFilter(DefaultBioFilter):
         self.gc_range = gc_range
         self.undesired_motifs = undesired_motifs
 
-    def valid(self, dna_string, only_last=True):
+    def valid(self, dna_sequence, only_last=True):
         """
-        Judge whether the DNA string meets the local biochemical constraints.
+        Judge whether the DNA sequence meets the local biochemical constraints.
 
-        :param dna_string: DNA string to be judged.
-        :type dna_string: str
+        :param dna_sequence: DNA sequence to be judged.
+        :type dna_sequence: str
 
-        :param only_last: only check the DNA string of the last observed window.
+        :param only_last: only check the DNA sequence of the last observed window.
         :type only_last: bool
 
         :return: judgement.
@@ -103,45 +103,45 @@ class LocalBioFilter(DefaultBioFilter):
         .. note::
             "only_last" parameter is used to save time.
             For most tree-based coding algorithms,
-            it is not necessary to detect the sub DNA strings observed in each window from scratch every time.
+            it is not necessary to detect the sub DNA sequences observed in each window from scratch every time.
         """
         if only_last:
-            observed_dna_string = dna_string[-self.observed_length:]
+            observed_dna_sequence = dna_sequence[-self.observed_length:]
         else:
-            observed_dna_string = dna_string
+            observed_dna_sequence = dna_sequence
 
-        for nucleotide in observed_dna_string:
+        for nucleotide in observed_dna_sequence:
             if nucleotide not in "ACGT":
                 return False
 
         if self.max_homopolymer_runs is not None:
             for nucleotide in "ACGT":
-                if nucleotide * (1 + self.max_homopolymer_runs) in observed_dna_string:
+                if nucleotide * (1 + self.max_homopolymer_runs) in observed_dna_sequence:
                     return False
 
         if self.undesired_motifs is not None:
             for special in self.undesired_motifs:
-                if special in observed_dna_string:
+                if special in observed_dna_sequence:
                     return False
                 reverse_complement = special.replace("A", "t").replace("C", "g").replace("G", "c").replace("T", "a")
                 reverse_complement = reverse_complement[::-1].upper()
-                if reverse_complement in observed_dna_string:
+                if reverse_complement in observed_dna_sequence:
                     return False
 
         if self.gc_range is not None:
-            if len(observed_dna_string) >= self.observed_length:
-                for index in range(len(observed_dna_string) - self.observed_length + 1):
-                    sub_dna_string = observed_dna_string[index: index + self.observed_length]
-                    gc_count = sub_dna_string.count("C") + sub_dna_string.count("G")
+            if len(observed_dna_sequence) >= self.observed_length:
+                for index in range(len(observed_dna_sequence) - self.observed_length + 1):
+                    sub_dna_sequence = observed_dna_sequence[index: index + self.observed_length]
+                    gc_count = sub_dna_sequence.count("C") + sub_dna_sequence.count("G")
                     if gc_count > self.gc_range[1] * self.observed_length:
                         return False
                     if gc_count < self.gc_range[0] * self.observed_length:
                         return False
             else:
-                gc_count = observed_dna_string.count("C") + observed_dna_string.count("G")
+                gc_count = observed_dna_sequence.count("C") + observed_dna_sequence.count("G")
                 if gc_count > self.gc_range[1] * self.observed_length:
                     return False
-                at_count = observed_dna_string.count("A") + observed_dna_string.count("T")
+                at_count = observed_dna_sequence.count("A") + observed_dna_sequence.count("T")
                 if at_count > (1 - self.gc_range[0]) * self.observed_length:
                     return False
 

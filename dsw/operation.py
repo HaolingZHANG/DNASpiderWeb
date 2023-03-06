@@ -10,16 +10,16 @@ class Monitor(object):
         Example
             >>> from dsw import Monitor
             >>> monitor = Monitor()
-            >>> monitor.output(current_state=1, total_state=10)
+            >>> monitor(current_state=1, total_state=10)
             \r|███                 | 10% ( 1/10) wait 0000:00:00.
-            >>> monitor.output(current_state=5, total_state=10)
+            >>> monitor(current_state=5, total_state=10)
             \r|███████████         | 50% ( 5/10) wait 0000:00:00.
-            >>> monitor.output(current_state=10, total_state=10)
+            >>> monitor(current_state=10, total_state=10)
             \r|████████████████████|100% (10/10) used 0000:00:00.
         """
         self.last_time = None
 
-    def output(self, current_state, total_state, extra=None):
+    def __call__(self, current_state, total_state, extra=None):
         """
         Output the current state of process.
 
@@ -262,7 +262,7 @@ def calculus_division(number, base):
     return "0", str(remainder)
 
 
-def bit_to_number(bit_array, is_string=True):
+def bit_to_number(bit_array, is_string=True, verbose=False):
     """
     Transform a bit array to the equivalent decimal number.
 
@@ -275,6 +275,9 @@ def bit_to_number(bit_array, is_string=True):
     :return: equivalent decimal number (may huge) of the inputted bit array.
     :rtype: str or int
 
+    :param verbose: need to print log.
+    :type verbose: bool
+
     Example
         >>> from dsw import bit_to_number
         >>> bit_to_number(bit_array=[1, 1, 1, 1, 1, 0, 0, 1, 1, 1], is_string=True)
@@ -282,19 +285,25 @@ def bit_to_number(bit_array, is_string=True):
         >>> bit_to_number(bit_array=[1, 1, 1, 1, 1, 0, 0, 1, 1, 1], is_string=False)
         999
     """
+    monitor = Monitor()
     if is_string:
         decimal_number = "0"
 
-        for a_bit in bit_array:
+        for index, a_bit in enumerate(bit_array):
             # multiply by 2
             decimal_number = calculus_multiplication(number=decimal_number, base="2")
             # add current bit
             decimal_number = calculus_addition(number=decimal_number, base=str(a_bit))
+
+            if verbose:
+                monitor(index + 1, len(bit_array))
     else:
         decimal_number = 0
 
-        for a_bit in bit_array:
+        for index, a_bit in enumerate(bit_array):
             decimal_number = decimal_number * 2 + a_bit
+            if verbose:
+                monitor(index + 1, len(bit_array))
 
     return decimal_number
 
@@ -331,18 +340,20 @@ def number_to_bit(decimal_number, bit_length):
     else:
         raise ValueError("No such type of decimal number (" + str(type(decimal_number)) + ")!")
 
-    return [0] * (bit_length - len(one_array)) + one_array
+    if len(one_array) == bit_length:
+        return one_array
+    elif len(one_array) < bit_length:
+        return [0] * (bit_length - len(one_array)) + one_array
+    else:
+        return one_array[:bit_length]
 
 
-def dna_to_number(dna_string, nucleotides=None, is_string=True):
+def dna_to_number(dna_sequence, is_string=True):
     """
     Transform a DNA string to the equivalent decimal number.
 
-    :param dna_string: required DNA string.
-    :type dna_string: str
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
+    :param dna_sequence: required DNA string.
+    :type dna_sequence: str
 
     :param is_string: type of equivalent decimal number is str.
     :type: is_string: bool
@@ -352,15 +363,14 @@ def dna_to_number(dna_string, nucleotides=None, is_string=True):
 
     Example
         >>> from dsw import dna_to_number
-        >>> dna_to_number(dna_string="ACGTACGT", is_string=True)
+        >>> dna_to_number(dna_sequence="ACGTACGT", is_string=True)
         '6939'
-        >>> dna_to_number(dna_string="ACGTACGT", is_string=False)
+        >>> dna_to_number(dna_sequence="ACGTACGT", is_string=False)
         6939
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
-    nucleotide_values = list(map(nucleotides.index, dna_string))
+    nucleotide_values = list(map(nucleotides.index, dna_sequence))
 
     if is_string:
         decimal_number = "0"
@@ -377,7 +387,7 @@ def dna_to_number(dna_string, nucleotides=None, is_string=True):
     return decimal_number
 
 
-def number_to_dna(decimal_number, dna_length, nucleotides=None):
+def number_to_dna(decimal_number, dna_length):
     """
     Transform a decimal number to the equivalent DNA string with specific length.
 
@@ -386,9 +396,6 @@ def number_to_dna(decimal_number, dna_length, nucleotides=None):
 
     :param dna_length: default length of the DNA string.
     :type dna_length: int
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
 
     :return: equivalent DNA string of the decimal number.
     :rtype: str
@@ -400,8 +407,7 @@ def number_to_dna(decimal_number, dna_length, nucleotides=None):
         >>> number_to_dna(decimal_number="6939", dna_length=8)
         'ACGTACGT'
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     one_array = []
 
