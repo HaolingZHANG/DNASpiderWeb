@@ -1,4 +1,4 @@
-Package Structure
+Structure
 =================
 
 .. image:: _static/logo.svg
@@ -63,6 +63,6 @@ The following figure shows how the package and its algorithms are structured:
     │    ├── test_operations.py                 // Unit test for the correctness of large number basic operations.
     │    ├── test_repair.py                     // Unit test for the correcting process.
     │    ├── test_shuffles.py                   // Unit test for the encoding/decoding correctness when using the shuffle strategy.
-    ├── README.md                               // Description document of library
+    ├── README.md                               // Description document of library.
 
 The installation process using 'pip' only includes folder 'dsw' and 'tests'.
