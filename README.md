@@ -33,7 +33,7 @@ The packages requires a python version >=3.7,
 as well as some basic libraries 
 (only [numpy 1.17.1](https://pypi.org/project/numpy/) and [networkx 2.6.3](https://pypi.org/project/networkx/).
 The license is customized by the BGI-Research, see 
-[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/LICENSE.pdf)
+[here](https://github.com/HaolingZHANG/DNASpiderWeb/blob/main/LICENSE.pdf).
 
 Furthermore, if you want to try / repeat the completed experiments in this work.
 Some additional libraries need to be installed, that is, 
