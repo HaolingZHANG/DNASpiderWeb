@@ -8,7 +8,7 @@ def get_complete_accessor(observed_length, verbose=False):
     """
     Get a complete accessor with the required observed length.
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
     :param verbose: need to print log.
@@ -48,12 +48,12 @@ def get_complete_accessor(observed_length, verbose=False):
             accessor[vertex_index][position] = latter_vertex_index
 
         if verbose:
-            monitor.output(vertex_index + 1, int(4 ** observed_length))
+            monitor(vertex_index + 1, int(4 ** observed_length))
 
     return accessor
 
 
-def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, verbose=False):
+def accessor_to_adjacency_matrix(accessor, maximum_length=8, verbose=False):
     """
     Convert the accessor (compressed matrix) to its equivalent adjacency matrix.
 
@@ -62,10 +62,6 @@ def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, v
 
     :param maximum_length: maximum vertex length (like 8 in general) of the adjacency matrix.
     :type maximum_length: int
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list or None
-
     :param verbose: need to print log.
     :type verbose: bool
 
@@ -102,11 +98,10 @@ def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, v
     .. note::
         The size of accessor is 4 ^ l * 4 and that of corresponding adjacency matrix is 4 ^ l * 4 ^ l.
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     if len(accessor) >= 4 ** maximum_length:
-        raise MemoryError("Unable to allocate adjacency matrix when length of DNA string (vertex) is more than 7.")
+        raise MemoryError("Unable to allocate adjacency matrix when length of DNA sequence (vertex) is more than 7.")
     if accessor.shape[1] != len(nucleotides) or min(accessor) < -1 or max(accessor) > len(accessor) - 1:
         raise ValueError("Wrong format in the accessor")
 
@@ -115,20 +110,17 @@ def accessor_to_adjacency_matrix(accessor, maximum_length=8, nucleotides=None, v
         matrix[vertex_index][vertex[vertex >= 0]] = 1
 
         if verbose:
-            monitor.output(vertex_index + 1, len(accessor))
+            monitor(vertex_index + 1, len(accessor))
 
     return matrix
 
 
-def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
+def adjacency_matrix_to_accessor(matrix, verbose=False):
     """
     Convert the adjacency matrix to the equivalent accessor (compressed matrix).
 
     :param matrix: adjacency matrix.
     :type matrix: numpy.ndarray
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list or None
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -177,8 +169,7 @@ def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
     .. note::
         The size of accessor is 4 ^ l * 4 and that of corresponding adjacency matrix is 4 ^ l * 4 ^ l.
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     accessor, monitor = -ones(shape=(len(matrix), len(nucleotides)), dtype=int), Monitor()
     observed_length = int(log(len(accessor)) / log(len(nucleotides)))
@@ -193,7 +184,7 @@ def adjacency_matrix_to_accessor(matrix, nucleotides=None, verbose=False):
         accessor[vertex_index] = saved_information
 
         if verbose:
-            monitor.output(vertex_index + 1, len(matrix))
+            monitor(vertex_index + 1, len(matrix))
 
     return accessor
 
@@ -237,26 +228,23 @@ def accessor_to_latter_map(accessor, verbose=False):
         latter_map[location] = vertex[vertex >= 0].tolist()
 
         if verbose:
-            monitor.output(current_state=index + 1, total_state=len(locations))
+            monitor(current_state=index + 1, total_state=len(locations))
 
     return latter_map
 
 
-def latter_map_to_accessor(latter_map, observed_length, threshold=None, nucleotides=None, verbose=False):
+def latter_map_to_accessor(latter_map, observed_length, threshold=None, verbose=False):
     """
     Convert the latter map to the equivalent accessor.
 
     :param latter_map: latter vertex map of graph.
     :type latter_map: dict
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
     :param threshold: minimum out-degree threshold.
     :type threshold: int or None
-
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list or None
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -293,8 +281,7 @@ def latter_map_to_accessor(latter_map, observed_length, threshold=None, nucleoti
         which only retains available information of follow-up vertices.
         However, latter map is not suitable for matrix calculation.
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     monitor = Monitor()
 
@@ -312,7 +299,7 @@ def latter_map_to_accessor(latter_map, observed_length, threshold=None, nucleoti
                 accessor[former_vertex, latter_vertex % len(nucleotides)] = latter_vertex
 
             if verbose:
-                monitor.output(current + 1, total)
+                monitor(current + 1, total)
 
     return accessor
 
@@ -361,7 +348,7 @@ def remove_useless(latter_map, threshold, verbose=False):
                 saved_vertices.append(former_vertex)
 
             if verbose:
-                monitor.output(current + 1, total, extra={"round": round_number})
+                monitor(current + 1, total, extra={"round": round_number})
 
         if verbose:
             print("Remove vertices " + str(remove_vertices) + " and load a novel latter map.")
@@ -378,7 +365,7 @@ def remove_useless(latter_map, threshold, verbose=False):
                 new_latter_map[former_vertex] = available_latter_vertices
 
             if verbose:
-                monitor.output(current + 1, total, extra={"round": round_number})
+                monitor(current + 1, total, extra={"round": round_number})
 
         latter_map = new_latter_map
 
@@ -390,20 +377,17 @@ def remove_useless(latter_map, threshold, verbose=False):
     return latter_map
 
 
-def obtain_formers(current, observed_length, nucleotides=None):
+def obtain_formers(current, observed_length):
     """
-    Obtain former vertex indices based on the current vertex index.
+    Obtain former vertex given_amino_acids based on the current vertex index.
 
     :param current: current vertex index.
     :type current: int
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
-
-    :return: former vertex indices.
+    :return: former vertex given_amino_acids.
     :rtype: list
 
     Example
@@ -426,8 +410,7 @@ def obtain_formers(current, observed_length, nucleotides=None):
         >>> obtain_formers(current=current, observed_length=9)
         [0, 65536, 131072, 196608]
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     formers = []
     for former_value in range(len(nucleotides)):
@@ -437,20 +420,17 @@ def obtain_formers(current, observed_length, nucleotides=None):
     return formers
 
 
-def obtain_latters(current, observed_length, nucleotides=None):
+def obtain_latters(current, observed_length):
     """
-    Obtain latter vertex indices based on the current vertex index.
+    Obtain latter vertex given_amino_acids based on the current vertex index.
 
     :param current: current vertex index.
     :type current: int
 
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
-
-    :return: latter vertex indices.
+    :return: latter vertex given_amino_acids.
     :rtype: list
 
     Example
@@ -473,8 +453,7 @@ def obtain_latters(current, observed_length, nucleotides=None):
         >>> obtain_latters(current=current, observed_length=9)
         [0, 1, 2, 3]
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     latters = []
     for latter_value in range(len(nucleotides)):
@@ -524,7 +503,7 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
     :param latter_map: latter vertex map of graph.
     :type latter_map: dict
 
-    :return: indices of required leaf vertex.
+    :return: given_amino_acids of required leaf vertex.
     :rtype: numpy.ndarray
 
     Example
@@ -580,8 +559,7 @@ def obtain_leaf_vertices(vertex_index, depth, accessor=None, latter_map=None):
 
 
 # noinspection PyUnresolvedReferences
-def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_iteration=500,
-                         need_process=False, verbose=False):
+def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_iteration=500, process=False, verbose=False):
     """
     Approximate the capacity of the specific graph through Perron–Frobenius theorem.
 
@@ -597,8 +575,8 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
     :param maximum_iteration: maximum iteration in the power method.
     :type maximum_iteration: int
 
-    :param need_process: need eigenvalue in the process.
-    :type need_process: bool
+    :param process: need eigenvalue in the process.
+    :type process: bool
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -614,11 +592,10 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
-        >>> approximate_capacity(accessor=accessor, tolerance_level=-10, repeats=10)
+        >>> approximate_capacity(accessor=accessor, tolerance_level=-10, repeats=2, process=False)
         1.0
         >>> random.seed(0)
-        >>> capacity, processes = approximate_capacity(accessor=accessor, tolerance_level=-10, repeats=2, \
-                                                       need_process=True)
+        >>> capacity, processes = approximate_capacity(accessor=accessor, tolerance_level=-10, repeats=2, process=True)
         >>> capacity
         1.0
         >>> ["%.5f" % _ for _ in processes[0]]
@@ -638,19 +615,19 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
         Reference [5] William Ford (2014) Academic Press
     """
     if all(accessor == -1):
-        if need_process:
+        if process:
             return (0.0, [0.0]) if repeats == 1 else (0.0, [[0.0] for _ in range(repeats)])
         else:
             return 0.0
 
     ignore_positions = where(sum(accessor, axis=1) == -len(accessor[0]))[0]
 
-    results, process = [], []
+    results, record = [], []
     for repeat in range(repeats):
         if verbose and repeats > 1:
             print("Approximate capacity in " + str(repeat + 1) + " (" + str(repeats) + ") times.")
 
-        process.append([])
+        record.append([])
         if repeats > 1:
             last_eigenvector = abs(random.random(size=(len(accessor),)))  # Random initialization for a faster fitness.
         else:
@@ -665,52 +642,52 @@ def approximate_capacity(accessor, tolerance_level=-10, repeats=1, maximum_itera
                 available = where(positions >= 0)
                 eigenvector[available] += last_eigenvector[positions[available]]
             eigenvalue = max(eigenvector)
-            eigenvector = eigenvector / eigenvalue
-            process[-1].append(log2(eigenvalue))
+            if eigenvalue > 0:
+                eigenvector = eigenvector / eigenvalue
+            else:
+                eigenvector = eigenvector * 0.0
+            record[-1].append(log2(eigenvalue) if eigenvalue > 10 ** tolerance_level else 0.0)
 
             if last_eigenvalue is not None:
-                relative_error = abs(eigenvalue - last_eigenvalue) / last_eigenvalue
+                if last_eigenvalue > 0.0:
+                    relative_error = abs(eigenvalue - last_eigenvalue) / last_eigenvalue
+                else:
+                    relative_error = 0.0
                 queue.append(eigenvalue)
 
                 if verbose and current + 1 < maximum_iteration:
-                    monitor.output(current + 1, maximum_iteration,
-                                   extra={"largest eigenvalue": "%.5f" % eigenvalue,
-                                          "relative error": "%.5f" % relative_error})
+                    monitor(current + 1, maximum_iteration,
+                            extra={"largest eigenvalue": "%.5f" % eigenvalue, "error": "%.5f" % relative_error})
 
                 is_finished = False
                 if relative_error < 10 ** tolerance_level:
-                    if eigenvalue < 1.0:
-                        eigenvalue = 1.0
-                    results.append(log2(eigenvalue))
+                    results.append(log2(eigenvalue) if eigenvalue > 10 ** tolerance_level else 0.0)
                     is_finished = True
 
                 if len(queue) > maximum_iteration:
                     eigenvalue = median(queue)
-                    if eigenvalue < 1.0:  # meaningless result.
-                        eigenvalue = 1.0
-                    results.append(log2(eigenvalue))
+                    results.append(log2(eigenvalue) if eigenvalue > 10 ** tolerance_level else 0.0)
                     is_finished = True
 
                 if is_finished:
                     if verbose:
-                        monitor.output(maximum_iteration, maximum_iteration,
-                                       extra={"capacity": "%.5f" % results[-1]})
+                        monitor(maximum_iteration, maximum_iteration, extra={"capacity": "%.5f" % results[-1]})
                     break
 
             last_eigenvalue, last_eigenvector, current = eigenvalue, eigenvector, current + 1
 
-    if need_process:
-        return (median(results), process[0]) if repeats == 1 else (median(results), process)
+    if process:
+        return (median(results), record[0]) if repeats == 1 else (median(results), record)
     else:
         return median(results)
 
 
-def path_matching(dna_string, accessor, previous_index, occur_location, has_indel=False, nucleotides=None):
+def path_matching(dna_sequence, accessor, previous_index, occur_location, has_indel=False, nucleotides=None):
     """
-    Perform saturation repair at the selected position and obtain the DNA strings matching the path of accessor.
+    Perform saturation repair at the selected position and obtain the DNA sequences matching the path of accessor.
 
-    :param dna_string: DNA string waiting for saturation substitution in the specific location.
-    :type dna_string: str
+    :param dna_sequence: DNA sequence waiting for saturation substitution in the specific location.
+    :type dna_sequence: str
 
     :param accessor: accessor.
     :type accessor: numpy.ndarray
@@ -725,9 +702,9 @@ def path_matching(dna_string, accessor, previous_index, occur_location, has_inde
     :type has_indel: bool
 
     :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
+    :type nucleotides: str or None
 
-    :return: repaired DNA strings (may contain multiple repair show) and visited count.
+    :return: repaired DNA sequences (may contain multiple repair show) and visited count.
     :rtype: list, int
 
     Example
@@ -738,19 +715,20 @@ def path_matching(dna_string, accessor, previous_index, occur_location, has_inde
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1,  1,  2, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, 13, 14, -1], \
                               [-1, -1, -1, -1], [ 4, -1, -1,  7], [ 8, -1, -1, 11], [-1, -1, -1, -1]])
-        >>> dna_string = "TCTCTATCTCT"  # "TCTCTCTCTCT" is original DNA string
-        >>> path_matching(dna_string=dna_string, accessor=accessor, previous_index=7, occur_location=5, has_indel=True)
+        >>> dna_sequence = "TCTCTATCTCT"  # "TCTCTCTCTCT" is original DNA sequence
+        >>> path_matching(dna_sequence=dna_sequence, accessor=accessor, previous_index=7, occur_location=5, \
+                          has_indel=True)
         ([(('S', 5, 'C'), 'TCTCTCTCTCT'), (('S', 5, 'G'), 'TCTCTGTCTCT')], 12)
     """
     if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+        nucleotides = "ACGT"
 
     repair_info, visited_count = [], 0
-    original, used_indices = dna_string[occur_location], where(accessor[previous_index] >= 0)[0]
+    original, used_indices = dna_sequence[occur_location], where(accessor[previous_index] >= 0)[0]
 
     for r_nucleotide in list(filter(lambda n: n != original, [nucleotides[index] for index in used_indices])):
         vertex_index, reliable = accessor[previous_index][nucleotides.index(r_nucleotide)], True
-        for index, nucleotide in enumerate(dna_string[occur_location + 1:]):
+        for index, nucleotide in enumerate(dna_sequence[occur_location + 1:]):
             used_nucleotides = [nucleotides[used_index] for used_index in where(accessor[vertex_index] >= 0)[0]]
             if nucleotide in used_nucleotides:
                 vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
@@ -760,14 +738,14 @@ def path_matching(dna_string, accessor, previous_index, occur_location, has_inde
                 break
 
         if reliable:  # "S" refers to repair by substation.
-            obtained_dna_string = list(dna_string)
-            obtained_dna_string[occur_location] = r_nucleotide
-            repair_info.append((("S", occur_location, r_nucleotide), "".join(obtained_dna_string)))
+            obtained_dna_sequence = list(dna_sequence)
+            obtained_dna_sequence[occur_location] = r_nucleotide
+            repair_info.append((("S", occur_location, r_nucleotide), "".join(obtained_dna_sequence)))
 
     if has_indel:
         for a_nucleotide in [nucleotides[used_index] for used_index in used_indices]:
             vertex_index, reliable = accessor[previous_index][nucleotides.index(a_nucleotide)], True
-            for nucleotide in dna_string[occur_location:]:
+            for nucleotide in dna_sequence[occur_location:]:
                 used_nucleotides = [nucleotides[used_index] for used_index in where(accessor[vertex_index] >= 0)[0]]
                 if nucleotide in used_nucleotides:
                     vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
@@ -777,12 +755,12 @@ def path_matching(dna_string, accessor, previous_index, occur_location, has_inde
                     break
 
             if reliable:  # "I" refers to repair by insertion.
-                obtained_dna_string = list(dna_string)
-                obtained_dna_string.insert(occur_location, a_nucleotide)
-                repair_info.append((("I", occur_location, a_nucleotide), "".join(obtained_dna_string)))
+                obtained_dna_sequence = list(dna_sequence)
+                obtained_dna_sequence.insert(occur_location, a_nucleotide)
+                repair_info.append((("I", occur_location, a_nucleotide), "".join(obtained_dna_sequence)))
 
         d_nucleotide, vertex_index, reliable = original, previous_index, True
-        for index, nucleotide in enumerate(dna_string[occur_location + 1:]):
+        for index, nucleotide in enumerate(dna_sequence[occur_location + 1:]):
             used_nucleotides = [nucleotides[used_index] for used_index in where(accessor[vertex_index] >= 0)[0]]
             if nucleotide in used_nucleotides:
                 vertex_index = accessor[vertex_index][nucleotides.index(nucleotide)]
@@ -792,32 +770,28 @@ def path_matching(dna_string, accessor, previous_index, occur_location, has_inde
                 break
 
         if reliable:   # "D" refers to repair by deletion.
-            obtained_dna_string = list(dna_string)
-            del obtained_dna_string[occur_location]
-            repair_info.append((("D", occur_location, d_nucleotide), "".join(obtained_dna_string)))
+            obtained_dna_sequence = list(dna_sequence)
+            del obtained_dna_sequence[occur_location]
+            repair_info.append((("D", occur_location, d_nucleotide), "".join(obtained_dna_sequence)))
 
     return repair_info, visited_count
 
 
-def calculate_intersection_score(latter_map, nucleotides=None, observed_length=10,
-                                 repair_insertion=True, repair_deletion=True, verbose=False):
+def calculate_intersection_score(latter_map, observed_length=10, has_insertion=True, has_deletion=True, verbose=False):
     """
     Calculate the intersection score based on the breach-first search.
 
     :param latter_map: latter vertex map of graph.
     :type latter_map: dict
 
-    :param nucleotides: usage of nucleotides.
-    :type nucleotides: list
-
-    :param observed_length: length of the DNA string in a vertex.
+    :param observed_length: length of the DNA sequence in a vertex.
     :type observed_length: int
 
-    :param repair_insertion: consider to repair insertion errors.
-    :type repair_insertion: bool
+    :param has_insertion: consider to repair insertion errors.
+    :type has_insertion: bool
 
-    :param repair_deletion: consider to repair deletion errors.
-    :type repair_deletion: bool
+    :param has_deletion: consider to repair deletion errors.
+    :type has_deletion: bool
 
     :param verbose: need to print log.
     :type verbose: bool
@@ -830,8 +804,8 @@ def calculate_intersection_score(latter_map, nucleotides=None, observed_length=1
         >>> # latter_map with GC-balanced
         >>> latter_map = {1: [4, 7], 2: [8, 11], 4: [1, 2], 7: [13, 14], \
                           8: [1, 2], 11: [13, 14], 13: [4, 7], 14: [8, 11]}
-        >>> calculate_intersection_score(latter_map, nucleotides=["A", "C", "G", "T"], observed_length=10, \
-                                         repair_insertion=True, repair_deletion=True, verbose=False)
+        >>> calculate_intersection_score(latter_map, observed_length=10, \
+                                         has_insertion=True, has_deletion=True, verbose=False)
         array([[ 0,  0,  0,  0],
                [28,  0,  0, 28],
                [28,  0,  0, 28],
@@ -844,8 +818,7 @@ def calculate_intersection_score(latter_map, nucleotides=None, observed_length=1
         It is a gift for the follow-up investigation.
         That is, removing arc to improve the capability of the probabilistic error correction.
     """
-    if nucleotides is None:
-        nucleotides = ["A", "C", "G", "T"]
+    nucleotides = "ACGT"
 
     currents, depth, monitor = list(latter_map.keys()), observed_length - 1, Monitor()
     scores = zeros(shape=(len(nucleotides) ** observed_length, len(nucleotides)), dtype=int)
@@ -858,7 +831,7 @@ def calculate_intersection_score(latter_map, nucleotides=None, observed_length=1
             scores[current_index, latter_map[current_index][one] % len(nucleotides)] += score
             scores[current_index, latter_map[current_index][two] % len(nucleotides)] += score
 
-        if repair_insertion:
+        if has_insertion:
             for index, former_index in enumerate(latter_map[current_index]):  # insertion
                 if former_index in latter_map:
                     for latter_index in latter_map[former_index]:
@@ -866,7 +839,7 @@ def calculate_intersection_score(latter_map, nucleotides=None, observed_length=1
                         score = len(union1d(mutate_branches[index], insert_branch))
                         scores[current_index, latter_map[current_index][index] % len(nucleotides)] += score
 
-        if repair_deletion:
+        if has_deletion:
             delete_branch = [obtain_leaf_vertices(current_index, depth, latter_map=latter_map)]  # deletion
             for index in range(len(mutate_branches)):
                 score = len(union1d(mutate_branches[index], delete_branch))
@@ -874,6 +847,6 @@ def calculate_intersection_score(latter_map, nucleotides=None, observed_length=1
             del delete_branch
 
         if verbose:
-            monitor.output(current + 1, len(currents))
+            monitor(current + 1, len(currents))
 
     return scores

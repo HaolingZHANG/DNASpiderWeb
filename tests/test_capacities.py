@@ -31,9 +31,11 @@ class TestTerminals(TestCase):
         empty_maximum_eigenvalue = real(max(linalg.eig(self.empty_graph)[0]))
         freed_value = log2(freed_maximum_eigenvalue) if freed_maximum_eigenvalue > 0.0 else 0.0
         empty_value = log2(empty_maximum_eigenvalue) if empty_maximum_eigenvalue > 0.0 else 0.0
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.freed_graph), repeats=10) - freed_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.freed_graph),
+                                                  repeats=10) - freed_value)
         self.assertEqual(relative_error <= 1e-4, True)
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.empty_graph), repeats=10) - empty_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.empty_graph),
+                                                  repeats=10) - empty_value)
         self.assertEqual(relative_error <= 1e-4, True)
         self.assertEqual(abs(2.0 - freed_value) <= 1e-4, True)
         self.assertEqual(abs(0.0 - empty_value) <= 1e-4, True)
@@ -82,9 +84,11 @@ class TestBiochemicals(TestCase):
         g_maximum_eigenvalue = real(max(linalg.eig(self.gc_balanced_graph)[0]))
         h_value = log2(h_maximum_eigenvalue) if h_maximum_eigenvalue > 0.0 else 0.0
         g_value = log2(g_maximum_eigenvalue) if g_maximum_eigenvalue > 0.0 else 0.0
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.homopolymer_graph), repeats=10) - h_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.homopolymer_graph),
+                                                  repeats=10) - h_value)
         self.assertEqual(relative_error <= 1e-4, True)
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.gc_balanced_graph), repeats=10) - g_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.gc_balanced_graph),
+                                                  repeats=10) - g_value)
         self.assertEqual(relative_error <= 1e-4, True)
         self.assertEqual(abs(log2(3.0) - h_value) <= 1e-4, True)
         self.assertEqual(abs(log2(2.0) - g_value) <= 1e-4, True)
@@ -171,13 +175,17 @@ class TestCycles(TestCase):
         c_3_value = log2(c_3_maximum_eigenvalue) if c_3_maximum_eigenvalue > 0.0 else 0.0
         c_4_value = log2(c_4_maximum_eigenvalue) if c_4_maximum_eigenvalue > 0.0 else 0.0
         c_5_value = log2(c_5_maximum_eigenvalue) if c_5_maximum_eigenvalue > 0.0 else 0.0
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_2_graph), repeats=10) - c_2_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_2_graph),
+                                                  repeats=10) - c_2_value)
         self.assertEqual(relative_error <= 1e-4, True)
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_3_graph), repeats=10) - c_3_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_3_graph),
+                                                  repeats=10) - c_3_value)
         self.assertEqual(relative_error <= 1e-4, True)
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_4_graph), repeats=10) - c_4_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_4_graph),
+                                                  repeats=10) - c_4_value)
         self.assertEqual(relative_error <= 1e-4, True)
-        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_5_graph), repeats=10) - c_5_value)
+        relative_error = abs(approximate_capacity(accessor=adjacency_matrix_to_accessor(self.cycle_5_graph),
+                                                  repeats=10) - c_5_value)
         self.assertEqual(relative_error <= 1e-4, True)
         self.assertEqual(abs(c_2_value - 0.0) <= 1e-4, True)
         self.assertEqual(abs(c_3_value - 0.0) <= 1e-4, True)

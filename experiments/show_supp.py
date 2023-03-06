@@ -1,121 +1,153 @@
-# noinspection PyPackageRequirements
+from logging import getLogger, CRITICAL
 from matplotlib import pyplot, rcParams, patches
-from numpy import load, array, zeros_like, zeros, ones, arange, linspace, percentile, random, where, inf
-from numpy import median, min, max, mean, sum, maximum, abs, sqrt, std, log2, log10, clip, polyfit
-# noinspection PyPackageRequirements
+from numpy import array, arange, ones, zeros_like, linspace, random, median, where
+from numpy import min, max, mean, sum, std, abs, sqrt, log2, log10, percentile, polyfit
 from openpyxl import Workbook
-from scipy.optimize import curve_fit
 from scipy.stats import gaussian_kde
 from warnings import filterwarnings
 
 from dsw import obtain_vertices
 
+from experiments import load_data, local_bio_filters
+
 filterwarnings("ignore")
+
+getLogger("matplotlib").setLevel(CRITICAL)
+
+rcParams["font.family"] = "Arial"
+rcParams["mathtext.fontset"] = "custom"
+rcParams["mathtext.rm"] = "Linux Libertine"
+rcParams["mathtext.cal"] = "Lucida Calligraphy"
+rcParams["mathtext.it"] = "Linux Libertine:italic"
+rcParams["mathtext.bf"] = "Linux Libertine:bold"
 
 
 def supp01():
-    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    rates = []
+    capacities, _ = load_data(load_path="./raw/capacity_reference.pkl")
 
-    primal_graphs = load("./data/primal_graphs.pkl", allow_pickle=True)
-    for filter_index in filter_indices:
-        accessor = primal_graphs[filter_index]
-        out_degrees = sum(where(accessor >= 0, 1, 0), axis=1)
-        rates.append(len(out_degrees[out_degrees == 1]) / len(out_degrees[out_degrees >= 1]))
+    book = Workbook()
+    sheet = book.create_sheet(title="supp01", index=0)
+    sheet.append(["set index", "homopolymer run-length", "regionalized GC content", "undesired motifs",
+                  "capacity"])
 
-    figure = pyplot.figure(figsize=(10, 8), tight_layout=True)
-    rcParams["font.family"] = "Times New Roman"
-    pyplot.subplot(2, 1, 1)
-    visited_indices = []
-    for index in range(12):
-        if rates[index] > 0:
-            pyplot.bar([len(visited_indices)], [rates[index]], color="silver", edgecolor="black", width=0.6)
-            pyplot.text(len(visited_indices), rates[index] + 0.001, "%.1f" % (rates[index] * 100) + "%", fontsize=9,
-                        va="bottom", ha="center")
-            visited_indices.append(filter_indices[index])
-
-    pyplot.xlabel("selected constraint set index", fontsize=10)
-    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=10)
-    pyplot.xlim(-0.35, 3.35)
-    pyplot.ylabel("probability of out-degree 1", fontsize=10)
-    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0%", "2%", "4%", "6%", "8%", "10%"], fontsize=10)
-    pyplot.ylim(-0.005, 0.105)
-
-    proposed_results, out_1_results = load("./data/performance_evaluation_2.pkl", allow_pickle=True)
-
-    pyplot.subplot(2, 1, 2)
-    visited_indices = []
-    for index, (filter_index, out_values) in enumerate(out_1_results.items()):
-        visited_indices.append(filter_index)
-        value_1, value_2 = std(out_values), std(proposed_results[int(filter_index) - 1])
-        if index > 0:
-            pyplot.bar([index - 0.15], [value_1], color="#81B8DF", edgecolor="black", width=0.3)
-            pyplot.bar([index + 0.15], [value_2], color="#FE817D", edgecolor="black", width=0.3)
+    for constraint_index, bio_filter in local_bio_filters.items():
+        save_data = [constraint_index]
+        row_info = constraint_index.ljust(20)
+        if bio_filter.max_homopolymer_runs is not None:
+            row_info += " | " + str(bio_filter.max_homopolymer_runs).ljust(20)
+            save_data.append(str(bio_filter.max_homopolymer_runs))
         else:
-            pyplot.bar([index - 0.15], [value_1],
-                       color="#81B8DF", edgecolor="black", width=0.3, label="retain vertex of out-degree 1")
-            pyplot.bar([index + 0.15], [value_2],
-                       color="#FE817D", edgecolor="black", width=0.3, label="remove vertex of out-degree 1")
-        pyplot.text(index - 0.15, value_1 + 0.001, "%.3f" % value_1, fontsize=9, va="bottom", ha="center")
-        pyplot.text(index + 0.15, value_2 + 0.001, "%.3f" % value_2, fontsize=9, va="bottom", ha="center")
+            row_info += " | " + "N/A".ljust(20)
+            save_data.append("N/A")
 
-    pyplot.legend(loc="upper right", ncol=2, fontsize=9)
-    pyplot.xlabel("selected constraint set index", fontsize=10)
-    pyplot.xticks(range(len(visited_indices)), visited_indices, fontsize=10)
-    pyplot.xlim(-0.35, 3.35)
-    pyplot.ylabel("standard deviation of code rate", fontsize=10)
-    pyplot.yticks([0, 0.02, 0.04, 0.06, 0.08, 0.10], ["0.00", "0.02", "0.04", "0.06", "0.08", "0.10"], fontsize=10)
-    pyplot.ylim(-0.005, 0.105)
+        if bio_filter.gc_range is not None:
+            if bio_filter.gc_range[0] != bio_filter.gc_range[1]:
+                gc_range = [str(int(bio_filter.gc_range[0] * 100)) + "%", str(int(bio_filter.gc_range[1] * 100)) + "%"]
+                save_data.append(gc_range[0] + " ~ " + gc_range[1])
+                row_info += " | " + (gc_range[0] + " ~ " + gc_range[1]).ljust(25)
+            else:
+                row_info += " | " + (str(int(bio_filter.gc_range[0] * 100)) + "%").ljust(25)
+                save_data.append(str(int(bio_filter.gc_range[0] * 100)) + "%")
+        else:
+            row_info += " | " + "N/A".ljust(25)
+            save_data.append("N/A")
 
-    figure.align_labels()
-    figure.text(0.024, 1.00, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.024, 0.51, "b", va="center", ha="center", fontsize=14)
+        if bio_filter.undesired_motifs is not None:
+            row_info += " | " + str(bio_filter.undesired_motifs)[1:-1].replace("\"", "").replace("\'", "").ljust(100)
+            save_data.append(str(bio_filter.undesired_motifs)[1:-1].replace("\"", "").replace("\'", ""))
+        else:
+            row_info += " | " + "N/A".ljust(100)
+            save_data.append("N/A")
 
-    pyplot.savefig("./show/supp01.pdf", format="pdf", bbox_inches="tight", dpi=600)
-    pyplot.close()
+        row_info += " | " + "%.4f" % capacities[int(constraint_index) - 1]
+        save_data.append("%.4f" % capacities[int(constraint_index) - 1])
+
+        sheet.append(save_data)
+
+    book.save("./show/supp01.xlsx")
 
 
 def supp02():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
-    capacities, _ = load(file="./data/capacity_reference.pkl", allow_pickle=True)
-    transcode_results = load(file="./data/performance_evaluation_2.pkl", allow_pickle=True)[0]
+    colors = pyplot.get_cmap("Set3")(linspace(0, 1, 12))
+    record = load_data(load_path="./raw/generation_evaluation.pkl")
 
-    pyplot.figure(figsize=(10, 8))
-    rcParams["font.family"] = "Times New Roman"
-    for index, filter_index in enumerate(filter_indices):
-        capacity, code_rates = capacities[index], transcode_results[index]
-        pyplot.text(x=index, y=capacity + 0.01, s="%.4f" % capacity, ha="center", va="bottom", fontsize=9)
-        pyplot.hlines(capacity, index - 0.4, index + 0.4, color="#81B8DF", linewidth=1)
-        if max(code_rates) - min(code_rates) < 0.01 or max(code_rates) > capacity:
-            code_rate = median(code_rates)
-            if code_rate > capacity:
-                code_rate = capacity
-            pyplot.hlines(code_rate, index - 0.25, index + 0.25, linewidths=1, edgecolors="#FE817D", zorder=3)
-            pyplot.scatter([index], code_rate, color="white", edgecolor="#FE817D", linewidth=1, s=15, zorder=4)
-        else:
-            violin = pyplot.violinplot(dataset=code_rates, positions=[index], bw_method=0.5, showextrema=False)
-            for patch in violin["bodies"]:
-                patch.set_edgecolor("#FE817D")
-                patch.set_facecolor("#FCBBAE")
-                patch.set_linewidth(1)
-                patch.set_alpha(1)
-            pyplot.scatter([index], median(code_rates), color="white", edgecolor="#FE817D",
-                           linewidth=1, s=15, zorder=4)
-        if index % 2 != 0:
-            pyplot.fill_between([index - 0.5, index + 0.5], [0.92, 0.92], [2.08, 2.08], color="#F1F1F1", zorder=0)
+    pyplot.figure(figsize=(10, 4), tight_layout=True)
 
-    pyplot.xlabel("constraint set index", fontsize=10)
+    ax = pyplot.subplot(1, 1, 1)
+    time_data = record["time"]
+
+    for index in range(12):
+        value = time_data[index]
+        pyplot.bar([index], [value], fc=colors[index], ec="k", lw=0.75)
+        pyplot.text(index, value + 2, "%.2f" % value, va="center", ha="center", fontsize=10)
+    pyplot.xlabel("set index", fontsize=10)
+    pyplot.ylabel("generation runtime (seconds)", fontsize=10)
     pyplot.xticks(range(12), filter_indices, fontsize=10)
-    pyplot.xlim(-0.5, 11.5)
-    pyplot.ylabel("code rate", fontsize=10)
-    pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
-                  ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=10)
-    pyplot.ylim(0.95, 2.05)
+    pyplot.yticks(arange(0, 121, 20), arange(0, 121, 20), fontsize=10)
+    pyplot.xlim(-0.6, 11.6)
+    pyplot.ylim(0, 120)
+    # noinspection PyUnresolvedReferences
+    ax.spines["top"].set_visible(False)
+    # noinspection PyUnresolvedReferences
+    ax.spines["right"].set_visible(False)
+
     pyplot.savefig("./show/supp02.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 def supp03():
+    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    colors = pyplot.get_cmap("Set3")(linspace(0, 1, 12))
+    record = load_data(load_path="./raw/generation_evaluation.pkl")
+
+    pyplot.figure(figsize=(10, 4), tight_layout=True)
+
+    change_data = record["change"]
+
+    ax = pyplot.subplot(1, 1, 1)
+
+    for index in range(12):
+        value = change_data[str(index + 1).zfill(2)][0]
+        pyplot.bar([index], [log2(value) / log2(4)], fc=colors[index], ec="k", lw=0.75)
+        pyplot.text(index, log2(value) / log2(4) + 0.15, str(value), va="center", ha="center", fontsize=10)
+    pyplot.xlabel("set index", fontsize=10)
+    pyplot.ylabel("remain vertices after screening", fontsize=10)
+    pyplot.xticks(range(12), filter_indices, fontsize=10)
+    pyplot.yticks(arange(6, 11), ["4^" + str(v).zfill(2) for v in arange(6, 11)], fontsize=10)
+    pyplot.xlim(-0.6, 11.6)
+    pyplot.ylim(6, 10)
+    # noinspection PyUnresolvedReferences
+    ax.spines["top"].set_visible(False)
+    # noinspection PyUnresolvedReferences
+    ax.spines["right"].set_visible(False)
+
+    pyplot.savefig("./show/supp03.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
+def supp04():
+    record = load_data(load_path="./raw/generation_evaluation.pkl")
+    change_data = record["change"]
+
+    book = Workbook()
+    sheet = book.create_sheet(title="supp04", index=0)
+    sheet.append(["trimming cycle",
+                  "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12"])
+    for cycle_index in range(13):
+        values = [cycle_index]
+        for set_index in range(12):
+            numbers = change_data[str(set_index + 1).zfill(2)][1]
+            if len(numbers) > cycle_index:
+                values.append(numbers[cycle_index])
+            else:
+                values.append("")
+        sheet.append(values)
+
+    book.save("./show/supp04.xlsx")
+
+
+def supp05():
     random_seed, param_number = 2021, 100
 
     random.seed(random_seed)
@@ -133,22 +165,10 @@ def supp03():
         hedges_params.append([pattern_index + 1, correct_penalty])
     hedges_params = array(hedges_params).tolist()
 
-    spiderweb_params = []
-    coding_graphs = load(file="./data/coding_graphs.pkl", allow_pickle=True)
-    for filter_index in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
-        vertices = obtain_vertices(accessor=coding_graphs[filter_index])
-        random.seed(random_seed)
-        random.shuffle(vertices)
-        chosen_indices = vertices[:param_number]
-        spiderweb_params.append(chosen_indices)
-    spiderweb_params = array(spiderweb_params).T.tolist()
-
     book = Workbook()
-    sheet = book.create_sheet(title="supp03", index=0)
-    sheet.append(["param index", "DNA Fountain", "", "Yin-Yang Code", "HEDGES", "",
-                  "SPIDER-WEB", "", "", "", "", "", "", "", "", "", "", ""])
-    sheet.append(["", "c", "delta", "rule id", "pattern", "correct penalty",
-                  "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12"])
+    sheet = book.create_sheet(title="supp05", index=0)
+    sheet.append(["param index", "DNA Fountain", "", "Yin-Yang Code", "HEDGES", ""])
+    sheet.append(["", "c", "delta", "rule id", "pattern", "correct penalty"])
     for param_index in range(param_number):
         record = [str(param_index + 1)]
         for value in fountain_params[param_index]:
@@ -160,23 +180,72 @@ def supp03():
         else:
             record.append("N/A")
             record.append("N/A")
+
+        sheet.append(record)
+
+    book.save("./show/supp05.xlsx")
+
+
+def supp06():
+    random_seed, param_number = 2021, 100
+
+    spiderweb_params = []
+    coding_graphs = load_data(load_path="./raw/graph_coding.pkl")
+    for filter_index in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
+        vertices = obtain_vertices(accessor=coding_graphs[filter_index])
+        random.seed(random_seed)
+        random.shuffle(vertices)
+        chosen_indices = vertices[:param_number]
+        spiderweb_params.append(chosen_indices)
+    spiderweb_params = array(spiderweb_params).T.tolist()
+
+    book = Workbook()
+    sheet = book.create_sheet(title="supp08", index=0)
+    sheet.append(["param index", "SPIDER-WEB", "", "", "", "", "", "", "", "", "", "", ""])
+    sheet.append(["", "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12"])
+    for param_index in range(param_number):
+        record = [str(param_index + 1)]
         for vertex_index in spiderweb_params[param_index]:
             record.append(str(vertex_index))
 
         sheet.append(record)
 
-    book.save("./show/supp03.xlsx")
+    book.save("./show/supp06.xlsx")
 
 
-def supp04():
+def supp07():
     display_data = [[[] for _ in range(4)] for _ in range(12)]
-    record = load(file="./data/performance_evaluation_1.pkl", allow_pickle=True)
+    record = load_data(load_path="./raw/coding_evaluation_1.pkl")
+    for algorithm_index, filter_index, _, _, code_rate in record:
+        display_data[int(filter_index - 1)][int(algorithm_index - 1)].append(code_rate)
+    book = Workbook()
+    sheet = book.create_sheet(title="supp07", index=0)
+    sheet.append(["set index", "DNA Fountain", "Yin-Yang Code", "HEDGES", "SPIDER-WEB"])
+    for index, data in enumerate(display_data):
+        record = [str(index + 1).zfill(2)]
+        for method_index, sub_data in enumerate(data):
+            if sum(sub_data) == -len(sub_data):
+                record.append("N/A")
+            elif max(sub_data) - min(sub_data) < 0.001:
+                record.append("%.2f" % mean(sub_data))
+            else:
+                sub_data = array(sub_data)
+                sub_data = sub_data[sub_data > 0]
+                record.append("%.2f ~ %.2f" % (min(sub_data), max(sub_data)))
+        sheet.append(record)
+
+    book.save("./show/supp07.xlsx")
+
+
+def supp08():
+    display_data = [[[] for _ in range(4)] for _ in range(12)]
+    record = load_data(load_path="./raw/coding_evaluation_1.pkl")
     for algorithm_index, filter_index, _, _, code_rate in record:
         display_data[int(filter_index) - 1][int(algorithm_index) - 1].append(code_rate)
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp04", index=0)
-    sheet.append(["constraint set index", "DNA Fountain", "Yin-Yang Code", "HEDGES", "SPIDER-WEB"])
+    sheet = book.create_sheet(title="supp08", index=0)
+    sheet.append(["set index", "DNA Fountain", "Yin-Yang Code", "HEDGES", "SPIDER-WEB"])
     for index, data in enumerate(display_data):
         record = [str(index + 1).zfill(2)]
         for method_index, sub_data in enumerate(data):
@@ -190,262 +259,253 @@ def supp04():
                 record.append("%.4f" % std(sub_data))
         sheet.append(record)
 
-    book.save("./show/supp04.xlsx")
+    book.save("./show/supp08.xlsx")
 
 
-def supp05():
+def supp09():
     counts = ones(shape=(12, 6)) * 100
-    record = load("./data/performance_evaluation_1.pkl", allow_pickle=True)
+    record = load_data(load_path="./raw/coding_evaluation_1.pkl")
     for algorithm_index, filter_index, param_index, _, code_rate in record:
         if algorithm_index == 3 and code_rate == -1:  # HEDGES
             counts[int(filter_index) - 1, int(param_index) - 1] -= 1
     counts /= 100.0
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp05", index=0)
-    sheet.append(["constraint set index", "pattern 1", "pattern 2", "pattern 3", "pattern 4", "pattern 5", "pattern 6"])
+    sheet = book.create_sheet(title="supp09", index=0)
+    sheet.append(["set index", "pattern 1", "pattern 2", "pattern 3", "pattern 4", "pattern 5", "pattern 6"])
     for index, data in enumerate(counts):
         record = [str(index + 1).zfill(2)]
         for value in data:
             record.append(str(int(value * 100)) + "%")
         sheet.append(record)
 
-    book.save("./show/supp05.xlsx")
+    book.save("./show/supp09.xlsx")
 
 
-def supp06():
-    print("main06.pdf is the \"case of path-based error correcting\", created by PowerPoint.")
+def supp10():
+    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+
+    capacities, _ = load_data(load_path="./raw/capacity_reference.pkl")
+    code_results = load_data(load_path="./raw/coding_evaluation_2.pkl")[0]
+
+    pyplot.figure(figsize=(10, 8))
+    for index, filter_index in enumerate(filter_indices):
+        capacity, code_rates = capacities[index], code_results[index]
+        pyplot.text(x=index, y=capacity + 0.01, s="%.4f" % capacity, ha="center", va="bottom", fontsize=9)
+        pyplot.hlines(capacity, index - 0.4, index + 0.4, color="#81B8DF", linewidth=1)
+        if max(code_rates) - min(code_rates) < 0.005 or max(code_rates) > capacity:
+            code_rate = median(code_rates)
+            if code_rate > capacity:
+                code_rate = capacity
+            pyplot.hlines(code_rate, index - 0.25, index + 0.25, linewidths=1, edgecolors="#FE817D", zorder=3)
+            pyplot.scatter([index], code_rate, color="white", edgecolor="#FE817D", linewidth=1, s=15, zorder=4)
+        else:
+            violin = pyplot.violinplot(dataset=code_rates, positions=[index], bw_method=0.5, showextrema=False)
+            for patch in violin["bodies"]:
+                patch.set_edgecolor("#FE817D")
+                patch.set_facecolor("#FCBBAE")
+                patch.set_linewidth(1)
+                patch.set_alpha(1)
+            pyplot.scatter([index], median(code_rates), color="white", edgecolor="#FE817D",
+                           linewidth=1, s=15, zorder=4)
+        if index % 2 != 0:
+            pyplot.fill_between([index - 0.5, index + 0.5], [0.92, 0.92], [2.08, 2.08], color="#F1F1F1", zorder=0)
+
+    pyplot.xlabel("set index", fontsize=10)
+    pyplot.xticks(range(12), filter_indices, fontsize=10)
+    pyplot.xlim(-0.5, 11.5)
+    pyplot.ylabel("code rate", fontsize=10)
+    pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
+                  ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=10)
+    pyplot.ylim(0.95, 2.05)
+    pyplot.savefig("./show/supp10.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
 
 
-def supp07():
-    data = load(file="./data/correction_evaluation_1.pkl", allow_pickle=True)
+def supp11():
+    data = load_data(load_path="./raw/correction_evaluation_1.pkl")
 
     pyplot.figure(figsize=(10, 6), tight_layout=True)
-    rcParams["font.family"] = "Times New Roman"
-    for location, (error_rate, values) in enumerate(data.items()):
+
+    ax = pyplot.subplot(1, 1, 1)
+    detection_rates, correction_rates = [], []
+    for index, values in enumerate(data.values()):
+        counts = values[0][:, 3]
+        counts = counts[where(values[0][:, 4] > 0)]
+        detection_rates.append(len(where(values[0][:, 0] == index)[0]) / 10000.0)
+        correction_rates.append(len(counts[counts == 1]) / 10000.0)
+
+    pyplot.bar(arange(len(detection_rates))[:14], detection_rates[:14],
+               fc="w", ec="k", lw=0.75, label="for detection")
+    pyplot.bar(arange(len(correction_rates))[:14], correction_rates[:14],
+               fc="#A9D18E", ec="k", lw=0.75, label="for correction")
+    for index, (detection_rate, correction_rate) in enumerate(zip(detection_rates[:15], correction_rates[:15])):
+        if detection_rate > 0.05:
+            pyplot.text(index, detection_rate + 0.01, ("%.1f" % (detection_rate * 100)) + "%",
+                        va="bottom", ha="center", fontsize=9)
+        else:
+            pyplot.scatter([index], [0.02], marker="x", s=30, color="k", zorder=3)
+
+        if correction_rate > 0.05:
+            pyplot.text(index, correction_rate - 0.01, ("%.1f" % (correction_rate * 100)) + "%",
+                        va="top", ha="center", fontsize=9)
+        else:
+            pyplot.scatter([index], [0.02], marker="x", s=30, color="k", zorder=3)
+
+    pyplot.legend(loc="upper right", fontsize=9, framealpha=1)
+    pyplot.xlabel("error rate", fontsize=10)
+    pyplot.ylabel("success rate", fontsize=10)
+    pyplot.xticks(arange(0, 15), ["%.1f" % (value / 200.0 * 100.0) + "%" for value in arange(0, 15)], fontsize=10)
+    pyplot.yticks(linspace(0, 1, 6), [str(int(v * 100)) + "%" for v in linspace(0, 1, 6)], fontsize=10)
+    pyplot.xlim(-0.6, 14.6)
+    pyplot.ylim(0.00, 1.05)
+    # noinspection PyUnresolvedReferences
+    ax.spines["top"].set_visible(False)
+    # noinspection PyUnresolvedReferences
+    ax.spines["right"].set_visible(False)
+
+    pyplot.savefig("./show/supp11.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
+def supp12():
+    data = load_data(load_path="./raw/correction_evaluation_1.pkl")
+
+    pyplot.figure(figsize=(10, 6), tight_layout=True)
+    for location, error_rate in enumerate([0.005, 0.010, 0.015, 0.020, 0.025, 0.030, 0.035, 0.040]):
+        values = data[error_rate]
         original, combined = [], []
         for value in values[0]:
             if value[0] > 0 and value[3] > 0:
                 original.append(value[2])
                 combined.append(value[3])
         original, combined = array(original), array(combined)
-        violin_1 = pyplot.violinplot(log2(original), positions=[location], widths=0.8, bw_method=0.5,
-                                     showmeans=False, showextrema=False, showmedians=False)
-        for body in violin_1["bodies"]:
-            center = mean(body.get_paths()[0].vertices[:, 0])
-            body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], -inf, center)
-            body.set_color("#FE817D")
-            body.set_edgecolor("black")
-            body.set_linewidth(0.75)
-            body.set_alpha(1)
-        pyplot.scatter([location - 0.2], [median(log2(original))], color="black", s=30)
-        pyplot.text(location - 0.2, median(log2(original)) + 0.2, str(int(median(original))),
-                    va="bottom", ha="center", fontsize=9)
-        violin_2 = pyplot.violinplot(log2(combined), positions=[location], widths=0.8, bw_method=0.5,
-                                     showmeans=False, showextrema=False, showmedians=False)
-        for body in violin_2["bodies"]:
-            center = mean(body.get_paths()[0].vertices[:, 0])
-            body.get_paths()[0].vertices[:, 0] = clip(body.get_paths()[0].vertices[:, 0], center, inf)
-            body.set_color("#00C382")
-            body.set_edgecolor("black")
-            body.set_linewidth(0.75)
-            body.set_alpha(1)
-        pyplot.scatter([location + 0.2], [median(log2(combined))], color="black", s=30)
-        if median(combined) > 1:
-            pyplot.text(location + 0.2, median(log2(combined)) + 0.2, str(int(median(combined))),
-                        va="bottom", ha="center", fontsize=9)
-        else:
-            pyplot.text(location + 0.2, median(log2(combined)) + 0.45, str(int(median(combined))),
-                        va="bottom", ha="center", fontsize=9)
+        mean_value, max_value = mean(original), max(original)
+        pyplot.bar([location - 0.2], [log2(mean_value) + 0.5], bottom=-0.5, width=0.4, fc="#FE817D", ec="k", lw=0.75)
+        pyplot.vlines(location - 0.2, log2(mean_value), log2(max_value), lw=0.75, color="k")
+        pyplot.hlines(log2(max_value), location - 0.3, location - 0.1, lw=0.75, color="k")
+        pyplot.text(location - 0.2, log2(max_value) + 0.15, "%.4f" % max_value,
+                    va="center", ha="center", fontsize=8.5)
+        pyplot.text(location - 0.2, log2(mean_value) - 0.15, "%.4f" % mean_value,
+                    va="center", ha="center", fontsize=8.5)
+        mean_value, max_value = mean(combined), max(combined)
+        pyplot.bar([location + 0.2], [log2(mean_value) + 0.5], bottom=-0.5, width=0.4, fc="#00C382", ec="k", lw=0.75)
+        pyplot.vlines(location + 0.2, log2(mean_value), log2(max_value), lw=0.75, color="k")
+        pyplot.hlines(log2(max_value), location + 0.1, location + 0.3, lw=0.75, color="k")
+        pyplot.text(location + 0.2, log2(max_value) + 0.15, "%.4f" % max_value,
+                    va="center", ha="center", fontsize=8.5)
+        pyplot.text(location + 0.2, log2(mean_value) - 0.15, "%.4f" % mean_value,
+                    va="center", ha="center", fontsize=8.5)
 
     handles = [patches.Patch(facecolor="#FE817D", edgecolor="black", linewidth=0.75, label="search-only"),
                patches.Patch(facecolor="#00C382", edgecolor="black", linewidth=0.75, label="combined")]
-    pyplot.legend(handles=handles, loc="upper right", fontsize=9)
+    pyplot.legend(loc="upper left", handles=handles, fontsize=9)
     pyplot.xlabel("error rate", fontsize=10)
     pyplot.ylabel("candidate number", fontsize=10)
-    pyplot.xticks([0, 1, 2], ["1%", "2%", "3%"], fontsize=10)
-    pyplot.yticks([0, 2, 4, 6, 8, 10, 12], [1, 4, 16, 64, 256, 1024, 4096], fontsize=10)
-    pyplot.xlim(-0.8, 3.8)
-    pyplot.ylim(0, 12)
-    pyplot.savefig("./show/supp07.pdf", format="pdf", bbox_inches="tight", dpi=600)
-    pyplot.close()
-
-
-def supp08():
-    data = load(file="./data/correction_evaluation_5.pkl", allow_pickle=True)
-
-    figure = pyplot.figure(figsize=(10, 4.5), tight_layout=True)
-    rcParams["font.family"] = "Times New Roman"
-
-    pyplot.subplot(1, 2, 1)
-    for (set_index, values), color in zip(data.items(), pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))):
-        detection_rate = sum(values[:, -2]) / 10000.0
-        pyplot.bar([int(set_index)], [detection_rate], color=color, edgecolor="black", linewidth=0.75)
-        if detection_rate > 0:
-            pyplot.text(int(set_index), detection_rate + 0.005, "%.2f" % (detection_rate * 100) + "%",
-                        va="bottom", ha="center", fontsize=9)
-        else:
-            pyplot.scatter([int(set_index)], [0.02], marker="x", s=15, color="black")
-    pyplot.xlabel("constraint set index", fontsize=10)
-    pyplot.ylabel("detection rate", fontsize=10)
-    pyplot.xticks(arange(12) + 1, ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"], fontsize=10)
-    pyplot.yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], ["0%", "20%", "40%", "60%", "80%", "100%"], fontsize=10)
-    pyplot.xlim(0.4, 12.6)
-    pyplot.ylim(0, 1)
-
-    pyplot.subplot(1, 2, 2)
-    for (set_index, values), color in zip(data.items(), pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))):
-        counts = values[:, 3]
-        counts = counts[counts > 0]
-        if sum(values[:, -2]) > 0:
-            violin = pyplot.violinplot([counts], positions=[int(set_index)],
-                                       widths=0.5, bw_method=0.5, showextrema=False)
-            for patch in violin["bodies"]:
-                patch.set_edgecolor("black")
-                patch.set_facecolor(color)
-                patch.set_linewidth(0.75)
-                patch.set_alpha(1)
-        else:
-            pyplot.scatter([int(set_index)], [1], marker="x", s=15, color="black")
-
-    pyplot.xlabel("constraint set index", fontsize=10)
-    pyplot.ylabel("candidate number from correction", fontsize=10)
-    pyplot.xticks(arange(12) + 1, ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"], fontsize=10)
-    pyplot.yticks([0, 4, 8, 12, 16, 20], [0, 4, 8, 12, 16, 20], fontsize=10)
-    pyplot.xlim(0.4, 12.6)
-    pyplot.ylim(0, 20)
-
-    figure.align_labels()
-    figure.text(0.020, 0.98, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.525, 0.98, "b", va="center", ha="center", fontsize=14)
-
-    pyplot.savefig("./show/supp08.pdf", format="pdf", bbox_inches="tight", dpi=600)
-    pyplot.close()
-
-
-def supp09():
-    data = load(file="./data/correction_evaluation_4.pkl", allow_pickle=True)
-    used_colors = ["#F19D91", "#9EDBE9", "#74CCBE", "#95A2BF"]
-
-    figure = pyplot.figure(figsize=(10, 10), tight_layout=True)
-    rcParams["font.family"] = "Times New Roman"
-
-    for location, (error_rate, values) in enumerate(data.items()):
-        pyplot.subplot(2, 2, location + 1)
-        pyplot.title("error rate = %.1f" % (error_rate * 100) + "%", fontsize=10)
-        processes = zeros(shape=(21, 3))
-        for index, sub_values in enumerate(values):
-            bounds = array([min(sub_values[:, 0]), mean(sub_values[:, 0]), max(sub_values[:, 0])])
-            shown_values = (5.0 - maximum(log10(100000.0 * (1 - bounds)), 0)) / 5.0
-            processes[index + 1] = shown_values
-        pyplot.fill_between(arange(21), processes[:, 0], processes[:, 2], color=used_colors[location], label="range")
-        pyplot.plot(arange(21), processes[:, 1], color="black", linewidth=1, linestyle="--", label="average level")
-        pyplot.legend(loc="upper left", fontsize=9)
-        pyplot.xlabel("pretreatment-free depth", fontsize=10)
-        pyplot.ylabel("overall success rate", fontsize=10)
-        pyplot.xlim(0, 20)
-        pyplot.ylim(0, 1.0)
-        pyplot.xticks([0, 5, 10, 15, 20], [0, 5, 10, 15, 20], fontsize=10)
-        pyplot.yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0],
-                      ["00.00%", "90.00%", "99.00%", "99.90%", "99.99%", "perfect "], fontsize=10)
-
-    figure.align_labels()
-    figure.text(0.020, 0.98, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.515, 0.98, "b", va="center", ha="center", fontsize=14)
-    figure.text(0.020, 0.48, "c", va="center", ha="center", fontsize=14)
-    figure.text(0.515, 0.48, "d", va="center", ha="center", fontsize=14)
-
-    pyplot.savefig("./show/supp09.pdf", format="pdf", bbox_inches="tight", dpi=600)
-    pyplot.close()
-
-
-def supp10():
-    data = load(file="./data/correction_evaluation_4.pkl", allow_pickle=True)
-
-    book = Workbook()
-    sheet = book.create_sheet(title="supp10", index=0)
-    sheet.append(["error rate", "maximum frequency of wrong candidate"])
-    for error_rate, values in data.items():
-        sheet.append(["%.1f" % (error_rate * 100), str(int(max(values[:, :, -1])))])
-    book.save("./show/supp10.xlsx")
-
-
-def supp11():
-    data = load(file="./data/correction_evaluation_6.pkl", allow_pickle=True)
-
-    book = Workbook()
-    sheet = book.create_sheet(title="supp11", index=0)
-    sheet.append(["", "error = 0.0%", "error = 0.5%", "error = 1.0%", "error = 2.0%", "error = 3.0%"])
-    values = data["spiderweb"]
-    sheet.append(["SPIDER-WEB",
-                  "%.2f (%.2f)" % (mean(values[0.000]), std(values[0.000])),
-                  "%.2f (%.2f)" % (mean(values[0.005]), std(values[0.005])),
-                  "%.2f (%.2f)" % (mean(values[0.010]), std(values[0.010])),
-                  "%.2f (%.2f)" % (mean(values[0.020]), std(values[0.020])),
-                  "%.2f (%.2f)" % (mean(values[0.030]), std(values[0.030]))])
-    values = data["hedges"]
-    sheet.append(["HEDGES",
-                  "%.2f (%.2f)" % (mean(values[0.000]), std(values[0.000])),
-                  "%.2f (%.2f)" % (mean(values[0.005]), std(values[0.005])),
-                  "%.2f (%.2f)" % (mean(values[0.010]), std(values[0.010])),
-                  "%.2f (%.2f)" % (mean(values[0.020]), std(values[0.020])),
-                  "%.2f (%.2f)" % (mean(values[0.030]), std(values[0.030]))])
-
-    book.save("./show/supp11.xlsx")
-
-
-def supp12():
-    def estimated_equation(x, a):
-        return a ** x
-
-    reconstructions = load(file="./data/reconstruction_evaluation.npy")
-    capacities, _ = load(file="./data/capacity_reference.pkl", allow_pickle=True)
-    accessors = load(file="./data/coding_graphs.pkl", allow_pickle=True)
-
-    display_data, percentages = {}, linspace(0, 1, 101)
-    for index, data in enumerate(reconstructions):
-        medians = [0]
-        for iteration_data in data.T[1:]:
-            used_data = iteration_data[iteration_data > 0]
-            if len(used_data) == 0:
-                break
-            medians.append(median(used_data))
-
-        number = len(obtain_vertices(accessors[str(index + 1).zfill(2)]))
-        medians = array(medians) / number
-
-        numbers = array(list(range(len(medians))))
-        parameter = curve_fit(estimated_equation, xdata=medians[1:], ydata=numbers[1:], p0=(2,))[0][0]
-        used_capacities = parameter ** percentages * 100 * capacities[index] / 8
-        display_data[index] = used_capacities
-
-    pyplot.figure(figsize=(10, 8))
-    rcParams["font.family"] = "Times New Roman"
-    gradient_colors = pyplot.get_cmap(name="rainbow")(linspace(0, 1, 12))
-
-    for index, locations in display_data.items():
-        pyplot.plot(percentages, locations, color=gradient_colors[index], linewidth=2, zorder=2,
-                    label="constraint set " + str(index + 1).zfill(2))
-
-    pyplot.legend(loc="upper left", fontsize=9)
-    pyplot.xlabel("graph reconstruction percentage", fontsize=10)
-    pyplot.xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-                  ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"], fontsize=10)
-    pyplot.xlim(0, 1)
-    pyplot.ylabel("transmitted file size", fontsize=10)
-    pyplot.yticks([0.0 * 1e8, 0.2 * 1e8, 0.4 * 1e8, 0.6 * 1e8, 0.8 * 1e8, 1.0 * 1e8,
-                   1.2 * 1e8, 1.4 * 1e8, 1.6 * 1e8, 1.8 * 1e8, 2.0 * 1e8],
-                  ["0.0E+8 bytes", "0.2E+8 bytes", "0.4E+8 bytes", "0.6E+8 bytes", "0.8E+8 bytes", "1.0E+8 bytes",
-                   "1.2E+8 bytes", "1.4E+8 bytes", "1.6E+8 bytes", "1.8E+8 bytes", "2.0E+8 bytes"],
-                  fontsize=10)
-    pyplot.ylim(0, 2 * 1e8)
-
+    pyplot.xticks(arange(8), [("%.1f" % ((v + 1) / 2)) + "%" for v in range(8)], fontsize=10)
+    pyplot.yticks([0, 2, 4, 6, 8, 10], [1, 4, 16, 64, 256, 1024], fontsize=10)
+    pyplot.xlim(-0.8, 7.8)
+    pyplot.ylim(-0.5, 10.5)
     pyplot.savefig("./show/supp12.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
 def supp13():
-    record = load(file="./data/capacity_evaluation.pkl", allow_pickle=True)
+    data = load_data(load_path="./raw/correction_evaluation_4.pkl")
+
+    figure = pyplot.figure(figsize=(10, 5))
+
+    ax1 = pyplot.subplot(1, 2, 1)
+    values = array([data[(0.005, 0.990)].tolist(), data[(0.005, 0.999)].tolist(), data[(0.005, 1.000)].tolist()])
+    pyplot.title("error rates = 0.5%", fontsize=12)
+    a = pyplot.pcolormesh(arange(6), arange(4), values, vmin=0, vmax=60, cmap="rainbow")
+    for x in range(5):
+        for y in range(3):
+            pyplot.text(x + 0.5, y + 0.5, values[y, x], va="center", ha="center", fontsize=9)
+    pyplot.xlabel("sequence diversity", fontsize=10)
+    pyplot.ylabel("retrieval rate", fontsize=10)
+    pyplot.xticks(arange(5) + 0.5, ["1E+" + str(v) for v in arange(1, 6)], fontsize=10)
+    pyplot.yticks(arange(3) + 0.5, ["99.0%", "99.9%", "100%"], fontsize=10)
+    pyplot.xlim(0, 5)
+    pyplot.ylim(0, 3)
+
+    ax2 = pyplot.subplot(1, 2, 2)
+    values = array([data[(0.040, 0.990)].tolist(), data[(0.040, 0.999)].tolist(), data[(0.040, 1.000)].tolist()])
+    pyplot.title("error rates = 4.0%", fontsize=12)
+    pyplot.pcolormesh(arange(6), arange(4), values, vmin=0, vmax=60, cmap="rainbow")
+    for x in range(5):
+        for y in range(3):
+            pyplot.text(x + 0.5, y + 0.5, values[y, x], va="center", ha="center", fontsize=9)
+    pyplot.xlabel("sequence diversity", fontsize=10)
+    pyplot.ylabel("retrieval rate", fontsize=10)
+    pyplot.xticks(arange(5) + 0.5, ["1E+" + str(v) for v in arange(1, 6)], fontsize=10)
+    pyplot.yticks(arange(3) + 0.5, ["99.0%", "99.9%", "100%"], fontsize=10)
+    pyplot.xlim(0, 5)
+    pyplot.ylim(0, 3)
+
+    bar = figure.colorbar(a, ax=[ax1, ax2], shrink=0.75, orientation="horizontal", ticks=[0, 15, 30, 45, 60])
+    bar.set_label("minimum reads number to reach the given retrieval rate", fontsize=10)
+    bar.ax.tick_params(labelsize=10)
+
+    pyplot.savefig("./show/supp13.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
+def supp14():
+    data = load_data(load_path="./raw/correction_evaluation_6.pkl")
+
+    figure = pyplot.figure(figsize=(10, 6))
+
+    ax1 = pyplot.subplot(1, 2, 1)
+    pyplot.title("error rates = 0.5%", fontsize=12)
+    a = pyplot.pcolormesh(arange(7), arange(6), data[0.005], vmin=0, vmax=20, cmap="rainbow")
+    for x in range(6):
+        for y in range(5):
+            pyplot.text(x + 0.5, y + 0.5, data[0.005][y, x], va="center", ha="center", fontsize=10)
+    pyplot.xlabel("sequence diversity", fontsize=10)
+    pyplot.ylabel("reads number", fontsize=10)
+    pyplot.xticks(arange(6) + 0.5, ["1E+" + str(v) for v in arange(1, 7)], fontsize=10)
+    pyplot.yticks(arange(5) + 0.5, [10, 20, 30, 40, 50], fontsize=10)
+    pyplot.xlim(0, 6)
+    pyplot.ylim(0, 5)
+
+    ax2 = pyplot.subplot(1, 2, 2)
+    pyplot.title("error rates = 4.0%", fontsize=12)
+    pyplot.pcolormesh(arange(7), arange(6), data[0.040], vmin=0, vmax=20, cmap="rainbow")
+    for x in range(6):
+        for y in range(5):
+            pyplot.text(x + 0.5, y + 0.5, data[0.040][y, x], va="center", ha="center", fontsize=10)
+    pyplot.xlabel("sequence diversity", fontsize=10)
+    pyplot.ylabel("reads number", fontsize=10)
+    pyplot.xticks(arange(6) + 0.5, ["1E+" + str(v) for v in arange(1, 7)], fontsize=10)
+    pyplot.yticks(arange(5) + 0.5, [10, 20, 30, 40, 50], fontsize=10)
+    pyplot.xlim(0, 6)
+    pyplot.ylim(0, 5)
+
+    bar = figure.colorbar(a, ax=[ax1, ax2], shrink=0.75, orientation="horizontal", ticks=[0, 5, 10, 15, 20])
+    bar.set_label("maximum frequency of incorrect reads", fontsize=10)
+    bar.ax.tick_params(labelsize=10)
+
+    pyplot.savefig("./show/supp14.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
+def supp15():
+    data = load_data(load_path="./raw/correction_evaluation_7.pkl")
+
+    book = Workbook()
+    sheet = book.create_sheet(title="supp15", index=0)
+    sheet.append(["error rate", "SPIDER-WEB (average)", "SPIDER-WEB (median)", "HEDGES (average)", "HEDGES (median)"])
+    for value in range(9):
+        value_x = data["spiderweb"][value / 200.0]
+        value_y = data["hedges"][value / 200.0]
+        sheet.append([value / 200.0, mean(value_x), median(value_x), mean(value_y), median(value_y)])
+
+    book.save("./show/supp15.xlsx")
+
+
+def supp16():
+    record = load_data(load_path="./raw/capacity_evaluation.pkl")
 
     data, errors = record["detail"]
     errors = log10(array(errors))
@@ -457,7 +517,6 @@ def supp13():
     lower, upper = v_25 - 1.5 * (v_75 - v_25), 1.5 * (v_75 - v_25) + v_75
 
     figure = pyplot.figure(figsize=(10, 11), tight_layout=True)
-    rcParams["font.family"] = "Times New Roman"
 
     pyplot.subplot(3, 1, 1)
 
@@ -566,12 +625,12 @@ def supp13():
                    "1E\N{MINUS SIGN}07", "1E\N{MINUS SIGN}05", "1E\N{MINUS SIGN}03"],
                   fontsize=10)
 
+    figure.align_labels()
     figure.text(0.024, 0.99, "a", va="center", ha="center", fontsize=14)
     figure.text(0.024, 0.66, "b", va="center", ha="center", fontsize=14)
     figure.text(0.024, 0.34, "c", va="center", ha="center", fontsize=14)
 
-    figure.align_labels()
-    pyplot.savefig("./show/supp13.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp16.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -589,3 +648,6 @@ if __name__ == "__main__":
     supp11()
     supp12()
     supp13()
+    supp14()
+    supp15()
+    supp16()

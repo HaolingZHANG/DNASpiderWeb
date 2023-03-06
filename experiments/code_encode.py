@@ -1,16 +1,13 @@
-# noinspection PyPackageRequirements
 from Chamaeleo.methods.flowed import YinYangCode, DNAFountain
-# noinspection PyPackageRequirements
 from Chamaeleo.utils.indexer import connect_all
 from collections import defaultdict
 from itertools import product
 from numpy import random, array, sum, min, max, where, longlong
-from pickle import load
 from warnings import filterwarnings
 
 from dsw import encode, Monitor, number_to_bit, obtain_vertices, bit_to_number
 
-from experiments import local_bio_filters
+from experiments import local_bio_filters, load_data
 
 filterwarnings("ignore", category=RuntimeWarning)
 
@@ -57,13 +54,13 @@ def trans_fountain(dataset, shape, index_length, random_seed, param_number):
                 else:
                     false_times += 1
 
-                monitor.output(len(done_bit_arrays), len(bit_arrays))
+                monitor(len(done_bit_arrays), len(bit_arrays))
 
                 if len(done_bit_arrays) == len(bit_arrays):
                     return dna_strings
 
                 if false_times >= false_threshold:
-                    monitor.output(len(bit_arrays), len(bit_arrays))
+                    monitor(len(bit_arrays), len(bit_arrays))
                     return []
 
     print("Calculate DNA Fountain.")
@@ -130,7 +127,7 @@ def trans_yinyang(dataset, shape, index_length, random_seed, param_number):
                     # ignore random strategy for faster transcoding (getting show).
                     dna_strings.append("A" * len(fixed_bit_segment))
 
-                monitor.output(total_count - len(bit_arrays), total_count)
+                monitor(total_count - len(bit_arrays), total_count)
 
             return dna_strings
 
@@ -317,8 +314,7 @@ def trans_hedges(dataset, shape, index_length):
                 heap["s"], heap["i"] = heap["s"] + follow_info[1], heap["i"] + follow_info[2]
 
                 current_process = heap["i"][chuck_index] + 1
-                monitor.output(current_process, len(dna_string), extra={"size": len(heap["v"]),
-                                                                        "score": "%.2f" % chuck_score})
+                monitor(current_process, len(dna_string), extra={"size": len(heap["v"]), "score": "%.2f" % chuck_score})
 
                 # the first chain of hypotheses to decode the required bytes of message wins.
                 if bit_length == max(heap["l"]) or heap_size >= heap_limitation:
@@ -365,9 +361,7 @@ def trans_hedges(dataset, shape, index_length):
 def trans_spiderweb(dataset, shape, index_length, random_seed, param_number):
     print("Calculate generated algorithms.")
     records, current, total = [], 0, 12 * len(dataset) * param_number  # number of vertex.
-
-    with open("./data/coding_graphs.pkl", "rb") as file:
-        coding_graphs = load(file=file)
+    coding_graphs = load_data(load_path="./data/graph_coding.pkl")
 
     for filter_index in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
         accessor = coding_graphs[filter_index]
@@ -384,10 +378,137 @@ def trans_spiderweb(dataset, shape, index_length, random_seed, param_number):
                 for index, binary_message in enumerate(matrix):
                     dna_string = encode(binary_message=matrix, accessor=accessor, start_index=start_index)
                     nucleotide_number += len(dna_string)
-                    monitor.output(index + 1, len(matrix))
+                    monitor(index + 1, len(matrix))
 
                 records.append([4, int(filter_index) - 1, param_index, data_index,
                                 (8 * 1024 * 64) / float(nucleotide_number)])
                 current += 1
 
     return records
+
+
+def conversion_step(accessor, dna_length, start_index, repeats, random_seed):
+    nucleotides = "ACGT"
+
+    random.seed(random_seed)
+
+    def multiplication(number, base):
+        if base == "0":
+            return "0", 1
+
+        if base == "1":
+            return number, 1
+
+        number = [int(item) for item in number]
+
+        remainder, times = 0, 0
+        for index in range(len(number))[::-1]:
+            current, times = number[index] * int(base) + remainder, times + 1
+            if current >= 10:
+                number[index] = current % 10
+                remainder = current // 10
+            else:
+                number[index] = current
+                remainder = 0
+
+        while remainder > 0:
+            number.insert(0, remainder % 10)
+            remainder //= 10
+            times += 1
+
+        result = "".join(list(map(str, number)))
+
+        return result, times
+
+    def addition(number, base):
+        number, base = list(number), list(base.zfill(len(number)))
+
+        result, times = [0 for _ in range(len(number) + 1)], 0
+        for index in range(len(number) - 1, -1, -1):
+            sum_value = int(number[index]) + int(base[index]) + int(result[index + 1])
+            if sum_value < 10:
+                result[index + 1] = sum_value
+                times += 1
+            else:
+                flag = 0
+                while sum_value > 0:
+                    result[index + 1 - flag] = sum_value % 10
+                    sum_value //= 10
+                    flag += 1
+                    times += 1
+
+        result = "".join(list(map(str, result)))
+
+        return result if result[0] != "0" else result[1:], times
+
+    def division(number, base):
+        if base == "0":
+            return "0", "0", 1
+
+        if base == "1":
+            return number, "0", 1
+
+        if len(number) == 1 and number[0] < base:
+            return "0", number[0], 1
+
+        number, new_number, remainder, times = [int(item) for item in number], [], 0, 0
+        for index, quotient in enumerate(number):
+            current = quotient + remainder * 10
+            if current >= int(base):
+                new_number.append(current // int(base))
+                remainder = current - new_number[-1] * int(base)
+            else:
+                new_number.append(0)
+                remainder = current
+            times += 1
+
+        quotient = "".join(list(map(str, new_number)))
+
+        for index in range(len(quotient)):
+            times += 1
+            if quotient[index] != "0":
+                return quotient[index:], str(remainder), times
+
+        return "0", str(remainder), times
+
+    def to_number(dna_sequence):
+        nucleotide_values, times = list(map(nucleotides.index, dna_sequence)), 0
+
+        decimal_number = "0"
+        for nucleotide_value in nucleotide_values:
+            # multiply by length of usage of nucleotides.
+            decimal_number, sub_times = multiplication(number=decimal_number, base=str(len(nucleotides)))
+            times += sub_times
+            # add current nucleotide value.
+            decimal_number, sub_times = addition(number=decimal_number, base=str(nucleotide_value))
+            times += sub_times
+
+        return decimal_number, times
+
+    def to_binary(decimal_number):
+        one_array, times = [], 0
+        while decimal_number != "0":  # decimal number > 0
+            decimal_number, remainder, sub_times = division(number=decimal_number, base="2")
+            one_array.insert(0, int(remainder))
+            times += sub_times
+
+        return one_array, times
+
+    results, monitor = [], Monitor()
+    for repeat in range(repeats):
+        # create ideal DNA string randomly.
+        vertex_index, right_dna_string = start_index, ""
+        for location in range(dna_length):
+            used_indices = where(accessor[vertex_index] >= 0)[0]
+            used_index = random.choice(used_indices)
+            nucleotide, vertex_index = nucleotides[used_index], accessor[vertex_index][used_index]
+            right_dna_string += nucleotide
+
+        intermediate_value, t_1 = to_number(dna_sequence=right_dna_string)
+        _, t_2 = to_binary(decimal_number=intermediate_value)
+        results.append([t_1, t_2])
+        monitor(repeat + 1, repeats, extra={"step 1": t_1, "step 2": t_2})
+
+    random.seed(None)
+
+    return array(results)

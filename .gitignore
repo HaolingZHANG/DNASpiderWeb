@@ -129,7 +129,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-/experiments/data/*.npy
-/experiments/data/*.pkl
+/experiments/raw/*.npy
+/experiments/raw/*.pkl
 /experiments/show/*.pdf
 /experiments/show/*.xlsx
+/experiments/data/*.xlsx

@@ -9,42 +9,27 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          - v1-dependencies-
-
       - run:
           name: install dependencies
           command: |
             python3 -m venv venv
             . venv/bin/activate
             pip install --upgrade pip
-            pip install -r requirements.txt
-
-      - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-
-      - run:
-          name: install from pypi
-          command: |
-            . venv/bin/activate
-            pip install pycodestyle
-            pip install nose
+            pip install numpy==1.21.2
+            pip install networkx==2.6.3
 
       - run:
           name: temp style
           command: |
             . venv/bin/activate
+            pip install pycodestyle
             pycodestyle --ignore=E501,E203,E731,W503,W292 *.py */*py
-            pip install .
 
       - run:
           name: run tests
           command: |
             . venv/bin/activate
+            pip install nose
             nosetests -v
 
       - run:

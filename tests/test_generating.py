@@ -1,4 +1,4 @@
-from numpy import array, all
+from numpy import array, all, where
 from unittest import TestCase
 
 from dsw import LocalBioFilter, find_vertices, connect_valid_graph, connect_coding_graph
@@ -40,5 +40,5 @@ class TestGenerateCodingGraph(TestCase):
 
     def test(self):
         vertices, graph = connect_coding_graph(observed_length=2, vertices=self.vertices, threshold=1)
-        self.assertEqual(all(self.vertices == vertices.astype(int)), True)
+        self.assertEqual(all(where(self.vertices == 1)[0] == vertices.astype(int)), True)
         self.assertEqual(all(self.coding_graph == graph), True)
