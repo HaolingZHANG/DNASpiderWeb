@@ -26,6 +26,6 @@ class TestShuffles(TestCase):
                 for start_index in self.start_indices:
                     oligo = encode(binary_message=source, accessor=self.accessor,
                                    shuffles=shuffles, start_index=start_index)
-                    target = decode(dna_string=oligo, accessor=self.accessor, bit_length=self.bit_length,
+                    target = decode(dna_sequence=oligo, accessor=self.accessor, bit_length=self.bit_length,
                                     shuffles=shuffles, start_index=start_index)
                     self.assertEqual(all(source == target), True)
