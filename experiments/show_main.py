@@ -26,22 +26,22 @@ def main01():
                 va="center", ha="center", rotation="vertical", fontsize=12)
     pyplot.vlines(0.1, 0, 1, color="#0070C0", lw=1.5)
     ax.add_patch(patches.Circle(xy=(0.5, 0.5), radius=0.200, facecolor="#EEEEEE", edgecolor="#000000", lw=0.75))
-    pyplot.text(0.5, 0.5, r"$\mathcal{D}_4^\ell$", va="center", ha="center", fontsize=14)
-    pyplot.text(0.5, 0.1, "quaternary de Bruijn graph\nof order " + r"$\ell$",
+    pyplot.text(0.5, 0.5, r"$\mathcal{D}_4^k$", va="center", ha="center", fontsize=14)
+    pyplot.text(0.5, 0.1, "quaternary de Bruijn graph\nof order " + r"$k$",
                 va="center", ha="center", fontsize=9)
     pyplot.text(1.0, 0.6, "screen vertices\nby constraint set " + r"$\mathrm{\mathbb{C}}$",
                 va="center", ha="center", color="#0070C0", fontsize=9)
     pyplot.annotate("", xy=(1.2, 0.5), xytext=(0.8, 0.5),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2))
     ax.add_patch(patches.Circle(xy=(1.5, 0.5), radius=0.175, facecolor="#FFE699", edgecolor="#FFC30E", lw=0.75))
-    pyplot.text(1.5, 0.5, r"$\mathcal{D}_\mathrm{\mathbb{C}}^\ell$", va="center", ha="center", fontsize=14)
-    pyplot.text(1.5, 0.1, "a screened subgraph\nof " + r"$\mathcal{D}_4^\ell$", va="center", ha="center", fontsize=9)
+    pyplot.text(1.5, 0.5, r"$\mathcal{D}_\mathrm{\mathbb{C}}^k$", va="center", ha="center", fontsize=14)
+    pyplot.text(1.5, 0.1, "a screened subgraph\nof " + r"$\mathcal{D}_4^k$", va="center", ha="center", fontsize=9)
     pyplot.text(2.0, 0.6, "trim vertices\nthat outgoing arcs < 1",
                 va="center", ha="center", color="#0070C0", fontsize=9)
     pyplot.annotate("", xy=(2.2, 0.5), xytext=(1.8, 0.5),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2))
     ax.add_patch(patches.Circle(xy=(2.5, 0.5), radius=0.150, facecolor="#F6BE98", edgecolor="#EE833A", lw=0.75))
-    pyplot.text(2.5, 0.1, "a trimmed subgraph\nof " + r"$\mathcal{D}_\mathrm{\mathbb{C}}^\ell$",
+    pyplot.text(2.5, 0.1, "a trimmed subgraph\nof " + r"$\mathcal{D}_\mathrm{\mathbb{C}}^k$",
                 va="center", ha="center", fontsize=9)
     pyplot.text(3.5, 0.9, "bind digits for arcs\nby a predetermined partial order",
                 va="center", ha="center", color="#0070C0", fontsize=9)
@@ -81,7 +81,7 @@ def main01():
                 digit += 1
     ax.add_patch(patches.Circle(xy=(4.5, 0.5), radius=0.15, facecolor="#FCBBAE", edgecolor="#ff8D8A", lw=0.75))
     pyplot.text(4.5, 0.485, r"$\mathcal{D}$", va="center", ha="center", fontsize=14)
-    pyplot.text(4.5, 0.1, "coding digraph\nof " + r"$\ell$" + " and " + r"$\mathrm{\mathbb{C}}$",
+    pyplot.text(4.5, 0.1, "coding digraph\nof " + r"$k$" + " and " + r"$\mathrm{\mathbb{C}}$",
                 va="center", ha="center", fontsize=9)
     pyplot.axis("off")
     pyplot.xlim(0, 5)
@@ -91,7 +91,6 @@ def main01():
     pyplot.text(0.03, 0.5, "coding process", color="#0070C0",
                 va="center", ha="center", rotation="vertical", fontsize=12)
     pyplot.vlines(0.1, 0, 1, color="#0070C0", lw=1.5)
-    # pyplot.text(3.6, 0.9, "graph-based encoding", va="center", ha="center", color="#0070C0", fontsize=12)
     pyplot.text(0.5, 0.92, "part of coding digraph", va="center", ha="center", fontsize=10)
     points = array([[0.5, 0.2, 0.4, 0.6, 0.8, 0.5, 0.7, 0.4, 0.6, 0.4, 0.6, 0.8],
                     [0.9, 0.7, 0.7, 0.7, 0.7, 0.5, 0.5, 0.3, 0.3, 0.1, 0.1, 0.1]])
@@ -193,9 +192,6 @@ def main01():
                 va="center", ha="center", rotation="vertical", fontsize=12)
     pyplot.vlines(0.1, 0, 1, color="#0070C0", lw=1.5)
     pyplot.fill_between([0.15, 3.50], 0.05, 0.95, color="#EFEFEF", lw=0)
-    # pyplot.text(3.0, 0.85, "path-based error correcting", va="center", ha="center", color="#0070C0", fontsize=12)
-    # pyplot.text(4.6, 0.50, "pretreatment-free\nretrieval mechanism",
-    #             va="center", ha="center", color="#0070C0", fontsize=12)
     points = array([[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 0.4, 0.6, 0.8, 1.0, 1.2, 0.4, 0.6, 0.8, 1.0, 0.4, 0.6, 0.8],
                     [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.55, 0.55, 0.55, 0.55, 0.55, 0.4, 0.4, 0.4, 0.4, 0.25, 0.25, 0.25]])
     pyplot.scatter(points[0], points[1], color="white", edgecolor="black", lw=0.75, s=30, zorder=2)
