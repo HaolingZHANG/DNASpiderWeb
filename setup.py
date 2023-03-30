@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="DNASpiderWeb",
-    version="1.0",
+    version="1.1",
     description="SPIDER-WEB generates coding algorithms with "
                 "superior error tolerance and real-time information retrieval capacity",
     long_description="DNA has been considered a promising medium for storing digital information. "
@@ -29,7 +29,7 @@ setup(
     packages=["dsw", "tests"],
     install_requires=["numpy", "networkx"],
     license="GPL",
-    classifiers=["License :: OSI Approved :: GNU General Public License (GPL)",
+    classifiers=["License :: BGI Research",
                  "Programming Language :: Python :: 3",
                  "Operating System :: OS Independent"],
     keywords="DNA-based data storage, coding algorithm, automatic algorithm generator, probabilistic error correction",

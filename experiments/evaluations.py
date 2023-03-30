@@ -62,8 +62,8 @@ def evaluate_performance():
             encoded_matrix, nucleotide_numbers = random.randint(0, 2, size=(repeats, bit_length)), []
             for current, start_index in enumerate(vertices[:repeats]):
                 for binary_message in encoded_matrix:
-                    dna_string = encode(binary_message=binary_message, accessor=accessor, start_index=start_index)
-                    nucleotide_numbers.append(len(dna_string))
+                    dna_sequence = encode(binary_message=binary_message, accessor=accessor, start_index=start_index)
+                    nucleotide_numbers.append(len(dna_sequence))
                 monitor(current + 1, repeats)
             results_1.append(bit_length / array(nucleotide_numbers))
         primal_graphs = load_data(load_path="./raw/graph_primal.pkl")
@@ -77,22 +77,22 @@ def evaluate_performance():
             encoded_matrix, nucleotide_numbers, current = random.randint(0, 2, size=(repeats, bit_length)), [], 0
             for mapping in permutations(["A", "C", "G", "T"]):
                 for binary_message in encoded_matrix:
-                    available, quotient, dna_string, monitor = mapping, bit_to_number(binary_message), "", Monitor()
+                    available, quotient, dna_sequence, monitor = mapping, bit_to_number(binary_message), "", Monitor()
                     while quotient != "0":
                         if len(available) > 1:  # current vertex contains information.
                             quotient, remainder = calculus_division(number=quotient, base=str(len(available)))
-                            dna_string += available[int(remainder)]
+                            dna_sequence += available[int(remainder)]
                         elif len(available) == 1:  # current vertex does not contain information.
-                            dna_string += available[0]
+                            dna_sequence += available[0]
                         available = []
                         for potential_nucleotide in mapping:
-                            if bio_filter.valid(dna_string + potential_nucleotide, only_last=True):
+                            if bio_filter.valid(dna_sequence + potential_nucleotide, only_last=True):
                                 available.append(potential_nucleotide)
                         if len(available) == 0:
-                            dna_string = ""
+                            dna_sequence = ""
                             break
-                    if len(dna_string) > 0:
-                        nucleotide_numbers.append(len(dna_string))
+                    if len(dna_sequence) > 0:
+                        nucleotide_numbers.append(len(dna_sequence))
                     else:
                         nucleotide_numbers.append(-1)
 
@@ -149,13 +149,13 @@ def evaluate_correction():
                                                          dna_length=200, observed_length=10,
                                                          accessor=accessor, vertices=vertices, errors=error_number,
                                                          classes=sequence_diversity, established_depth=reads_number)
-                    right_strings, obtained_set = results
-                    right_strings = set(right_strings)
+                    right_sequences, obtained_set = results
+                    right_sequences = set(right_sequences)
                     final_results = sorted(obtained_set.items(), key=lambda sample: sample[1], reverse=True)
                     loss_count, maximum_incorrect, minimum_correct = 0, 0, 50
 
-                    for rank_index, (obtained_string, count) in enumerate(final_results):
-                        if obtained_string not in right_strings:
+                    for rank_index, (obtained_sequence, count) in enumerate(final_results):
+                        if obtained_sequence not in right_sequences:
                             if rank_index < sequence_diversity:
                                 loss_count += 1
                             maximum_incorrect = max([maximum_incorrect, count])
@@ -190,13 +190,13 @@ def evaluate_correction():
                                                              dna_length=200, observed_length=10,
                                                              accessor=accessor, vertices=vertices, errors=error_number,
                                                              classes=sequence_diversity, established_depth=reads_number)
-                        right_strings, obtained_set = results
-                        right_strings = set(right_strings)
+                        right_sequences, obtained_set = results
+                        right_sequences = set(right_sequences)
                         final_results = sorted(obtained_set.items(), key=lambda sample: sample[1], reverse=True)
                         success_count = sequence_diversity
 
-                        for rank_index, (obtained_string, count) in enumerate(final_results):
-                            if obtained_string not in right_strings:
+                        for rank_index, (obtained_sequence, count) in enumerate(final_results):
+                            if obtained_sequence not in right_sequences:
                                 if rank_index < sequence_diversity:
                                     success_count -= 1
 
@@ -238,13 +238,13 @@ def evaluate_correction():
                                                              dna_length=200, observed_length=10,
                                                              accessor=accessor, vertices=vertices, errors=error_number,
                                                              classes=sequence_diversity, established_depth=reads_number)
-                        right_strings, obtained_set = results
-                        right_strings = set(right_strings)
+                        right_sequences, obtained_set = results
+                        right_sequences = set(right_sequences)
                         final_results = sorted(obtained_set.items(), key=lambda sample: sample[1], reverse=True)
 
                         maximum_incorrect = 0
-                        for obtained_string, count in final_results:
-                            if obtained_string not in right_strings:
+                        for obtained_sequence, count in final_results:
+                            if obtained_sequence not in right_sequences:
                                 maximum_incorrect = max([maximum_incorrect, count])
                                 break
                         maximum_incorrect_group.append(maximum_incorrect)

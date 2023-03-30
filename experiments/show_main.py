@@ -36,7 +36,7 @@ def main01():
     ax.add_patch(patches.Circle(xy=(1.5, 0.5), radius=0.175, facecolor="#FFE699", edgecolor="#FFC30E", lw=0.75))
     pyplot.text(1.5, 0.5, r"$\mathcal{D}_\mathrm{\mathbb{C}}^\ell$", va="center", ha="center", fontsize=14)
     pyplot.text(1.5, 0.1, "a screened subgraph\nof " + r"$\mathcal{D}_4^\ell$", va="center", ha="center", fontsize=9)
-    pyplot.text(2.0, 0.6, "trim vertices\nthat outgoing arcs < 2",
+    pyplot.text(2.0, 0.6, "trim vertices\nthat outgoing arcs < 1",
                 va="center", ha="center", color="#0070C0", fontsize=9)
     pyplot.annotate("", xy=(2.2, 0.5), xytext=(1.8, 0.5),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2))
@@ -294,7 +294,7 @@ def main01():
                             arrowprops=dict(arrowstyle="<|-", color="k", shrinkA=3, shrinkB=4, lw=0.75))
     pyplot.annotate("", xy=(2.75, 0.5), xytext=(2.45, 0.5),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2))
-    pyplot.text(2.6, 0.6, "generate\nVT-check", va="center", ha="center", color="#0070C0", fontsize=9)
+    pyplot.text(2.6, 0.6, "implement\nVT-check", va="center", ha="center", color="#0070C0", fontsize=9)
     random.seed(2021)
     orders = arange(8)
     random.shuffle(orders)
@@ -415,21 +415,21 @@ def main02():
             pyplot.text(location[0] + 0.025, location[1] - 0.005, info[3],
                         color="w", va="center", ha="center", fontsize=7.5, zorder=3)
 
-    pyplot.scatter([0.1], [0.1], color="white", edgecolor="black", s=20, lw=1)
-    pyplot.text(0.13, 0.1, "vertex", va="center", ha="left", fontsize=8)
-    pyplot.annotate(s="", xy=(0.3, 0.14), xytext=(0.4, 0.14), zorder=1,
+    pyplot.scatter([0.05], [0.1], color="white", edgecolor="black", s=20, lw=1)
+    pyplot.text(0.08, 0.1, "vertex", va="center", ha="left", fontsize=8)
+    pyplot.annotate(s="", xy=(0.25, 0.14), xytext=(0.35, 0.14), zorder=1,
                     arrowprops=dict(arrowstyle="<|-", color="black", lw=1))
-    pyplot.annotate(s="", xy=(0.3, 0.06), xytext=(0.4, 0.06), zorder=1,
+    pyplot.annotate(s="", xy=(0.25, 0.06), xytext=(0.35, 0.06), zorder=1,
                     arrowprops=dict(arrowstyle="<|-", color="red", lw=1))
-    pyplot.text(0.4, 0.14, "normal arc", va="center", ha="left", fontsize=8)
-    pyplot.text(0.4, 0.06, "access arc (error found)", va="center", ha="left", fontsize=8)
+    pyplot.text(0.35, 0.14, "normal arc", va="center", ha="left", fontsize=8)
+    pyplot.text(0.35, 0.06, "access arc (error found)", va="center", ha="left", fontsize=8)
     pyplot.fill_between([0.7 - 0.017, 0.7 + 0.017], 0.14 - 0.015, 0.14 + 0.018, lw=0, color="lightblue")
-    pyplot.text(0.7, 0.14, "N", va="center", ha="center", fontsize=8)
-    pyplot.text(0.73, 0.14, "adjust (substitute/insert/delete) by N", va="center", ha="left", fontsize=8)
-    pyplot.text(0.95, 0.06, "N", va="center", ha="center", color="r", fontsize=8)
-    pyplot.text(0.98, 0.06, "nucleotide error", va="center", ha="left", fontsize=8)
+    pyplot.text(0.66, 0.14, "N", va="center", ha="center", fontsize=8)
+    pyplot.text(0.70, 0.14, "adjust (substitute/insert/delete) by N", va="center", ha="left", fontsize=8)
+    pyplot.text(0.94, 0.06, "N", va="center", ha="center", color="r", fontsize=8)
+    pyplot.text(1.00, 0.06, "detected wrong N", va="center", ha="left", fontsize=8)
 
-    pyplot.text(1.0, 0.58, "produce a\nsequence", va="center", ha="center", color="#0070C0", fontsize=9)
+    pyplot.text(1.0, 0.58, "produce a\nsequence", va="center", ha="center", color="#0070C0", fontsize=8.5)
     pyplot.annotate("", xy=(1.15, 0.5), xytext=(0.85, 0.5),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2))
     length = 0.1
@@ -450,7 +450,7 @@ def main02():
                 pyplot.text(start + index * 0.03, 0.5, nucleotide, color="r", va="center", ha="center", fontsize=8)
             else:
                 pyplot.text(start + index * 0.03, 0.5, nucleotide, va="center", ha="center", fontsize=8)
-    pyplot.text(1.53, 0.69, "find error\nand correct", va="center", ha="center", color="#0070C0", fontsize=9)
+    pyplot.text(1.53, 0.69, "find error\nand correct", va="center", ha="center", color="#0070C0", fontsize=8.5)
     pyplot.annotate("", xy=(1.75, 0.675), xytext=(1.6, 0.55),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2, connectionstyle="arc3,rad=-0.2"))
     pyplot.text(1.57, 1.1, "G", va="center", ha="center", fontsize=8)
@@ -458,11 +458,11 @@ def main02():
     pyplot.text(1.63, 1.1, "T", va="center", ha="center", fontsize=8)
     pyplot.annotate("", xy=(1.54, 1.1), xytext=(1.25, 0.55),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2, connectionstyle="arc3,rad=-0.3"))
-    pyplot.text(1.2, 1.0, "generate\nVT-check",
-                va="center", ha="center", color="#0070C0", fontsize=9)
+    pyplot.text(1.2, 1.0, "implement\nVT-check",
+                va="center", ha="center", color="#0070C0", fontsize=8.5)
     pyplot.annotate("", xy=(3.73, 1.03), xytext=(1.65, 1.1),
                     arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2, connectionstyle="arc3,rad=-0.03"))
-    pyplot.text(3.55, 1.1, "sieve solutions", va="center", ha="center", color="#0070C0", fontsize=9)
+    pyplot.text(3.55, 1.1, "sieve solutions", va="center", ha="center", color="#0070C0", fontsize=8.5)
     pyplot.fill_between([1.75, 4.00], 0, 1.0, color="#EEEEEE", zorder=0)
     pyplot.text(2.10, 0.95, "exhaustive", va="center", ha="center", fontsize=9)
     pyplot.text(1.88, 0.82, "local\nand\nreverse", va="center", ha="center", fontsize=9)
@@ -473,15 +473,15 @@ def main02():
     pyplot.hlines(0.86, 2.15, 2.65, color="black", lw=0.75)
     pyplot.hlines(0.86, 2.75, 3.25, color="black", lw=0.75)
     pyplot.hlines(0.86, 3.35, 3.55, color="black", lw=0.75)
-    pyplot.text(2.40, 0.88, "substitute", va="center", ha="center", fontsize=9)
-    pyplot.text(3.00, 0.88, "insert", va="center", ha="center", fontsize=9)
-    pyplot.text(3.45, 0.88, "delete", va="center", ha="center", fontsize=9)
+    pyplot.text(2.40, 0.88, "substitute", va="center", ha="center", fontsize=8.5)
+    pyplot.text(3.00, 0.88, "insert", va="center", ha="center", fontsize=8.5)
+    pyplot.text(3.45, 0.88, "delete", va="center", ha="center", fontsize=8.5)
     pyplot.vlines(2.08, 0.575, 0.775, lw=0.75)
     pyplot.vlines(2.08, 0.310, 0.510, lw=0.75)
     pyplot.vlines(2.08, 0.025, 0.225, lw=0.75)
-    pyplot.text(2.06, 0.675, "(+0) position", va="center", ha="right", fontsize=9)
-    pyplot.text(2.06, 0.410, "(\N{MINUS SIGN}1) position", va="center", ha="right", fontsize=9)
-    pyplot.text(2.06, 0.125, "(\N{MINUS SIGN}2) position", va="center", ha="right", fontsize=9)
+    pyplot.text(2.06, 0.675, "(+0) position", va="center", ha="right", fontsize=8.5)
+    pyplot.text(2.06, 0.410, "(\N{MINUS SIGN}1) position", va="center", ha="right", fontsize=8.5)
+    pyplot.text(2.06, 0.125, "(\N{MINUS SIGN}2) position", va="center", ha="right", fontsize=8.5)
     for center, select, highlight, sequence, change in zip([(2.25, 0.675), (2.25, 0.410), (2.25, 0.125), (2.55, 0.675),
                                                             (2.85, 0.675), (2.85, 0.410), (2.85, 0.125),
                                                             (3.15, 0.675), (3.15, 0.410), (3.15, 0.125),
@@ -544,8 +544,8 @@ def main02():
                         nucleotide, va="center", ha="center", fontsize=8)
         pyplot.annotate("", xy=(3.73, 0.9 - (index * 0.4)), xytext=(3.73, 0.6 - (index * 0.4)),
                         arrowprops=dict(arrowstyle="-|>", color="#0070C0", lw=2, shrinkA=9, shrinkB=9))
-        pyplot.text(3.88, 0.75 - (index * 0.4), "generate\nVT-check",
-                    va="center", ha="center", color="#0070C0", fontsize=9)
+        pyplot.text(3.88, 0.75 - (index * 0.4), "implement\nVT-check",
+                    va="center", ha="center", color="#0070C0", fontsize=8.5)
         for location, nucleotide in enumerate(sequence_2):
             if index == 0 and location == 0:
                 pyplot.text(3.7 + location * 0.03, 0.9 - (index * 0.4),
@@ -554,7 +554,7 @@ def main02():
                 pyplot.text(3.7 + location * 0.03, 0.9 - (index * 0.4),
                             nucleotide, va="center", ha="center", fontsize=8)
     pyplot.plot([3.63, 3.82, 3.82, 3.63, 3.63], [0.24, 0.24, 0.17, 0.17, 0.24], color="#0070C0", lw=0.75)
-    pyplot.text(3.73, 0.1, "solution", va="center", ha="center", color="#0070C0", fontsize=9)
+    pyplot.text(3.73, 0.1, "solution", va="center", ha="center", color="#0070C0", fontsize=8.5)
     pyplot.axis("off")
     pyplot.xlim(0.0, 4.0)
     pyplot.ylim(-0.05, 1.15)
@@ -881,7 +881,7 @@ def main04():
 
 
 if __name__ == "__main__":
-    main01()
+    # main01()
     main02()
-    main03()
-    main04()
+    # main03()
+    # main04()
