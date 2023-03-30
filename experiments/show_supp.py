@@ -1,6 +1,7 @@
+from collections import Counter
 from logging import getLogger, CRITICAL
 from matplotlib import pyplot, rcParams, patches
-from numpy import array, arange, ones, zeros_like, linspace, random, median, where
+from numpy import array, arange, zeros, ones, zeros_like, linspace, random, median, where
 from numpy import min, max, mean, sum, std, abs, sqrt, log2, log10, percentile, polyfit
 from openpyxl import Workbook
 from scipy.stats import gaussian_kde
@@ -505,6 +506,36 @@ def supp15():
 
 
 def supp16():
+    filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+    coding_graphs = load_data(load_path="./raw/graph_coding.pkl")
+    follow_ups = zeros(shape=(12, 3))
+    for index, filter_index in enumerate(filter_indices):
+        accessor = coding_graphs[filter_index]
+        out_degrees, counts = array(list(Counter(where(accessor >= 0)[0]).values())), zeros(shape=(3,), dtype=float)
+        for out_degree in [2, 3, 4]:
+            counts[out_degree - 2] = len(where(out_degrees == out_degree)[0])
+        counts /= sum(counts)
+        follow_ups[index] = counts
+
+    figure = pyplot.figure(figsize=(10, 6), tight_layout=True)
+    gradient_colors = pyplot.get_cmap("RdYlGn")(linspace(0, 1, 12))
+    for index, filter_index in enumerate(filter_indices):
+        lengths = linspace(0, 256, 257)
+        rate = follow_ups[index][0] * log2(2.0) + follow_ups[index][1] * log2(6.0) + follow_ups[index][2] * log2(24.0)
+        pyplot.plot(lengths, lengths * rate, color=gradient_colors[index], lw=3, zorder=2,
+                    label="constraint [" + filter_index + "]")
+    pyplot.legend(loc="lower right", ncol=3, fontsize=9)
+    pyplot.xlabel("length of DNA sequence", fontsize=10)
+    pyplot.ylabel("combination size", fontsize=10)
+    pyplot.xticks([0, 64, 128, 192, 256], [0, 64, 128, 192, 256], fontsize=10)
+    pyplot.yticks([0, 64, 128, 192, 256], ["2^0", "2^64", "2^128", "2^192", "2^256"], fontsize=10)
+    pyplot.xlim(0, 256)
+    pyplot.ylim(0, 256)
+    pyplot.savefig("./show/supp16.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.close()
+
+
+def supp17():
     record = load_data(load_path="./raw/capacity_evaluation.pkl")
 
     data, errors = record["detail"]
@@ -630,7 +661,7 @@ def supp16():
     figure.text(0.024, 0.66, "b", va="center", ha="center", fontsize=14)
     figure.text(0.024, 0.34, "c", va="center", ha="center", fontsize=14)
 
-    pyplot.savefig("./show/supp16.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp17.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -651,3 +682,4 @@ if __name__ == "__main__":
     supp14()
     supp15()
     supp16()
+    supp17()

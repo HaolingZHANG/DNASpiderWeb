@@ -28,7 +28,7 @@ def trans_fountain(dataset, shape, index_length, random_seed, param_number):
     class Code(DNAFountain):
 
         def trans(self, bit_arrays, screen, false_threshold):
-            lfsr, used_seeds, dna_strings, monitor = DNAFountain.LFSR().lfsr_s_p(), dict(), [], Monitor()
+            lfsr, used_seeds, dna_sequences, monitor = DNAFountain.LFSR().lfsr_s_p(), dict(), [], Monitor()
             check_bit_arrays, done_bit_arrays, chunk_to_droplets = [None] * len(bit_arrays), set(), defaultdict(set)
             self.prng = DNAFountain.PRNG(number=len(bit_arrays), delta=self.delta, c=self.c_dist)
             false_times = 0
@@ -39,15 +39,15 @@ def trans_fountain(dataset, shape, index_length, random_seed, param_number):
                     continue
 
                 droplet = DNAFountain.Droplet()
-                dna_string = "".join(droplet.get_dna(seed, self.prng, bit_arrays, self.header_size))
+                dna_sequence = "".join(droplet.get_dna(seed, self.prng, bit_arrays, self.header_size))
 
-                if screen.valid(dna_string=dna_string, only_last=False):  # calculate local biochemical constraints
+                if screen.valid(dna_sequence=dna_sequence, only_last=False):  # calculate local biochemical constraints
                     false_times = 0
-                    dna_strings.append(dna_string)
+                    dna_sequences.append(dna_sequence)
 
                     # decode synchronously.
                     droplet = DNAFountain.Droplet()
-                    droplet.init_binaries(self.prng, dna_string, self.header_size)
+                    droplet.init_binaries(self.prng, dna_sequence, self.header_size)
                     for chunk_num in droplet.chuck_indices:
                         chunk_to_droplets[chunk_num].add(droplet)
                     self.update_droplets(droplet, check_bit_arrays, done_bit_arrays, chunk_to_droplets)
@@ -57,7 +57,7 @@ def trans_fountain(dataset, shape, index_length, random_seed, param_number):
                 monitor(len(done_bit_arrays), len(bit_arrays))
 
                 if len(done_bit_arrays) == len(bit_arrays):
-                    return dna_strings
+                    return dna_sequences
 
                 if false_times >= false_threshold:
                     monitor(len(bit_arrays), len(bit_arrays))
@@ -75,10 +75,11 @@ def trans_fountain(dataset, shape, index_length, random_seed, param_number):
                 matrix = data.reshape(shape)
                 print("task (" + str(current + 1) + " / " + str(total) + ").")
                 method = Code(c_dist=c, delta=delta, header_size=header_size)
-                obtained_dna_strings = method.trans(bit_arrays=matrix.tolist(), screen=bio_filter, false_threshold=1e6)
+                obtained_dna_sequences = method.trans(bit_arrays=matrix.tolist(), screen=bio_filter,
+                                                      false_threshold=1e6)
 
-                if len(obtained_dna_strings) > 0:
-                    nucleotide_number = sum([len(dna_string) for dna_string in obtained_dna_strings])
+                if len(obtained_dna_sequences) > 0:
+                    nucleotide_number = sum([len(dna_sequence) for dna_sequence in obtained_dna_sequences])
                     records.append([1, int(filter_index), parameter_index, data_index,
                                     (8 * 1024 * 64) / float(nucleotide_number)])
                 else:
@@ -94,42 +95,42 @@ def trans_yinyang(dataset, shape, index_length, random_seed, param_number):
     class Code(YinYangCode):
 
         def trans(self, bit_arrays, screen):
-            total_count, dna_strings, monitor = len(bit_arrays), [], Monitor()
+            total_count, dna_sequences, monitor = len(bit_arrays), [], Monitor()
             while len(bit_arrays) > 0:
                 fixed_bit_segment, is_finish = bit_arrays.pop(), False
                 for pair_time in range(self.max_iterations):
                     if len(bit_arrays) > 0:
                         selected_index = random.randint(0, len(bit_arrays))
-                        selected_bit_array, dna_string = bit_arrays[selected_index], [[], []]
+                        selected_bit_array, dna_sequence = bit_arrays[selected_index], [[], []]
                         support_nucleotide_1, support_nucleotide_2 = self.virtual_nucleotide, self.virtual_nucleotide
 
                         for bit_1, bit_2 in zip(fixed_bit_segment, selected_bit_array):
                             current_nucleotide_1 = self._bits_to_nucleotide(bit_1, bit_2, support_nucleotide_1)
                             current_nucleotide_2 = self._bits_to_nucleotide(bit_2, bit_1, support_nucleotide_2)
-                            dna_string[0].append(current_nucleotide_1)
-                            dna_string[1].append(current_nucleotide_2)
+                            dna_sequence[0].append(current_nucleotide_1)
+                            dna_sequence[1].append(current_nucleotide_2)
                             support_nucleotide_1, support_nucleotide_2 = current_nucleotide_1, current_nucleotide_2
-                        dna_string = ["".join(dna_string[0]), "".join(dna_string[1])]
+                        dna_sequence = ["".join(dna_sequence[0]), "".join(dna_sequence[1])]
 
-                        if screen.valid(dna_string=dna_string[0], only_last=False):  # calculate local constraints.
+                        if screen.valid(dna_sequence=dna_sequence[0], only_last=False):  # calculate local constraints.
                             is_finish = True
-                            dna_strings.append(dna_string[0])
+                            dna_sequences.append(dna_sequence[0])
                             del bit_arrays[selected_index]
                             break
 
-                        if screen.valid(dna_string=dna_string[1], only_last=False):  # calculate local constraints.
+                        if screen.valid(dna_sequence=dna_sequence[1], only_last=False):  # calculate local constraints.
                             is_finish = True
-                            dna_strings.append(dna_string[1])
+                            dna_sequences.append(dna_sequence[1])
                             del bit_arrays[selected_index]
                             break
 
                 if not is_finish:
                     # ignore random strategy for faster transcoding (getting show).
-                    dna_strings.append("A" * len(fixed_bit_segment))
+                    dna_sequences.append("A" * len(fixed_bit_segment))
 
                 monitor(total_count - len(bit_arrays), total_count)
 
-            return dna_strings
+            return dna_sequences
 
     # load Yin-Yang Code rule based on the rule index.
     def find_rule_parameters(index):
@@ -160,8 +161,8 @@ def trans_yinyang(dataset, shape, index_length, random_seed, param_number):
                 random.seed(random_seed)
                 yang_rule, yin_rule, virtual_nucleotide = find_rule_parameters(index=rule_index)
                 method = Code(yang_rule=yang_rule, yin_rule=yin_rule, virtual_nucleotide=virtual_nucleotide)
-                obtained_dna_strings = method.trans(bit_arrays=matrix.tolist(), screen=bio_filter)
-                nucleotide_number = sum([len(dna_string) for dna_string in obtained_dna_strings])
+                obtained_dna_sequences = method.trans(bit_arrays=matrix.tolist(), screen=bio_filter)
+                nucleotide_number = sum([len(dna_sequence) for dna_sequence in obtained_dna_sequences])
                 records.append([2, int(filter_index) - 1, param_index, data_index,
                                 (8 * 1024 * 64) / float(nucleotide_number)])
                 current += 1
@@ -199,17 +200,17 @@ def trans_hedges(dataset, shape, index_length):
 
     class HypothesisNode:
 
-        def __init__(self, pattern_flag, message, string):
-            self.pattern_flag, self.message, self.string = pattern_flag, message, string
+        def __init__(self, pattern_flag, message, sequence):
+            self.pattern_flag, self.message, self.sequence = pattern_flag, message, sequence
 
-        def next(self, whole_string, nucleotide_index, current_score, pattern, used_filter, salt_value,
+        def next(self, whole_sequence, nucleotide_index, current_score, pattern, used_filter, salt_value,
                  correct_penalty, mutate_penalty, insert_penalty, delete_penalty):
             follow_vertices, follow_scores, follow_indices = [], [], []
 
             # collect the available nucleotides in this location.
             available_nucleotides = []
             for potential_nucleotide in ["A", "C", "G", "T"]:
-                if used_filter.valid(self.string + potential_nucleotide, only_last=True):
+                if used_filter.valid(self.sequence + potential_nucleotide, only_last=True):
                     available_nucleotides.append(potential_nucleotide)
 
             if len(available_nucleotides) == 0:  # this path is blocked, stop running.
@@ -228,9 +229,9 @@ def trans_hedges(dataset, shape, index_length):
                 hash_value = hash_function(location_value | previous_value | salt_value)
                 bit_value = bit_to_number(list(message_bit), is_string=False) if len(message_bit) > 0 else 0
                 nucleotide = available_nucleotides[(hash_value + bit_value) % len(available_nucleotides)]
-                message, string = self.message + list(message_bit), self.string + nucleotide
-                node = HypothesisNode((self.pattern_flag + 1) % len(pattern), message, string)
-                if nucleotide == whole_string[nucleotide_index]:  # assume that current nucleotide is correct.
+                message, sequence = self.message + list(message_bit), self.sequence + nucleotide
+                node = HypothesisNode((self.pattern_flag + 1) % len(pattern), message, sequence)
+                if nucleotide == whole_sequence[nucleotide_index]:  # assume that current nucleotide is correct.
                     follow_vertices.append(node)
                     follow_scores.append(current_score + correct_penalty)
                     follow_indices.append(nucleotide_index + 1)
@@ -241,7 +242,8 @@ def trans_hedges(dataset, shape, index_length):
                     follow_indices.append(nucleotide_index + 1)
 
                     # assume that current nucleotide is inserted, the (i + 1)-th nucleotide is i-th nucleotide.
-                    if nucleotide_index + 1 < len(whole_string) and nucleotide == whole_string[nucleotide_index + 1]:
+                    if nucleotide_index + 1 < len(whole_sequence) and \
+                            nucleotide == whole_sequence[nucleotide_index + 1]:
                         follow_vertices.append(node)
                         follow_scores.append(current_score + insert_penalty)
                         follow_indices.append(nucleotide_index + 2)
@@ -254,7 +256,7 @@ def trans_hedges(dataset, shape, index_length):
             return follow_vertices, follow_scores, follow_indices, [len(v.message) for v in follow_vertices]
 
     def hedges_encode(binary_message, strand_index, pattern, used_filter):
-        dna_string, available_nucleotides, bit_location, pattern_flag = "", ["A", "C", "G", "T"], 0, 0
+        dna_sequence, available_nucleotides, bit_location, pattern_flag = "", ["A", "C", "G", "T"], 0, 0
         salt_value = strand_index % (2 ** salt_number)  # s bits of salt (strand ID).
         while bit_location < len(binary_message):
             # low-order q bits of the bit position index i.
@@ -275,19 +277,19 @@ def trans_hedges(dataset, shape, index_length):
                 bit_location += bit_number
                 pattern_flag = (pattern_flag + 1) % len(pattern)
             else:
-                raise ValueError("DNA string (index = " + str(strand_index) + ") "
+                raise ValueError("DNA sequence (index = " + str(strand_index) + ") "
                                  + "cannot be encoded because of the established constraints!")
 
-            dna_string += nucleotide
+            dna_sequence += nucleotide
 
             available_nucleotides = []
             for potential_nucleotide in ["A", "C", "G", "T"]:
-                if used_filter.valid(dna_string + potential_nucleotide, only_last=True):
+                if used_filter.valid(dna_sequence + potential_nucleotide, only_last=True):
                     available_nucleotides.append(potential_nucleotide)
 
-        return dna_string
+        return dna_sequence
 
-    def hedges_decode(dna_string, strand_index, bit_length, pattern, used_filter, initial_score, heap_limitation,
+    def hedges_decode(dna_sequence, strand_index, bit_length, pattern, used_filter, initial_score, heap_limitation,
                       correct_penalty, mutate_penalty, insert_penalty, delete_penalty):
         monitor, terminal_indices, heap_size = Monitor(), None, 1
         heap = {"v": [HypothesisNode(0, [], "")], "s": [initial_score], "i": [0], "l": [0]}  # priority heap
@@ -297,14 +299,14 @@ def trans_hedges(dataset, shape, index_length):
 
             for chuck_index in chuck_indices:
                 # noinspection PyTypeChecker
-                heap["s"][chuck_index] = len(dna_string) + 1  # set the chuck vertex to inaccessible.
+                heap["s"][chuck_index] = len(dna_sequence) + 1  # set the chuck vertex to inaccessible.
                 heap_size -= 1
 
-                if heap["i"][chuck_index] >= len(dna_string):
+                if heap["i"][chuck_index] >= len(dna_sequence):
                     continue
 
                 # noinspection PyUnresolvedReferences
-                follow_info = heap["v"][chuck_index].next(dna_string, heap["i"][chuck_index], chuck_score,
+                follow_info = heap["v"][chuck_index].next(dna_sequence, heap["i"][chuck_index], chuck_score,
                                                           pattern, used_filter, strand_index % (2 ** salt_number),
                                                           correct_penalty, mutate_penalty, insert_penalty,
                                                           delete_penalty)
@@ -314,16 +316,17 @@ def trans_hedges(dataset, shape, index_length):
                 heap["s"], heap["i"] = heap["s"] + follow_info[1], heap["i"] + follow_info[2]
 
                 current_process = heap["i"][chuck_index] + 1
-                monitor(current_process, len(dna_string), extra={"size": len(heap["v"]), "score": "%.2f" % chuck_score})
+                monitor(current_process, len(dna_sequence),
+                        extra={"size": len(heap["v"]), "score": "%.2f" % chuck_score})
 
                 # the first chain of hypotheses to decode the required bytes of message wins.
                 if bit_length == max(heap["l"]) or heap_size >= heap_limitation:
-                    if current_process < len(dna_string):
+                    if current_process < len(dna_sequence):
                         print()  # not finish.
 
                     candidates = []
                     for terminal_index in where(array(heap["l"]) == bit_length)[0]:
-                        candidates.append((heap["v"][terminal_index].message, heap["v"][terminal_index].string))
+                        candidates.append((heap["v"][terminal_index].message, heap["v"][terminal_index].sequence))
 
                     return candidates, heap_size, current_process
 
@@ -335,14 +338,14 @@ def trans_hedges(dataset, shape, index_length):
                 print("task (" + str(current + 1) + " / " + str(total) + ").")
                 nucleotide_number, miss_flag = 0, False
                 for index, bit_array in enumerate(matrix):
-                    encoded_string = hedges_encode(binary_message=bit_array, strand_index=index,
-                                                   pattern=p, used_filter=bio_filter)
-                    nucleotide_number += len(encoded_string)
-                    decoded_info = hedges_decode(dna_string=encoded_string, strand_index=index,
+                    encoded_sequence = hedges_encode(binary_message=bit_array, strand_index=index,
+                                                     pattern=p, used_filter=bio_filter)
+                    nucleotide_number += len(encoded_sequence)
+                    decoded_info = hedges_decode(dna_sequence=encoded_sequence, strand_index=index,
                                                  bit_length=len(bit_array), pattern=p, used_filter=bio_filter,
                                                  initial_score=0, heap_limitation=1e5, correct_penalty=c_penalty,
                                                  mutate_penalty=1.0, insert_penalty=1.0, delete_penalty=1.0)
-                    if encoded_string not in decoded_info[0]:
+                    if encoded_sequence not in decoded_info[0]:
                         miss_flag = True
                         break
 
@@ -376,8 +379,8 @@ def trans_spiderweb(dataset, shape, index_length, random_seed, param_number):
                 nucleotide_number, monitor = 0, Monitor()
 
                 for index, binary_message in enumerate(matrix):
-                    dna_string = encode(binary_message=matrix, accessor=accessor, start_index=start_index)
-                    nucleotide_number += len(dna_string)
+                    dna_sequence = encode(binary_message=matrix, accessor=accessor, start_index=start_index)
+                    nucleotide_number += len(dna_sequence)
                     monitor(index + 1, len(matrix))
 
                 records.append([4, int(filter_index) - 1, param_index, data_index,
@@ -496,15 +499,15 @@ def conversion_step(accessor, dna_length, start_index, repeats, random_seed):
 
     results, monitor = [], Monitor()
     for repeat in range(repeats):
-        # create ideal DNA string randomly.
-        vertex_index, right_dna_string = start_index, ""
+        # create ideal DNA sequence randomly.
+        vertex_index, right_dna_sequence = start_index, ""
         for location in range(dna_length):
             used_indices = where(accessor[vertex_index] >= 0)[0]
             used_index = random.choice(used_indices)
             nucleotide, vertex_index = nucleotides[used_index], accessor[vertex_index][used_index]
-            right_dna_string += nucleotide
+            right_dna_sequence += nucleotide
 
-        intermediate_value, t_1 = to_number(dna_sequence=right_dna_string)
+        intermediate_value, t_1 = to_number(dna_sequence=right_dna_sequence)
         _, t_2 = to_binary(decimal_number=intermediate_value)
         results.append([t_1, t_2])
         monitor(repeat + 1, repeats, extra={"step 1": t_1, "step 2": t_2})
