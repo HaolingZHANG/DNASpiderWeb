@@ -51,7 +51,7 @@ In addition, the module usage and customization information are shown on the
 [ReadtheDocs website](https://dnaspiderweb.readthedocs.io/en/latest/index.html).
 
 If you are interested in detailed design, evaluations, conclusions, mathematical proofs, and implementations, 
-please refer to our [publication](https://arxiv.org/pdf/2204.02855.pdf).
+please refer to our [publication](https://arxiv.org/abs/2204.02855v3).
 
 ## Repository Structure
 The structure of this library is shown below:
