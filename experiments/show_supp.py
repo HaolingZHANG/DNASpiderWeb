@@ -24,12 +24,32 @@ rcParams["mathtext.bf"] = "Linux Libertine:bold"
 
 
 def supp01():
+    book = Workbook()
+    sheet = book.create_sheet(title="supp01", index=0)
+
+    sheet.append(["micro-organism", "undesired motifs"])
+    sheet.append(["Bacillus subtilis", "GTCGAC"])
+    sheet.append(["Bifidobacterium bifidum", "CTGCAG"])
+    sheet.append(["Escherichia coli", "CAGCAG and GATATC"])
+    sheet.append(["Gluconobacter dioxyacetonicus", "AGGCCT"])
+    sheet.append(["Haemophilus gallinarum ", "GACGC"])
+    sheet.append(["Klebsiella pneumoniae", "GGTACC"])
+    sheet.append(["Oerskovia xanthineolytica", "AGCT"])
+    sheet.append(["Streptomyces achromogenes", "ACTAGT"])
+    sheet.append(["Streptomyces caespitosus", "AGTACT"])
+    sheet.append(["Streptomyces phaeochromogenes", "GCATGC"])
+    sheet.append(["Streptomyces stanford", "GAGCTC"])
+    sheet.append(["Xanthomonas badrii", "TCTAGA"])
+
+    book.save("./show/supp01.xlsx")
+
+
+def supp02():
     capacities, _ = load_data(load_path="./raw/capacity_reference.pkl")
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp01", index=0)
-    sheet.append(["set index", "homopolymer run-length", "regionalized GC content", "undesired motifs",
-                  "capacity"])
+    sheet = book.create_sheet(title="supp02", index=0)
+    sheet.append(["set index", "homopolymer run-length", "regionalized GC content", "undesired motifs", "capacity"])
 
     for constraint_index, bio_filter in local_bio_filters.items():
         save_data = [constraint_index]
@@ -65,10 +85,10 @@ def supp01():
 
         sheet.append(save_data)
 
-    book.save("./show/supp01.xlsx")
+    book.save("./show/supp02.xlsx")
 
 
-def supp02():
+def supp03():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     colors = pyplot.get_cmap("Set3")(linspace(0, 1, 12))
     record = load_data(load_path="./raw/generation_evaluation.pkl")
@@ -93,11 +113,11 @@ def supp02():
     # noinspection PyUnresolvedReferences
     ax.spines["right"].set_visible(False)
 
-    pyplot.savefig("./show/supp02.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp03.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp03():
+def supp04():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     colors = pyplot.get_cmap("Set3")(linspace(0, 1, 12))
     record = load_data(load_path="./raw/generation_evaluation.pkl")
@@ -123,16 +143,16 @@ def supp03():
     # noinspection PyUnresolvedReferences
     ax.spines["right"].set_visible(False)
 
-    pyplot.savefig("./show/supp03.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp04.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp04():
+def supp05():
     record = load_data(load_path="./raw/generation_evaluation.pkl")
     change_data = record["change"]
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp04", index=0)
+    sheet = book.create_sheet(title="supp05", index=0)
     sheet.append(["trimming cycle",
                   "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12"])
     for cycle_index in range(13):
@@ -145,10 +165,10 @@ def supp04():
                 values.append("")
         sheet.append(values)
 
-    book.save("./show/supp04.xlsx")
+    book.save("./show/supp05.xlsx")
 
 
-def supp05():
+def supp06():
     random_seed, param_number = 2021, 100
 
     random.seed(random_seed)
@@ -167,7 +187,7 @@ def supp05():
     hedges_params = array(hedges_params).tolist()
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp05", index=0)
+    sheet = book.create_sheet(title="supp06", index=0)
     sheet.append(["param index", "DNA Fountain", "", "Yin-Yang Code", "HEDGES", ""])
     sheet.append(["", "c", "delta", "rule id", "pattern", "correct penalty"])
     for param_index in range(param_number):
@@ -184,10 +204,10 @@ def supp05():
 
         sheet.append(record)
 
-    book.save("./show/supp05.xlsx")
+    book.save("./show/supp06.xlsx")
 
 
-def supp06():
+def supp07():
     random_seed, param_number = 2021, 100
 
     spiderweb_params = []
@@ -201,7 +221,7 @@ def supp06():
     spiderweb_params = array(spiderweb_params).T.tolist()
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp08", index=0)
+    sheet = book.create_sheet(title="supp07", index=0)
     sheet.append(["param index", "SPIDER-WEB", "", "", "", "", "", "", "", "", "", "", ""])
     sheet.append(["", "C01", "C02", "C03", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C11", "C12"])
     for param_index in range(param_number):
@@ -211,16 +231,16 @@ def supp06():
 
         sheet.append(record)
 
-    book.save("./show/supp06.xlsx")
+    book.save("./show/supp07.xlsx")
 
 
-def supp07():
+def supp08():
     display_data = [[[] for _ in range(4)] for _ in range(12)]
     record = load_data(load_path="./raw/coding_evaluation_1.pkl")
     for algorithm_index, filter_index, _, _, code_rate in record:
         display_data[int(filter_index - 1)][int(algorithm_index - 1)].append(code_rate)
     book = Workbook()
-    sheet = book.create_sheet(title="supp07", index=0)
+    sheet = book.create_sheet(title="supp08", index=0)
     sheet.append(["set index", "DNA Fountain", "Yin-Yang Code", "HEDGES", "SPIDER-WEB"])
     for index, data in enumerate(display_data):
         record = [str(index + 1).zfill(2)]
@@ -235,17 +255,17 @@ def supp07():
                 record.append("%.2f ~ %.2f" % (min(sub_data), max(sub_data)))
         sheet.append(record)
 
-    book.save("./show/supp07.xlsx")
+    book.save("./show/supp08.xlsx")
 
 
-def supp08():
+def supp09():
     display_data = [[[] for _ in range(4)] for _ in range(12)]
     record = load_data(load_path="./raw/coding_evaluation_1.pkl")
     for algorithm_index, filter_index, _, _, code_rate in record:
         display_data[int(filter_index) - 1][int(algorithm_index) - 1].append(code_rate)
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp08", index=0)
+    sheet = book.create_sheet(title="supp09", index=0)
     sheet.append(["set index", "DNA Fountain", "Yin-Yang Code", "HEDGES", "SPIDER-WEB"])
     for index, data in enumerate(display_data):
         record = [str(index + 1).zfill(2)]
@@ -260,10 +280,10 @@ def supp08():
                 record.append("%.4f" % std(sub_data))
         sheet.append(record)
 
-    book.save("./show/supp08.xlsx")
+    book.save("./show/supp09.xlsx")
 
 
-def supp09():
+def supp10():
     counts = ones(shape=(12, 6)) * 100
     record = load_data(load_path="./raw/coding_evaluation_1.pkl")
     for algorithm_index, filter_index, param_index, _, code_rate in record:
@@ -272,7 +292,7 @@ def supp09():
     counts /= 100.0
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp09", index=0)
+    sheet = book.create_sheet(title="supp10", index=0)
     sheet.append(["set index", "pattern 1", "pattern 2", "pattern 3", "pattern 4", "pattern 5", "pattern 6"])
     for index, data in enumerate(counts):
         record = [str(index + 1).zfill(2)]
@@ -280,10 +300,10 @@ def supp09():
             record.append(str(int(value * 100)) + "%")
         sheet.append(record)
 
-    book.save("./show/supp09.xlsx")
+    book.save("./show/supp10.xlsx")
 
 
-def supp10():
+def supp11():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
 
     capacities, _ = load_data(load_path="./raw/capacity_reference.pkl")
@@ -319,11 +339,11 @@ def supp10():
     pyplot.yticks([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0],
                   ["1.0", "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2.0"], fontsize=10)
     pyplot.ylim(0.95, 2.05)
-    pyplot.savefig("./show/supp10.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp11.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp11():
+def supp12():
     data = load_data(load_path="./raw/correction_evaluation_1.pkl")
 
     pyplot.figure(figsize=(10, 6), tight_layout=True)
@@ -365,11 +385,11 @@ def supp11():
     # noinspection PyUnresolvedReferences
     ax.spines["right"].set_visible(False)
 
-    pyplot.savefig("./show/supp11.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp12.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp12():
+def supp13():
     data = load_data(load_path="./raw/correction_evaluation_1.pkl")
 
     pyplot.figure(figsize=(10, 6), tight_layout=True)
@@ -407,11 +427,11 @@ def supp12():
     pyplot.yticks([0, 2, 4, 6, 8, 10], [1, 4, 16, 64, 256, 1024], fontsize=10)
     pyplot.xlim(-0.8, 7.8)
     pyplot.ylim(-0.5, 10.5)
-    pyplot.savefig("./show/supp12.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp13.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp13():
+def supp14():
     data = load_data(load_path="./raw/correction_evaluation_4.pkl")
 
     figure = pyplot.figure(figsize=(10, 5))
@@ -448,11 +468,11 @@ def supp13():
     bar.set_label("minimum reads number to reach the given retrieval rate", fontsize=10)
     bar.ax.tick_params(labelsize=10)
 
-    pyplot.savefig("./show/supp13.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp14.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp14():
+def supp15():
     data = load_data(load_path="./raw/correction_evaluation_6.pkl")
 
     figure = pyplot.figure(figsize=(10, 6))
@@ -487,25 +507,25 @@ def supp14():
     bar.set_label("maximum frequency of incorrect reads", fontsize=10)
     bar.ax.tick_params(labelsize=10)
 
-    pyplot.savefig("./show/supp14.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp15.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp15():
+def supp16():
     data = load_data(load_path="./raw/correction_evaluation_7.pkl")
 
     book = Workbook()
-    sheet = book.create_sheet(title="supp15", index=0)
+    sheet = book.create_sheet(title="supp16", index=0)
     sheet.append(["error rate", "SPIDER-WEB (average)", "SPIDER-WEB (median)", "HEDGES (average)", "HEDGES (median)"])
     for value in range(9):
         value_x = data["spiderweb"][value / 200.0]
         value_y = data["hedges"][value / 200.0]
         sheet.append([value / 200.0, mean(value_x), median(value_x), mean(value_y), median(value_y)])
 
-    book.save("./show/supp15.xlsx")
+    book.save("./show/supp16.xlsx")
 
 
-def supp16():
+def supp17():
     filter_indices = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
     coding_graphs = load_data(load_path="./raw/graph_coding.pkl")
     follow_ups = zeros(shape=(12, 3))
@@ -517,7 +537,7 @@ def supp16():
         counts /= sum(counts)
         follow_ups[index] = counts
 
-    figure = pyplot.figure(figsize=(10, 6), tight_layout=True)
+    pyplot.figure(figsize=(10, 6), tight_layout=True)
     gradient_colors = pyplot.get_cmap("RdYlGn")(linspace(0, 1, 12))
     for index, filter_index in enumerate(filter_indices):
         lengths = linspace(0, 256, 257)
@@ -531,11 +551,11 @@ def supp16():
     pyplot.yticks([0, 64, 128, 192, 256], ["2^0", "2^64", "2^128", "2^192", "2^256"], fontsize=10)
     pyplot.xlim(0, 256)
     pyplot.ylim(0, 256)
-    pyplot.savefig("./show/supp16.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp17.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
-def supp17():
+def supp18():
     record = load_data(load_path="./raw/capacity_evaluation.pkl")
 
     data, errors = record["detail"]
@@ -661,7 +681,7 @@ def supp17():
     figure.text(0.024, 0.66, "b", va="center", ha="center", fontsize=14)
     figure.text(0.024, 0.34, "c", va="center", ha="center", fontsize=14)
 
-    pyplot.savefig("./show/supp17.pdf", format="pdf", bbox_inches="tight", dpi=600)
+    pyplot.savefig("./show/supp18.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
 
 
@@ -683,3 +703,4 @@ if __name__ == "__main__":
     supp15()
     supp16()
     supp17()
+    supp18()

@@ -1,11 +1,9 @@
 from itertools import product
 from time import time
-from networkx import DiGraph
-from numpy import random, array, arange, ones, zeros, fromfile, unpackbits, hstack, expand_dims
-from numpy import abs, all, sum, min, max, log, where, longlong, uint8
+from numpy import random, array, arange, zeros, abs, min, max, log, where, all, longlong
 from warnings import filterwarnings
 
-from dsw import encode, decode, set_vt, repair_dna, obtain_vertices, bit_to_number, dna_to_number, number_to_bit
+from dsw import set_vt, repair_dna, obtain_vertices, bit_to_number
 from dsw import Monitor, accessor_to_latter_map, approximate_capacity, remove_nasty_arc
 
 filterwarnings("ignore", category=RuntimeWarning)
@@ -412,7 +410,7 @@ def hedges_step(random_seed, bio_filter, dna_length, repeats, errors):
     records = zeros(shape=(repeats,), dtype=int)
     for repeat in range(repeats):
         print("Run test " + str(repeat + 1) + "/" + str(repeats) + " with " + str(errors) + " errors.")
-        used_message, found = random.randint(0, 2, size=(dna_length // 3 + 1,)), False
+        used_message = random.randint(0, 2, size=(dna_length // 3 + 1,))
         right_dna_sequence = hedges_encode(binary_message=used_message, strand_index=repeat, pattern=[1, 0, 0])
         wrong_dna_sequence = introduce_errors(right_dna_sequence=right_dna_sequence, errors=errors)
         availables, size, step, process = hedges_decode(dna_sequence=wrong_dna_sequence, strand_index=repeat,
@@ -420,7 +418,6 @@ def hedges_step(random_seed, bio_filter, dna_length, repeats, errors):
                                                         correct_penalty=-0.324)
         for available in availables:
             if all(available[:-1] == used_message[:-1]):
-                found = True
                 break
         records[repeat] = step
 

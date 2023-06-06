@@ -22,9 +22,10 @@ def main01():
     pyplot.figure(figsize=(10, 7), tight_layout=True)
 
     ax = pyplot.subplot(3, 1, 1)
+    pyplot.text(0.03, 0.98, "a", va="center", ha="center", fontsize=14)
     pyplot.text(0.03, 0.5, "generating process", color="#0070C0",
-                va="center", ha="center", rotation="vertical", fontsize=12)
-    pyplot.vlines(0.1, 0, 1, color="#0070C0", lw=1.5)
+                va="center", ha="center", rotation="vertical", fontsize=11)
+    pyplot.vlines(0.1, 0.05, 0.95, color="#0070C0", lw=1.5)
     ax.add_patch(patches.Circle(xy=(0.5, 0.5), radius=0.200, facecolor="#EEEEEE", edgecolor="#000000", lw=0.75))
     pyplot.text(0.5, 0.5, r"$\mathcal{D}_4^k$", va="center", ha="center", fontsize=14)
     pyplot.text(0.5, 0.1, "quaternary de Bruijn graph\nof order " + r"$k$",
@@ -88,10 +89,11 @@ def main01():
     pyplot.ylim(0, 1)
 
     pyplot.subplot(3, 1, 2)
+    pyplot.text(0.03, 0.98, "b", va="center", ha="center", fontsize=14)
     pyplot.text(0.03, 0.5, "coding process", color="#0070C0",
-                va="center", ha="center", rotation="vertical", fontsize=12)
-    pyplot.vlines(0.1, 0, 1, color="#0070C0", lw=1.5)
-    pyplot.text(0.5, 0.92, "part of coding digraph", va="center", ha="center", fontsize=10)
+                va="center", ha="center", rotation="vertical", fontsize=11)
+    pyplot.vlines(0.1, 0.05, 0.95, color="#0070C0", lw=1.5)
+    pyplot.text(0.5, 0.92, "walk of coding digraph", va="center", ha="center", fontsize=10)
     points = array([[0.5, 0.2, 0.4, 0.6, 0.8, 0.5, 0.7, 0.4, 0.6, 0.4, 0.6, 0.8],
                     [0.9, 0.7, 0.7, 0.7, 0.7, 0.5, 0.5, 0.3, 0.3, 0.1, 0.1, 0.1]])
     points[1] -= 0.05
@@ -188,9 +190,10 @@ def main01():
     pyplot.ylim(0, 1)
 
     pyplot.subplot(3, 1, 3)
+    pyplot.text(0.03, 0.98, "c", va="center", ha="center", fontsize=14)
     pyplot.text(0.03, 0.5, "error correcting process", color="#0070C0",
-                va="center", ha="center", rotation="vertical", fontsize=12)
-    pyplot.vlines(0.1, 0, 1, color="#0070C0", lw=1.5)
+                va="center", ha="center", rotation="vertical", fontsize=11)
+    pyplot.vlines(0.1, 0.05, 0.95, color="#0070C0", lw=1.5)
     pyplot.fill_between([0.15, 3.50], 0.05, 0.95, color="#EFEFEF", lw=0)
     points = array([[0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 0.4, 0.6, 0.8, 1.0, 1.2, 0.4, 0.6, 0.8, 1.0, 0.4, 0.6, 0.8],
                     [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0.55, 0.55, 0.55, 0.55, 0.55, 0.4, 0.4, 0.4, 0.4, 0.25, 0.25, 0.25]])
@@ -419,7 +422,7 @@ def main02():
                     arrowprops=dict(arrowstyle="<|-", color="red", lw=1))
     pyplot.text(0.35, 0.14, "normal arc", va="center", ha="left", fontsize=8)
     pyplot.text(0.35, 0.06, "access arc (error found)", va="center", ha="left", fontsize=8)
-    pyplot.fill_between([0.7 - 0.017, 0.7 + 0.017], 0.14 - 0.015, 0.14 + 0.018, lw=0, color="lightblue")
+    pyplot.fill_between([0.66 - 0.017, 0.66 + 0.017], 0.14 - 0.015, 0.14 + 0.018, lw=0, color="lightblue")
     pyplot.text(0.66, 0.14, "N", va="center", ha="center", fontsize=8)
     pyplot.text(0.70, 0.14, "adjust (substitute/insert/delete) by N", va="center", ha="left", fontsize=8)
     pyplot.text(0.94, 0.06, "N", va="center", ha="center", color="r", fontsize=8)
@@ -632,7 +635,7 @@ def main03():
         pyplot.plot(arange(len(values)) + 0.5, values + 0.5, lw=0.75, ls="--", color="k", zorder=1)
     pyplot.legend(loc="upper right", ncol=2, framealpha=1, title="% of edit errors", fontsize=9, title_fontsize=9)
     pyplot.xlabel("reads number", fontsize=10)
-    pyplot.ylabel("maximum loss after retrieval", fontsize=10)
+    pyplot.ylabel("maximum number of\nuncorrectable sequences", fontsize=10)
     pyplot.xticks(arange(10) + 0.5, (arange(10) + 1) * 5, fontsize=10)
     pyplot.yticks(arange(6) + 0.5, ["1E+" + str(v) for v in arange(6)], fontsize=10)
     pyplot.xlim(0, 10)
@@ -650,18 +653,18 @@ def main03():
     show_data[show_data <= 0] = nan
 
     # noinspection PyUnresolvedReferences
-    ax.add_patch(patches.FancyBboxPatch((0.25, 5.85), width=3.3, height=1.9,
+    ax.add_patch(patches.FancyBboxPatch((0.25, 5.85), width=4.6, height=1.9,
                                         fc="w", ec="silver", boxstyle="Round,pad=0.1", lw=0.75))
-    pyplot.text(1.9, 7.3, "smallest gap between\ncorrect-incorrect reads", va="center", ha="center", fontsize=9,
-                zorder=2)
+    pyplot.text(2.55, 7.3, "smallest frequency gap between\ncorrect-incorrect sequences",
+                va="center", ha="center", fontsize=9, zorder=2)
 
     for index, color in enumerate(pyplot.get_cmap("gist_earth_r")(linspace(0, 0.5, 40))):
-        pyplot.fill_between([0.4 + index * (3.0 / 40.0), 0.4 + (index + 1) * (3.0 / 40.0)], 6.5, 6.8,
+        pyplot.fill_between([0.4 + index * (4.25 / 40.0), 0.4 + (index + 1) * (4.25 / 40.0)], 6.5, 6.8,
                             fc=color, lw=0, zorder=2)
     for index, number in enumerate([0, 10, 20, 30, 40]):
-        pyplot.vlines(0.4 + 0.75 * index, 6.5, 6.3, lw=0.75, zorder=2)
-        pyplot.text(0.4 + 0.75 * index, 6.0, str(number), va="center", ha="center", fontsize=9, zorder=2)
-    pyplot.plot([0.4, 3.4, 3.4, 0.4, 0.4], [6.8, 6.8, 6.5, 6.5, 6.8], color="k", lw=0.75, zorder=3)
+        pyplot.vlines(0.4 + 1.0625 * index, 6.5, 6.3, lw=0.75, zorder=2)
+        pyplot.text(0.4 + 1.0625 * index, 6.0, str(number), va="center", ha="center", fontsize=9, zorder=2)
+    pyplot.plot([0.40, 4.65, 4.65, 0.40, 0.40], [6.8, 6.8, 6.5, 6.5, 6.8], color="k", lw=0.75, zorder=3)
 
     pyplot.pcolormesh(arange(11), arange(9), show_data.T, vmin=0, vmax=70, cmap="gist_earth_r")
     for x in range(10):
@@ -670,7 +673,7 @@ def main03():
                 pyplot.text(x + 0.5, y + 0.5, matrix[x, y], va="center", ha="center", fontsize=9)
 
     pyplot.xlabel("reads number", fontsize=10)
-    pyplot.ylabel("error rate", fontsize=10)
+    pyplot.ylabel("error rate", fontsize=10, labelpad=12)
     pyplot.xticks(arange(10) + 0.5, (arange(10) + 1) * 5, fontsize=10)
     pyplot.yticks(arange(8) + 0.5, ["%.1f" % ((v + 1) / 2) + "%" for v in arange(8)], fontsize=10)
     pyplot.xlim(0, 10)
@@ -691,14 +694,14 @@ def main03():
         for retrieval_rate, style in zip([1.0, 0.999, 0.99], used_styles):
             x_values, y_values = data[(error_rate, retrieval_rate)]
             info_1 = "%.1f" % (error_rate * 100) + "%"
-            info_2 = "%.1f" % (retrieval_rate * 100) + "%" if retrieval_rate < 1 else "lossless"
+            info_2 = "%.1f" % (retrieval_rate * 100) + "%" if retrieval_rate < 1 else " 100%"
             pyplot.plot(log10(x_values), y_values, color=color, lw=2, ls=style, zorder=1,
                         label=info_1 + " | " + info_2)
 
     pyplot.legend(loc="upper left", ncol=2, fontsize=9, title_fontsize=9,
                   title="  minimum reads number\nfor \"error rate | retrieval rate\"")
     pyplot.xlabel("sequence diversity", fontsize=10)
-    pyplot.ylabel("reads number", fontsize=10)
+    pyplot.ylabel("reads number", fontsize=10, labelpad=12)
     pyplot.xticks(arange(0, 13),
                   ["1E+" + str(value).zfill(2) if value % 3 == 0 else "" for value in arange(0, 13)], fontsize=10)
     pyplot.yticks(arange(0, 281, 40), arange(0, 281, 40), fontsize=10)
@@ -735,9 +738,9 @@ def main03():
         pyplot.plot(x_values, y_values, color=used_colors[1], lw=2, ls=style, label="0.5% | " + diversity_name)
 
     pyplot.legend(loc="upper left", ncol=2, fontsize=9, title_fontsize=9,
-                  title="    non-blocking reads threshold\nfor \"error rate | sequence diversity\"")
+                  title="        non-blocking threshold\nfor \"error rate | sequence diversity\"")
     pyplot.xlabel("reads number", fontsize=10)
-    pyplot.ylabel("reads threshold", fontsize=10)
+    pyplot.ylabel("maximum frequency of\nincorrect DNA sequences", fontsize=10)
     pyplot.xticks(arange(0, 281, 40), arange(0, 281, 40), fontsize=10)
     pyplot.yticks(arange(0, 141, 20), arange(0, 141, 20), fontsize=10)
     pyplot.xlim(0, 280)
@@ -748,10 +751,10 @@ def main03():
     ax.spines["right"].set_visible(False)
 
     figure.align_labels()
-    figure.text(0.020, 0.99, "a", va="center", ha="center", fontsize=14)
-    figure.text(0.518, 0.99, "b", va="center", ha="center", fontsize=14)
-    figure.text(0.020, 0.49, "c", va="center", ha="center", fontsize=14)
-    figure.text(0.518, 0.49, "d", va="center", ha="center", fontsize=14)
+    figure.text(0.024, 0.99, "a", va="center", ha="center", fontsize=14)
+    figure.text(0.523, 0.99, "b", va="center", ha="center", fontsize=14)
+    figure.text(0.024, 0.49, "c", va="center", ha="center", fontsize=14)
+    figure.text(0.523, 0.49, "d", va="center", ha="center", fontsize=14)
 
     pyplot.savefig("./show/main03.pdf", format="pdf", bbox_inches="tight", dpi=600)
     pyplot.close()
@@ -773,17 +776,17 @@ def main04():
     pyplot.bar([-1], [-1], fc="#E2F0D9", ec="k", lw=0.75, width=0.3, label="high-throughput sequencing")
 
     for index, speed in enumerate(correction_speeds):
-        height = (speed - 100000) / 250 + 1600
+        height = (speed * 144 - 10000000) / 50000 + 1600
         pyplot.vlines(index - 0.3, 0, 1300, lw=0.75, zorder=0)
         pyplot.vlines(index, 0, 1300, lw=0.75, zorder=0)
         pyplot.plot([index - 0.3, index - 0.3, index, index], [1500, height, height, 1500],
                     lw=0.75, color="k", zorder=0)
-        pyplot.text(index - 0.15, height + 20, int(speed), va="bottom", ha="center", fontsize=9)
+        pyplot.text(index - 0.15, height + 20, int(speed * 144), va="bottom", ha="center", fontsize=9)
         pyplot.fill_between([index - 0.3, index], 0, 1300, fc="#E2F0D9", ec="w", lw=0, zorder=-1)
         pyplot.fill_between([index - 0.3, index], 1500, height, fc="#E2F0D9", ec="w", lw=0, zorder=-1)
     pyplot.text(-0.5, 1400, " ", bbox=dict(fc="w", ec="w"), va="center", ha="center", fontsize=1, zorder=5)
-    figure.add_artist(lines.Line2D([0.100, 0.108], [0.703, 0.713], lw=1, color="k"))
-    figure.add_artist(lines.Line2D([0.100, 0.108], [0.728, 0.738], lw=1, color="k"))
+    figure.add_artist(lines.Line2D([0.115, 0.123], [0.722, 0.732], lw=1, color="k"))
+    figure.add_artist(lines.Line2D([0.115, 0.123], [0.746, 0.756], lw=1, color="k"))
     pyplot.bar(arange(len(correction_speeds)) + 0.15, correction_speeds / 450, fc="#A9D18E", ec="k", lw=0.75, width=0.3,
                label="single-molecule sequencing")
     for h_location, value in enumerate(correction_speeds / 450):
@@ -793,10 +796,10 @@ def main04():
     pyplot.ylabel("performance\n(correction speed / sequencing speed)", fontsize=10)
     pyplot.xticks(arange(len(correction_speeds)),
                   ["%.1f" % (value / 2) + "%" for value in arange(len(correction_speeds))], fontsize=10)
-    pyplot.yticks([0, 400, 800, 1200, 1600, 2000, 2400, 2800, 3200, 3600],
-                  [0, 400, 800, 1200, 100000, 200000, 300000, 400000, 500000, 600000], fontsize=10)
+    pyplot.yticks([0, 400, 800, 1200, 1600, 2000, 2400, 2800, 3200],
+                  [0, 400, 800, 1200, 10000000, 30000000, 50000000, 70000000, 90000000], fontsize=10)
     pyplot.xlim(-0.5, len(correction_speeds) - 0.5)
-    pyplot.ylim(0, 3600)
+    pyplot.ylim(0, 3200)
     # noinspection PyUnresolvedReferences
     ax.spines["top"].set_visible(False)
     # noinspection PyUnresolvedReferences
