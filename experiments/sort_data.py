@@ -109,6 +109,21 @@ def supplementary_data():
                           propose40(sequence_diversity), propose05(sequence_diversity)])
 
         sheet = book.create_sheet(title="Table S1")
+        sheet.append(["micro-organism", "undesired motifs"])
+        sheet.append(["Bacillus subtilis", "GTCGAC"])
+        sheet.append(["Bifidobacterium bifidum", "CTGCAG"])
+        sheet.append(["Escherichia coli", "CAGCAG and GATATC"])
+        sheet.append(["Gluconobacter dioxyacetonicus", "AGGCCT"])
+        sheet.append(["Haemophilus gallinarum ", "GACGC"])
+        sheet.append(["Klebsiella pneumoniae", "GGTACC"])
+        sheet.append(["Oerskovia xanthineolytica", "AGCT"])
+        sheet.append(["Streptomyces achromogenes", "ACTAGT"])
+        sheet.append(["Streptomyces caespitosus", "AGTACT"])
+        sheet.append(["Streptomyces phaeochromogenes", "GCATGC"])
+        sheet.append(["Streptomyces stanford", "GAGCTC"])
+        sheet.append(["Xanthomonas badrii", "TCTAGA"])
+
+        sheet = book.create_sheet(title="Table S2")
         sheet.append(["set index", "homopolymer run-length", "regionalized GC content", "undesired motifs", "capacity"])
         record, _ = load_data(load_path="./raw/capacity_reference.pkl")
         for constraint_index, bio_filter in local_bio_filters.items():
@@ -149,7 +164,7 @@ def supplementary_data():
         for index in range(12):
             sheet.append([str(index + 1).zfill(2), record[str(index + 1).zfill(2)][0]])
 
-        sheet = book.create_sheet(title="Table S2")
+        sheet = book.create_sheet(title="Table S3")
         sheet.append(["trimming cycle",
                       "set 01", "set 02", "set 03", "set 04", "set 05", "set 06",
                       "set 07", "set 08", "set 09", "set 10", "set 11", "set 12"])
@@ -164,7 +179,7 @@ def supplementary_data():
                     values.append("N/A")
             sheet.append(values)
 
-        sheet = book.create_sheet(title="Table S3")
+        sheet = book.create_sheet(title="Table S4")
         sheet.append(["param index", "c in DNA Fountain", "delta in DNA Fountain", "rule index in Yin-Yang Code",
                       "pattern in HEDGES", "correct penalty in HEDGES"])
         random_seed, param_number = 2021, 100
@@ -193,7 +208,7 @@ def supplementary_data():
                 info.append("N/A")
             sheet.append(info)
 
-        sheet = book.create_sheet(title="Table S4")
+        sheet = book.create_sheet(title="Table S5")
         sheet.append(["param index", *["set " + str(idx + 1).zfill(2) for idx in range(12)]])
         random_seed, param_number, spiderweb_params = 2021, 100, []
         record = load_data(load_path="./raw/graph_coding.pkl")
@@ -210,7 +225,7 @@ def supplementary_data():
                 info.append(vertex_index)
             sheet.append(info)
 
-        sheet = book.create_sheet(title="Table S5,S6,S7")
+        sheet = book.create_sheet(title="Table S6,S7,S8")
         sheet.append(["set index", "parameter index", "data index",
                       "code rate of DNA Fountain", "code rate of Yin-Yang Code", "code rate of HEDGES",
                       "code rate of SPIDER-WEB"])
@@ -266,7 +281,7 @@ def supplementary_data():
                 for index_2, sequence_diversity in enumerate([1e1, 1e2, 1e3, 1e4, 1e5]):
                     sheet.append([error_rate, reads_number, sequence_diversity, record[error_rate][index_1, index_2]])
 
-        sheet = book.create_sheet(title="Table S8")
+        sheet = book.create_sheet(title="Table S9")
         sheet.append(["error rate", "test index",
                       "vertex access frequency of SPIDER-WEB", "vertex access frequency of HEDGES"])
         record = load_data(load_path="./raw/correction_evaluation_7.pkl")
