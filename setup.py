@@ -23,8 +23,7 @@ setup(
     packages=["dsw", "tests"],
     install_requires=["numpy", "networkx"],
     license="BGI-Research",
-    classifiers=["License :: BGI-Research",
-                 "Programming Language :: Python :: 3",
+    classifiers=["Programming Language :: Python :: 3",
                  "Operating System :: OS Independent"],
     keywords="DNA-based data storage, coding algorithm, automatic algorithm generator, probabilistic error correction",
 )
