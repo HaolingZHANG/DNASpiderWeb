@@ -1,5 +1,6 @@
+from collections import Counter
 from hashlib import md5
-from numpy import random, array, ones, linspace, repeat, expand_dims, vstack, log10, ceil, where
+from numpy import random, array, zeros, ones, linspace, repeat, expand_dims, vstack, sum, log2, log10, ceil, where
 from openpyxl import Workbook
 from os.path import exists, getsize
 
@@ -292,6 +293,26 @@ def supplementary_data():
                 sheet.append([value / 200.0, test_index + 1, x, y])
 
         sheet = book.create_sheet(title="Figure S8")
+        sheet.append(["sequence length", *["set " + str(idx + 1).zfill(2) for idx in range(12)]])
+        coding_graphs, lengths = load_data(load_path="./raw/graph_coding.pkl"), linspace(0, 256, 257)
+        follows = zeros(shape=(12, 3))
+        for index, filter_index in enumerate(filter_indices):
+            accessor = coding_graphs[filter_index]
+            out_degrees, counts = array(list(Counter(where(accessor >= 0)[0]).values())), zeros(shape=(3,), dtype=float)
+            for out_degree in [2, 3, 4]:
+                counts[out_degree - 2] = len(where(out_degrees == out_degree)[0])
+            counts /= sum(counts)
+            follows[index] = counts
+
+        values = [lengths.tolist()]
+        for index, filter_index in enumerate(filter_indices):
+            rate = follows[index][0] * log2(2.0) + follows[index][1] * log2(6.0) + follows[index][2] * log2(24.0)
+            values.append((lengths * rate).tolist())
+        values = array(values).T
+        for value in values:
+            sheet.append(value.tolist())
+
+        sheet = book.create_sheet(title="Figure S9")
         sheet.append(["matrix size", "test index", "capacity", "relative error"])
         record = load_data(load_path="./raw/capacity_evaluation.pkl")
         for size, data in record["extend"].items():
