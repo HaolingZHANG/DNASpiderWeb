@@ -7,4 +7,4 @@ The simplified supporting data support all figures and tables in the main text a
 
 | file name               | MD5                              | file size |
 | ----                    | ----                             | ----      |
-| supplementary data.xlsx | DF3A194087004E4203D968E781E5AD33 | 13,579 KB |
+| supplementary data.xlsx | A1F1EFB3F3D2CE79C1161EE2E320FBF4 | 13,625 KB |
