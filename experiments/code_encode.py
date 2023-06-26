@@ -364,7 +364,7 @@ def trans_hedges(dataset, shape, index_length):
 def trans_spiderweb(dataset, shape, index_length, random_seed, param_number):
     print("Calculate generated algorithms.")
     records, current, total = [], 0, 12 * len(dataset) * param_number  # number of vertex.
-    coding_graphs = load_data(load_path="./data/graph_coding.pkl")
+    coding_graphs = load_data(load_path="./raw/graph_coding.pkl")
 
     for filter_index in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
         accessor = coding_graphs[filter_index]
@@ -377,9 +377,8 @@ def trans_spiderweb(dataset, shape, index_length, random_seed, param_number):
                 matrix = array(insert_index(data=data.reshape(shape).tolist(), index_length=index_length))
                 print("task (" + str(current + 1) + " / " + str(total) + ").")
                 nucleotide_number, monitor = 0, Monitor()
-
                 for index, binary_message in enumerate(matrix):
-                    dna_sequence = encode(binary_message=matrix, accessor=accessor, start_index=start_index)
+                    dna_sequence = encode(binary_message=binary_message, accessor=accessor, start_index=start_index)
                     nucleotide_number += len(dna_sequence)
                     monitor(index + 1, len(matrix))
 
