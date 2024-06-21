@@ -1,1 +1,0 @@
-vertices = find_vertices(observed_length=10, bio_filter=special_filter, verbose=True)
